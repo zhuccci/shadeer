@@ -57,6 +57,35 @@
       background: #1a1a1a;
     }
 
+    .upload-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 16px;
+      background: #fff679;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0px 0px 15px 0px rgba(255, 246, 121, 0.2);
+      font-family: inherit;
+      font-size: 16px;
+      color: #141414;
+      white-space: nowrap;
+      transition: background 0.15s ease;
+      z-index: 10;
+    }
+    .upload-btn:hover { background: #fff9a7; }
+    .upload-btn:active { background: #bdb545; }
+    .upload-btn-icon {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
 
     /* ── Component area ───────────────────────────────────────── */
     .component-area {
@@ -483,7 +512,18 @@
   </div>
 
   <!-- Image preview — canvas injected by ShaderMount -->
-  <div class="image-area"></div>
+  <div class="image-area">
+    <button class="upload-btn">
+      <svg class="upload-btn-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11.25 20.25H5.75C4.64543 20.25 3.75 19.3546 3.75 18.25V5.75C3.75 4.64543 4.64543 3.75 5.75 3.75H18.25C19.3546 3.75 20.25 4.64543 20.25 5.75V11.25" stroke="#141414" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M3.75 16.25L6.58579 13.41375C7.36683 12.63275 8.63317 12.63275 9.41421 13.41375L12 16" stroke="#141414" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M14.5 11.5C15.6046 11.5 16.5 10.6046 16.5 9.5C16.5 8.39543 15.6046 7.5 14.5 7.5C13.3954 7.5 12.5 8.39543 12.5 9.5C12.5 10.6046 13.3954 11.5 14.5 11.5Z" stroke="#141414" stroke-width="1.5"/>
+        <path d="M15.75 18.5H21.25" stroke="#141414" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M18.5 15.75V21.25" stroke="#141414" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Upload image
+    </button>
+  </div>
 
   <!-- Tabs + Controls -->
   <div class="component-area">
@@ -588,6 +628,10 @@
                 <div class="dropdown-item" data-value="zigzag">
                   <svg class="option-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.14647 4.13783C8.34173 3.95406 8.65824 3.95406 8.8535 4.13783C9.04876 4.32161 9.04876 4.6195 8.8535 4.80328L5.207 8.23528L8.8535 11.6673C9.04876 11.8511 9.04876 12.1489 8.8535 12.3327L5.207 15.7647L8.8535 19.1967C9.04876 19.3805 9.04876 19.6784 8.8535 19.8622C8.65824 20.0459 8.34173 20.0459 8.14647 19.8622L4.14645 16.0974C3.95118 15.9137 3.95118 15.6158 4.14645 15.432L7.79295 12L4.14645 8.568C3.95118 8.38422 3.95118 8.08633 4.14645 7.90256L8.14647 4.13783ZM13.6465 4.13783C13.8418 3.95406 14.1583 3.95406 14.3535 4.13783C14.5488 4.32161 14.5488 4.6195 14.3535 4.80328L10.707 8.23528L14.3535 11.6673C14.5488 11.8511 14.5488 12.1489 14.3535 12.3327L10.707 15.7647L14.3535 19.1967C14.5488 19.3805 14.5488 19.6784 14.3535 19.8622C14.1583 20.0459 13.8418 20.0459 13.6465 19.8622L9.64647 16.0974C9.45121 15.9137 9.45121 15.6158 9.64647 15.432L13.293 12L9.64647 8.568C9.45121 8.38422 9.45121 8.08633 9.64647 7.90256L13.6465 4.13783ZM19.1465 4.13783C19.3418 3.95406 19.6583 3.95406 19.8536 4.13783C20.0488 4.32161 20.0488 4.6195 19.8536 4.80328L16.2071 8.23528L19.8536 11.6673C20.0488 11.8511 20.0488 12.1489 19.8536 12.3327L16.2071 15.7647L19.8536 19.1967C20.0488 19.3805 20.0488 19.6784 19.8536 19.8622C19.6583 20.0459 19.3418 20.0459 19.1465 19.8622L15.1465 16.0974C14.9512 15.9137 14.9512 15.6158 15.1465 15.432L18.793 12L15.1465 8.568C14.9512 8.38422 14.9512 8.08633 15.1465 7.90256L19.1465 4.13783Z" fill="black"/></svg>
                   <span class="dropdown-item-text">Zigzag</span>
+                </div>
+                <div class="dropdown-item" data-value="circles">
+                  <svg class="option-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="6" cy="8" r="3.5" fill="black"/><circle cx="12" cy="8" r="3.5" fill="black"/><circle cx="18" cy="8" r="3.5" fill="black"/><circle cx="6" cy="16" r="3.5" fill="black"/><circle cx="12" cy="16" r="3.5" fill="black"/><circle cx="18" cy="16" r="3.5" fill="black"/></svg>
+                  <span class="dropdown-item-text">Circles</span>
                 </div>
               </div>
             </div>
@@ -858,7 +902,8 @@ void main() {
   uv = rotateAspect(uv, patternRotation, u_imageAspectRatio);
   float curve = 0.;
   float patternY = uv.y / u_imageAspectRatio;
-  if (u_shape > 4.5)      { curve = .5 + .5 * sin(.5 * PI * uv.x) * cos(.5 * PI * patternY); }
+  if (u_shape > 5.5)      { vec2 c = (v_imageUV - 0.5) * vec2(u_imageAspectRatio, 1.0); float r = length(c) * patternSize; curve = r - uv.x; }
+  else if (u_shape > 4.5) { curve = .5 + .5 * sin(.5 * PI * uv.x) * cos(.5 * PI * patternY); }
   else if (u_shape > 3.5) { curve = 10. * abs(fract(.1 * patternY) - .5); }
   else if (u_shape > 2.5) { curve = 4. * sin(.23 * patternY); }
   else if (u_shape > 1.5) { curve = .5 + .5 * sin(.5 * uv.x) * sin(1.7 * uv.x); }
@@ -952,7 +997,7 @@ void main() {
 }
 `;
 
-  const GlassGridShapes = { lines: 1, linesIrregular: 2, wave: 3, zigzag: 4, pattern: 5 };
+  const GlassGridShapes = { lines: 1, linesIrregular: 2, wave: 3, zigzag: 4, pattern: 5, circles: 6 };
 
   function _createShader(gl, type, source) {
     const shader = gl.createShader(type);
@@ -1227,7 +1272,7 @@ void main() {
       u_angle:      ((angle % 360) + 360) % 360 / 2,
       u_size:       shaderSize / 100,
       u_grainMixer: shaderGrain / 100,
-      u_shape:      shaderShape === 'zigzag' ? GlassGridShapes.zigzag : GlassGridShapes.wave,
+      u_shape:      shaderShape === 'zigzag' ? GlassGridShapes.zigzag : shaderShape === 'circles' ? GlassGridShapes.circles : GlassGridShapes.wave,
     });
   }
 
@@ -1254,6 +1299,10 @@ void main() {
     zigzag: {
       label: 'Zigzag',
       icon: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.14647 4.13783C8.34173 3.95406 8.65824 3.95406 8.8535 4.13783C9.04876 4.32161 9.04876 4.6195 8.8535 4.80328L5.207 8.23528L8.8535 11.6673C9.04876 11.8511 9.04876 12.1489 8.8535 12.3327L5.207 15.7647L8.8535 19.1967C9.04876 19.3805 9.04876 19.6784 8.8535 19.8622C8.65824 20.0459 8.34173 20.0459 8.14647 19.8622L4.14645 16.0974C3.95118 15.9137 3.95118 15.6158 4.14645 15.432L7.79295 12L4.14645 8.568C3.95118 8.38422 3.95118 8.08633 4.14645 7.90256L8.14647 4.13783ZM13.6465 4.13783C13.8418 3.95406 14.1583 3.95406 14.3535 4.13783C14.5488 4.32161 14.5488 4.6195 14.3535 4.80328L10.707 8.23528L14.3535 11.6673C14.5488 11.8511 14.5488 12.1489 14.3535 12.3327L10.707 15.7647L14.3535 19.1967C14.5488 19.3805 14.5488 19.6784 14.3535 19.8622C14.1583 20.0459 13.8418 20.0459 13.6465 19.8622L9.64647 16.0974C9.45121 15.9137 9.45121 15.6158 9.64647 15.432L13.293 12L9.64647 8.568C9.45121 8.38422 9.45121 8.08633 9.64647 7.90256L13.6465 4.13783ZM19.1465 4.13783C19.3418 3.95406 19.6583 3.95406 19.8536 4.13783C20.0488 4.32161 20.0488 4.6195 19.8536 4.80328L16.2071 8.23528L19.8536 11.6673C20.0488 11.8511 20.0488 12.1489 19.8536 12.3327L16.2071 15.7647L19.8536 19.1967C20.0488 19.3805 20.0488 19.6784 19.8536 19.8622C19.6583 20.0459 19.3418 20.0459 19.1465 19.8622L15.1465 16.0974C14.9512 15.9137 14.9512 15.6158 15.1465 15.432L18.793 12L15.1465 8.568C14.9512 8.38422 14.9512 8.08633 15.1465 7.90256L19.1465 4.13783Z" fill="black"/></svg>`,
+    },
+    circles: {
+      label: 'Circles',
+      icon: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="6" cy="8" r="3.5" fill="black"/><circle cx="12" cy="8" r="3.5" fill="black"/><circle cx="18" cy="8" r="3.5" fill="black"/><circle cx="6" cy="16" r="3.5" fill="black"/><circle cx="12" cy="16" r="3.5" fill="black"/><circle cx="18" cy="16" r="3.5" fill="black"/></svg>`,
     },
   };
 
@@ -1656,6 +1705,31 @@ void main() {
   }
 
   tryInitWithImage(shaderImage);
+
+  // ── Upload button ─────────────────────────────────────────────────
+  const uploadBtn = document.querySelector('.upload-btn');
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/jpeg,image/png';
+  fileInput.style.display = 'none';
+  document.body.appendChild(fileInput);
+
+  uploadBtn.addEventListener('click', () => fileInput.click());
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.src = url;
+    img.addEventListener('load', () => {
+      if (shaderMount) { shaderMount.destroy?.(); shaderMount = null; }
+      imageArea.querySelectorAll('canvas').forEach(c => c.remove());
+      initShader(img);
+      uploadBtn.style.display = 'none';
+    }, { once: true });
+    fileInput.value = '';
+  });
 </script>
 </body>
 </html>
