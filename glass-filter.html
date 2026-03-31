@@ -127,7 +127,7 @@
     .controls-left {
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 16px;
       flex: 1;
       min-width: 0;
     }
@@ -156,6 +156,7 @@
       justify-content: space-between;
       cursor: pointer;
       user-select: none;
+      transition: border-color 0.2s ease-out, background 0.2s ease-out;
     }
 
     .selector-left {
@@ -229,11 +230,34 @@
       font-weight: 400;
     }
 
+    /* ── Input row (shared hover container) ──────────────────── */
+    .input-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 8px;
+      border-radius: 8px;
+      background: transparent;
+      transition: background 0.2s ease-out;
+    }
+
+    .input-row:hover {
+      background: rgba(20, 20, 20, 0.3);
+    }
+
     /* ── Slider ───────────────────────────────────────────────── */
     .slider-row {
       display: flex;
       gap: 16px;
       align-items: center;
+      padding: 8px;
+      border-radius: 8px;
+      background: transparent;
+      transition: background 0.2s ease-out;
+    }
+
+    .slider-row:hover {
+      background: rgba(20, 20, 20, 0.3);
     }
 
     .slider-container {
@@ -538,6 +562,7 @@
 
       <!-- Shape selector -->
       <div class="widget-group">
+        <div class="input-row">
         <span class="widget-label">Shape</span>
         <div class="selector" id="selector">
           <div class="selector-left">
@@ -561,6 +586,7 @@
               <span class="dropdown-item-text">Zigzag</span>
             </div>
           </div>
+        </div>
         </div>
       </div>
 
@@ -809,6 +835,7 @@
   let knobDragging = false;
   let knobCenter = { x: 0, y: 0 };
   let dragStartMouseAngle = 0, dragStartKnobAngle = 0;
+  let knobVelocity = 0, knobPrevAngle = 0, knobPrevTime = 0, knobInertiaId = null;
 
   const ticks = [];
   for (let i = 0; i < TICK_COUNT; i++) {
@@ -850,12 +877,16 @@
 
   function startKnobDrag(e) {
     e.preventDefault();
+    if (knobInertiaId) { cancelAnimationFrame(knobInertiaId); knobInertiaId = null; }
     const rect = knob.getBoundingClientRect();
     knobCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
     knobDragging = true;
     knob.classList.add('dragging');
     dragStartMouseAngle = angleFromEvent(e);
     dragStartKnobAngle  = angle;
+    knobVelocity = 0;
+    knobPrevAngle = angle;
+    knobPrevTime  = performance.now();
   }
 
   function onKnobDrag(e) {
@@ -864,17 +895,44 @@
     let delta = angleFromEvent(e) - dragStartMouseAngle;
     if (delta >  180) delta -= 360;
     if (delta < -180) delta += 360;
-    angle = ((dragStartKnobAngle + delta) % 360 + 360) % 360;
+    const newAngle = ((dragStartKnobAngle + delta) % 360 + 360) % 360;
+    const now = performance.now();
+    const dt  = now - knobPrevTime;
+    if (dt > 0) {
+      let d = newAngle - knobPrevAngle;
+      if (d >  180) d -= 360;
+      if (d < -180) d += 360;
+      knobVelocity = d / dt;
+    }
+    knobPrevAngle = newAngle;
+    knobPrevTime  = performance.now();
+    angle = newAngle;
     updateKnob();
+  }
+
+  function releaseKnobDrag() {
+    knobDragging = false;
+    knob.classList.remove('dragging');
+    if (Math.abs(knobVelocity) < 0.02) return;
+    let lastTime = performance.now();
+    function step(now) {
+      const dt = now - lastTime;
+      lastTime = now;
+      knobVelocity *= Math.pow(0.85, dt / (1000 / 60));
+      angle = ((angle + knobVelocity * dt) % 360 + 360) % 360;
+      updateKnob();
+      knobInertiaId = Math.abs(knobVelocity) > 0.01 ? requestAnimationFrame(step) : null;
+    }
+    knobInertiaId = requestAnimationFrame(step);
   }
 
   knob.addEventListener('mousedown', startKnobDrag);
   window.addEventListener('mousemove', onKnobDrag);
-  window.addEventListener('mouseup', () => { knobDragging = false; knob.classList.remove('dragging'); });
+  window.addEventListener('mouseup', releaseKnobDrag);
 
   knob.addEventListener('touchstart', startKnobDrag, { passive: false });
   window.addEventListener('touchmove', onKnobDrag, { passive: false });
-  window.addEventListener('touchend', () => { knobDragging = false; });
+  window.addEventListener('touchend', releaseKnobDrag);
 
   knob.addEventListener('wheel', (e) => {
     e.preventDefault();
