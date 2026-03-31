@@ -47,8 +47,8 @@
 
     /* ── Image area ───────────────────────────────────────────── */
     .image-area {
-      width: 100%;
-      aspect-ratio: 4096 / 2731;
+      width: 672px;
+      height: 378px;
       border-top: 0.5px solid #5d5d5d;
       border-bottom: 0.5px solid #5d5d5d;
       box-shadow: 0 4px 20px 0 rgba(0,0,0,0.1);
@@ -112,21 +112,26 @@
       padding: 24px 8px;
       border-radius: 16px;
       border: 0.5px solid transparent;
-      background: #434343;
-      box-shadow: 0 2px 10px 0 rgba(0,0,0,0.05);
+      background: linear-gradient(180deg, #505050 0%, #434343 100%);
+      box-shadow: 0px 2px 8px 0px rgba(0,0,0,0.4), inset 0px 4px 6px 0px rgba(255,255,255,0.15);
       cursor: pointer;
       user-select: none;
       transition: background 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out;
     }
 
     .filter-btn:hover { border-color: #606060; }
+    .filter-btn:active {
+      background: #1b1b1b;
+      border-color: rgba(255, 246, 121, 0.4);
+      box-shadow: inset 0px 0px 12px 0px #141414;
+    }
     .filter-btn:hover .filter-icon { color: #fff679; filter: drop-shadow(0 0 8px rgba(255,246,121,0.6)); }
     .filter-btn:hover .filter-label { color: #fff679; }
 
     .filter-btn.selected {
-      background: #191919;
+      background: #1b1b1b;
       border-color: #fff679;
-      box-shadow: 0 4px 12px 0 rgba(0,0,0,0.15);
+      box-shadow: none;
     }
     .filter-btn.selected .filter-icon { color: #fff679; filter: drop-shadow(0 0 8px rgba(255,246,121,0.6)); }
     .filter-btn.selected .filter-label { color: #fff679; text-shadow: 0 0 15px rgba(255,246,121,0.5); }
@@ -902,7 +907,7 @@ void main() {
   uv = rotateAspect(uv, patternRotation, u_imageAspectRatio);
   float curve = 0.;
   float patternY = uv.y / u_imageAspectRatio;
-  if (u_shape > 5.5)      { vec2 c = (v_imageUV - 0.5) * vec2(u_imageAspectRatio, 1.0); float r = length(c) * patternSize; curve = r - uv.x; }
+  if (u_shape > 5.5)      { vec2 c = (uvMask - 0.5) * vec2(u_resolution.x / u_resolution.y, 1.0); float r = length(c) * patternSize; curve = r - uv.x; }
   else if (u_shape > 4.5) { curve = .5 + .5 * sin(.5 * PI * uv.x) * cos(.5 * PI * patternY); }
   else if (u_shape > 3.5) { curve = 10. * abs(fract(.1 * patternY) - .5); }
   else if (u_shape > 2.5) { curve = 4. * sin(.23 * patternY); }
@@ -1278,10 +1283,14 @@ void main() {
 
   // ── Filter tabs ───────────────────────────────────────────────
   document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('mousedown', () => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
     });
+    btn.addEventListener('touchstart', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    }, { passive: true });
   });
 
   // ── Shape selector ────────────────────────────────────────────
@@ -1640,14 +1649,13 @@ void main() {
 
   function makeFallbackImage() {
     const c = document.createElement('canvas');
-    c.width = 512; c.height = 341;
+    c.width = 672; c.height = 378;
     const ctx = c.getContext('2d');
-    const g = ctx.createLinearGradient(0, 0, 512, 341);
-    g.addColorStop(0,   '#3b82f6');
-    g.addColorStop(0.5, '#8b5cf6');
-    g.addColorStop(1,   '#ec4899');
+    const g = ctx.createLinearGradient(0, 0, 0, 378);
+    g.addColorStop(0, 'rgba(0,0,0,1)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 512, 341);
+    ctx.fillRect(0, 0, 672, 378);
     const img = new Image();
     img.src = c.toDataURL();
     return img;
@@ -1664,12 +1672,12 @@ void main() {
         u_grainOverlay:    0,
         u_shape:           GlassGridShapes.wave,
         u_shadows:         0.7,
-        u_highlights:      0.8,
+        u_highlights:      0,
         u_distortion:      0.5,
         u_distortionShape: 4,
         u_colorBack:       [0, 0, 0, 0],
         u_colorShadow:     [0, 0, 0, 0.6],
-        u_colorHighlight:  [1, 1, 1, 0.6],
+        u_colorHighlight:  [1, 1, 1, 0],
         u_stretch:         0,
         u_blur:            0,
         u_edges:           0,
