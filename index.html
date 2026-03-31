@@ -331,11 +331,13 @@
       flex-shrink: 0;
       transition: border-color 0.2s ease-out, box-shadow 0.2s ease-out, transform 0.2s ease-out, background 0.2s ease-out;
     }
+    .value-display { cursor: ew-resize; }
     .value-display:hover { border-color: #484848; background: #1c1c1c; }
     .value-display:focus {
       border-color: #686868;
       background: #1e1e1e;
       transform: scale(1.02);
+      cursor: text;
     }
     .value-display:active { transform: scale(1.03); }
 
@@ -1386,6 +1388,41 @@ void main() {
     displayEl.addEventListener('focus', () => {
       displayEl.value = Math.round(value).toString();
       displayEl.select();
+    });
+
+    // ── Scrub on input field ───────────────────────────────────
+    let scrubPending = false, scrubbing = false;
+    let scrubStartX = 0, scrubStartValue = 0;
+
+    displayEl.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      scrubPending = true;
+      scrubbing    = false;
+      scrubStartX  = e.clientX;
+      scrubStartValue = value;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!scrubPending && !scrubbing) return;
+      const dx = e.clientX - scrubStartX;
+      if (!scrubbing && Math.abs(dx) > 3) {
+        scrubbing    = true;
+        scrubPending = false;
+        displayEl.blur();
+        document.body.style.cursor = 'ew-resize';
+      }
+      if (scrubbing) {
+        value = clamp(scrubStartValue + dx);
+        updateVisuals();
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (scrubPending) displayEl.focus();
+      if (scrubbing)    document.body.style.cursor = '';
+      scrubPending = false;
+      scrubbing    = false;
     });
 
     updateVisuals();
