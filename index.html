@@ -631,7 +631,6 @@
         <span class="knob-label">Angle</span>
         <div class="dial-wrap">
           <span class="deg-top">0°</span>
-          <span class="deg-left">270°</span>
           <span class="deg-right">90°</span>
           <span class="deg-bottom">180°</span>
           <div class="knob-area">
@@ -1224,7 +1223,7 @@ void main() {
   function updateShader() {
     if (!shaderMount) return;
     shaderMount.setUniforms({
-      u_angle:      (((angle % 360) + 360) % 360) / 2,
+      u_angle:      Math.max(0, Math.min(180, angle)),
       u_size:       shaderSize / 100,
       u_grainMixer: shaderGrain / 100,
       u_shape:      shaderShape === 'zigzag' ? GlassGridShapes.zigzag : GlassGridShapes.wave,
@@ -1420,8 +1419,9 @@ void main() {
   const GREY_R    = 40;
   const IND_R     = GREY_R - 3.75 - 2.5;
   const TICK_R    = 45;
-  const TICK_STEP = 15;
-  const TICK_COUNT = 360 / TICK_STEP;
+  const TICK_STEP  = 45;
+  const TICK_COUNT = 5;   // 0, 45, 90, 135, 180
+  const MAX_ANGLE  = 180;
 
   let angle = 0;
   let knobDragging = false;
@@ -1448,7 +1448,7 @@ void main() {
   }
 
   function updateKnob() {
-    const norm = ((angle % 360) + 360) % 360;
+    const norm = Math.max(0, Math.min(MAX_ANGLE, angle));
     const indRad = (angle - 90) * Math.PI / 180;
     indicator.style.left = (KNOB_R + Math.cos(indRad) * IND_R - 3.75) + 'px';
     indicator.style.top  = (KNOB_R + Math.sin(indRad) * IND_R - 3.75) + 'px';
@@ -1487,7 +1487,7 @@ void main() {
     let delta = angleFromEvent(e) - dragStartMouseAngle;
     if (delta >  180) delta -= 360;
     if (delta < -180) delta += 360;
-    const newAngle = ((dragStartKnobAngle + delta) % 360 + 360) % 360;
+    const newAngle = Math.max(0, Math.min(MAX_ANGLE, dragStartKnobAngle + delta));
     const now = performance.now();
     const dt  = now - knobPrevTime;
     if (dt > 0) {
@@ -1511,7 +1511,8 @@ void main() {
       const dt = now - lastTime;
       lastTime = now;
       knobVelocity *= Math.pow(0.85, dt / (1000 / 60));
-      angle = ((angle + knobVelocity * dt) % 360 + 360) % 360;
+      angle = Math.max(0, Math.min(MAX_ANGLE, angle + knobVelocity * dt));
+      if (angle <= 0 || angle >= MAX_ANGLE) knobVelocity = 0;
       updateKnob();
       knobInertiaId = Math.abs(knobVelocity) > 0.01 ? requestAnimationFrame(step) : null;
     }
@@ -1534,8 +1535,8 @@ void main() {
 
   function applyKnobInput() {
     const raw = parseFloat(knobDisplay.value);
-    if (!isNaN(raw)) angle = ((raw % 360) + 360) % 360;
-    knobDisplay.value = Math.round(((angle % 360) + 360) % 360) + '°';
+    if (!isNaN(raw)) angle = Math.max(0, Math.min(MAX_ANGLE, raw));
+    knobDisplay.value = Math.round(angle) + '°';
     updateKnob();
   }
 
@@ -1545,7 +1546,7 @@ void main() {
   });
   knobDisplay.addEventListener('blur', applyKnobInput);
   knobDisplay.addEventListener('focus', () => {
-    knobDisplay.value = Math.round(((angle % 360) + 360) % 360).toString();
+    knobDisplay.value = Math.round(angle).toString();
     knobDisplay.select();
   });
 
