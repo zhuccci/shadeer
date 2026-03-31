@@ -84,6 +84,23 @@
     }
     .knob:active { cursor: grabbing; }
 
+    .knob-face {
+      position: absolute;
+      width: 80px; height: 80px;
+      left: 10px; top: 10px;
+      border-radius: 50%;
+      background: linear-gradient(to bottom, #656565, #515151);
+      box-shadow: 0 1px 1px rgba(255,255,255,0.04), inset 0 2.5px 6.25px rgba(255,255,255,0.1);
+      pointer-events: none;
+      transition: background 0.15s;
+    }
+    .knob:hover .knob-face {
+      background: linear-gradient(to bottom, #828282, #535353);
+    }
+    .knob.dragging .knob-face {
+      background: linear-gradient(to bottom, #4F4F4F, #393939);
+    }
+
     .tick {
       position: absolute;
       border-radius: 20px;
@@ -132,15 +149,7 @@
 
     <div class="knob-area">
       <div class="knob" id="knob">
-        <div style="
-          position: absolute;
-          width: 80px; height: 80px;
-          left: 10px; top: 10px;
-          border-radius: 50%;
-          background: linear-gradient(to bottom, #656565, #515151);
-          box-shadow: 0 1px 1px rgba(255,255,255,0.04), inset 0 2.5px 6.25px rgba(255,255,255,0.1);
-          pointer-events: none;
-        "></div>
+        <div class="knob-face"></div>
         <div class="indicator" id="indicator"></div>
       </div>
     </div>
@@ -219,6 +228,7 @@
     const rect = knob.getBoundingClientRect();
     center = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
     dragging = true;
+    knob.classList.add('dragging');
     dragStartMouseAngle = angleFromEvent(e);
     dragStartKnobAngle  = angle;
   }
@@ -236,7 +246,7 @@
 
   knob.addEventListener('mousedown', startDrag);
   window.addEventListener('mousemove', onDrag);
-  window.addEventListener('mouseup', () => { dragging = false; });
+  window.addEventListener('mouseup', () => { dragging = false; knob.classList.remove('dragging'); });
 
   knob.addEventListener('touchstart', startDrag, { passive: false });
   window.addEventListener('touchmove', onDrag, { passive: false });
