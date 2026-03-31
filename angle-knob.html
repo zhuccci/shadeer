@@ -84,21 +84,28 @@
     }
     .knob:active { cursor: grabbing; }
 
+    @property --kf-top    { syntax: '<color>'; inherits: false; initial-value: #656565; }
+    @property --kf-bottom { syntax: '<color>'; inherits: false; initial-value: #515151; }
+
     .knob-face {
       position: absolute;
       width: 80px; height: 80px;
       left: 10px; top: 10px;
       border-radius: 50%;
-      background: linear-gradient(to bottom, #656565, #515151);
+      --kf-top: #656565;
+      --kf-bottom: #515151;
+      background: linear-gradient(to bottom, var(--kf-top), var(--kf-bottom));
       box-shadow: 0 1px 1px rgba(255,255,255,0.04), inset 0 2.5px 6.25px rgba(255,255,255,0.1);
       pointer-events: none;
-      transition: background 0.15s;
+      transition: --kf-top 0.2s ease-out, --kf-bottom 0.2s ease-out;
     }
     .knob:hover .knob-face {
-      background: linear-gradient(to bottom, #828282, #535353);
+      --kf-top: #828282;
+      --kf-bottom: #535353;
     }
     .knob.dragging .knob-face {
-      background: linear-gradient(to bottom, #4F4F4F, #393939);
+      --kf-top: #4F4F4F;
+      --kf-bottom: #393939;
     }
 
     .tick {
