@@ -33,7 +33,7 @@
     .dial-wrap {
       position: relative;
       width: 152px;
-      height: 129px;
+      height: 132px;
     }
 
     .deg-top, .deg-bottom {
@@ -41,12 +41,14 @@
       left: 50%;
       transform: translateX(-50%);
       font-size: 8px;
+      line-height: 1;
       color: #595959;
       text-align: center;
       white-space: nowrap;
       user-select: none;
+      padding-left: 3px;
     }
-    .deg-top { top: 2px; }
+    .deg-top { top: 2px; padding-left: 4px; }
     .deg-bottom { bottom: 2px; }
 
     .deg-left, .deg-right {
@@ -79,7 +81,6 @@
       position: relative;
       cursor: grab;
       user-select: none;
-      box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
     }
     .knob:active { cursor: grabbing; }
 
@@ -104,7 +105,7 @@
       background: #141414;
       border: 0.5px solid #262626;
       border-radius: 8px;
-      padding: 8px 12px;
+      padding: 8px 10px 8px 14px;
       color: #c7c7c7;
       font-size: 16px;
       font-weight: 500;
@@ -124,20 +125,20 @@
   <span class="label">Angle</span>
 
   <div class="dial-wrap">
-    <span class="deg-top">0</span>
-    <span class="deg-left">270</span>
-    <span class="deg-right">90</span>
-    <span class="deg-bottom">180</span>
+    <span class="deg-top">0°</span>
+    <span class="deg-left">270°</span>
+    <span class="deg-right">90°</span>
+    <span class="deg-bottom">180°</span>
 
     <div class="knob-area">
       <div class="knob" id="knob">
         <div style="
           position: absolute;
-          width: 74px; height: 74px;
-          left: 13px; top: 13px;
+          width: 80px; height: 80px;
+          left: 10px; top: 10px;
           border-radius: 50%;
           background: linear-gradient(to bottom, #656565, #515151);
-          box-shadow: inset 0 1px 4px rgba(0,0,0,0.5), 0 1px 1px rgba(255,255,255,0.04), inset 0 2.5px 6.25px rgba(255,255,255,0.1);
+          box-shadow: 0 1px 1px rgba(255,255,255,0.04), inset 0 2.5px 6.25px rgba(255,255,255,0.1);
           pointer-events: none;
         "></div>
         <div class="indicator" id="indicator"></div>
@@ -153,10 +154,10 @@
   const indicator = document.getElementById('indicator');
   const valueDisplay = document.getElementById('valueDisplay');
 
-  const KNOB_R   = 50;   // half of knob 100px
-  const GREY_R   = 37;   // grey circle radius (74px / 2)
-  const IND_R    = GREY_R - 3.75 - 2; // 2px gap from grey circle edge, accounting for dot radius
-  const TICK_R   = 43;   // tick orbit radius (centered between grey circle and outer edge)
+  const KNOB_R   = 50;     // half of knob 100px
+  const GREY_R   = 40;     // grey circle radius (80px / 2)
+  const IND_R    = GREY_R - 3.75 - 2.5; // gap from grey circle edge, accounting for dot radius
+  const TICK_R   = 45;     // tick orbit radius — centered between grey (r=40) and outer (r=50)
   const TICK_STEP = 15;  // degrees between ticks
   const TICK_COUNT = 360 / TICK_STEP; // 24
 
