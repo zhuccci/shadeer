@@ -57,6 +57,9 @@
       background: #1a1a1a;
     }
 
+    .image-area.has-image.fill-mode { cursor: grab; }
+    .image-area.has-image.fill-mode.dragging-img { cursor: grabbing; }
+
     .image-area::after {
       content: '';
       position: absolute;
@@ -64,6 +67,10 @@
       background: linear-gradient(to top, #000000 0%, rgba(0,0,0,0) 100%);
       pointer-events: none;
       z-index: 1;
+    }
+
+    .image-area.has-image::after {
+      display: none;
     }
 
     .upload-btn {
@@ -93,6 +100,64 @@
       width: 24px;
       height: 24px;
       flex-shrink: 0;
+    }
+
+    /* ── Fit/Fill control ─────────────────────────────────────── */
+    .fit-control {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px;
+      background: rgba(10, 10, 10, 0.35);
+      border-radius: 56px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0px 4px 24px 0px rgba(0, 0, 0, 0.5), inset 0px 1px 0px rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20px) saturate(1.4);
+      z-index: 2;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .image-area.has-image:hover .fit-control {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .fit-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 24px;
+      border-radius: 32px;
+      font-family: 'Geist', 'Inter', system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      cursor: pointer;
+      user-select: none;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+      background: linear-gradient(160deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.03) 50%, rgba(0,0,0,0.10) 100%);
+      box-shadow:
+        0px 2px 8px rgba(0, 0, 0, 0.4),
+        inset 0px 1px 0px rgba(255, 255, 255, 0.18),
+        inset 0px -1px 0px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(12px);
+      color: rgba(220, 220, 220, 0.85);
+      transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .fit-btn.selected {
+      background: rgba(10, 10, 10, 0.7);
+      border-color: #fff679;
+      color: #fff679;
+      box-shadow: 0 0 0 1px rgba(255, 246, 121, 0.15), inset 0px 1px 0px rgba(255, 246, 121, 0.08);
+      backdrop-filter: blur(12px);
     }
 
 
@@ -539,6 +604,10 @@
       </svg>
       Upload image
     </button>
+    <div class="fit-control" id="fitControl">
+      <div class="fit-btn selected" data-fit="fill">Fill</div>
+      <div class="fit-btn" data-fit="fit">Fit</div>
+    </div>
   </div>
 
   <!-- Tabs + Controls -->
@@ -918,11 +987,12 @@ void main() {
     smoothstep(margins[1] - 2. * sw.y, margins[1], uvMask.y) *
     smoothstep(margins[3] - 2. * sw.y, margins[3], 1.0 - uvMask.y);
   float maskStrokeInner = maskInner - mask;
+  vec2 uvImgCentered = uv - .5;
   uv -= .5; uv *= patternSize;
   uv = rotateAspect(uv, patternRotation, u_imageAspectRatio);
   float curve = 0.;
   float patternY = uv.y / u_imageAspectRatio;
-  if (u_shape > 5.5)      { vec2 c = (uvMask - 0.5) * vec2(u_resolution.x / u_resolution.y, 1.0); float r = length(c) * patternSize; curve = r - uv.x; }
+  if (u_shape > 5.5)      { vec2 c = uvImgCentered * vec2(u_imageAspectRatio, 1.0); float r = length(c) * patternSize; curve = r - uv.x; }
   else if (u_shape > 4.5) { curve = .5 + .5 * sin(.5 * PI * uv.x) * cos(.5 * PI * patternY); }
   else if (u_shape > 3.5) { curve = 10. * abs(fract(.1 * patternY) - .5); }
   else if (u_shape > 2.5) { curve = 4. * sin(.23 * patternY); }
@@ -1285,6 +1355,10 @@ void main() {
   let shaderSize  = 60;
   let shaderGrain = 0;
   let shaderShape = 'lines';
+  let shaderFit   = 2; // 2 = fill, 1 = fit
+  let imgOffsetX  = 0;
+  let imgOffsetY  = 0;
+  let imgAspect   = 1;
 
   function updateShader() {
     if (!shaderMount) return;
@@ -1293,6 +1367,7 @@ void main() {
       u_size:       shaderSize / 100,
       u_grainMixer: shaderGrain / 100,
       u_shape:      shaderShape === 'lines' ? GlassGridShapes.lines : shaderShape === 'zigzag' ? GlassGridShapes.zigzag : shaderShape === 'circles' ? GlassGridShapes.circles : GlassGridShapes.wave,
+      u_fit:        shaderFit,
     });
   }
 
@@ -1681,10 +1756,12 @@ void main() {
   }
 
   function initShader(img) {
+    imgAspect = img.naturalWidth / img.naturalHeight;
+    imgOffsetX = 0; imgOffsetY = 0;
     try {
       shaderMount = new ShaderMount(imageArea, flutedGlassFragmentShader, {
         u_image:           img,
-        u_fit:             2,
+        u_fit:             shaderFit,
         u_angle:           0,
         u_size:            0.6,
         u_grainMixer:      0,
@@ -1702,8 +1779,8 @@ void main() {
         u_edges:           0,
         u_shift:           0,
         u_rotation:        0,
-        u_originX:         0,
-        u_originY:         0,
+        u_originX:         0.5,
+        u_originY:         0.5,
         u_worldWidth:      0,
         u_worldHeight:     0,
         u_scale:           1,
@@ -1733,6 +1810,26 @@ void main() {
 
   tryInitWithImage(shaderImage);
 
+  // ── Fit/Fill control ──────────────────────────────────────────────
+  const fitControl = document.getElementById('fitControl');
+  const fitBtns = fitControl.querySelectorAll('.fit-btn');
+
+  function applyFit(mode) {
+    shaderFit = mode === 'fill' ? 2 : 1;
+    imgOffsetX = 0; imgOffsetY = 0;
+    imageArea.classList.toggle('fill-mode', mode === 'fill');
+    fitBtns.forEach(btn => btn.classList.toggle('selected', btn.dataset.fit === mode));
+    if (shaderMount) shaderMount.setUniforms({
+      u_fit:     shaderFit,
+      u_originX: 0.5,
+      u_originY: 0.5,
+      u_offsetX: 0,
+      u_offsetY: 0,
+    });
+  }
+
+  fitBtns.forEach(btn => btn.addEventListener('click', () => applyFit(btn.dataset.fit)));
+
   // ── Upload button ─────────────────────────────────────────────────
   const uploadBtn = document.querySelector('.upload-btn');
   const fileInput = document.createElement('input');
@@ -1754,8 +1851,58 @@ void main() {
       imageArea.querySelectorAll('canvas').forEach(c => c.remove());
       initShader(img);
       uploadBtn.style.display = 'none';
+      imageArea.classList.add('has-image');
+      imageArea.classList.add('fill-mode'); // default is fill
     }, { once: true });
     fileInput.value = '';
+  });
+
+  // ── Fill-mode image drag ───────────────────────────────────────────
+  let imgDragging = false;
+  let imgDragStartX = 0, imgDragStartY = 0;
+  let imgDragStartOffX = 0, imgDragStartOffY = 0;
+
+  function fillDragBounds() {
+    const rect = imageArea.getBoundingClientRect();
+    const cw = rect.width, ch = rect.height;
+    const canvasAspect = cw / ch;
+    const imgBoxSizeX = Math.max(cw / imgAspect, ch) * imgAspect;
+    const imgBoxSizeY = imgBoxSizeX / imgAspect;
+    const scaleX = cw / imgBoxSizeX;
+    const scaleY = ch / imgBoxSizeY;
+    return {
+      maxX: 0.5 * (1 - scaleX),
+      maxY: 0.5 * (1 - scaleY),
+    };
+  }
+
+  imageArea.addEventListener('pointerdown', (e) => {
+    if (shaderFit !== 2) return; // fill mode only
+    if (!imageArea.classList.contains('has-image')) return;
+    if (e.target.closest('.fit-control') || e.target.closest('.upload-btn')) return;
+    imgDragging = true;
+    imgDragStartX = e.clientX;
+    imgDragStartY = e.clientY;
+    imgDragStartOffX = imgOffsetX;
+    imgDragStartOffY = imgOffsetY;
+    imageArea.classList.add('dragging-img');
+    imageArea.setPointerCapture(e.pointerId);
+  });
+
+  imageArea.addEventListener('pointermove', (e) => {
+    if (!imgDragging) return;
+    const rect = imageArea.getBoundingClientRect();
+    const dx = e.clientX - imgDragStartX;
+    const dy = e.clientY - imgDragStartY;
+    const { maxX, maxY } = fillDragBounds();
+    imgOffsetX = Math.max(-maxX, Math.min(maxX, imgDragStartOffX + dx / rect.width));
+    imgOffsetY = Math.max(-maxY, Math.min(maxY, imgDragStartOffY - dy / rect.height));
+    if (shaderMount) shaderMount.setUniforms({ u_offsetX: imgOffsetX, u_offsetY: imgOffsetY });
+  });
+
+  imageArea.addEventListener('pointerup', () => {
+    imgDragging = false;
+    imageArea.classList.remove('dragging-img');
   });
 </script>
 </body>
