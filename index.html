@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="components/Button/Button.css" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -25,8 +26,11 @@
       width: 672px;
       border: 0.5px solid #606060;
       border-radius: 24px;
-      background: radial-gradient(ellipse at 50% 100%, #2d2d2d 0%, #202020 100%);
-      box-shadow: 0 4px 4px 0 rgba(0,0,0,0.25);
+      background: radial-gradient(ellipse at 50% 100%, #373737 0%, #202020 100%);
+      box-shadow:
+        0px 4px 4px 0px rgba(0,0,0,0.25),
+        inset 0px 0px 20px 0px rgba(0,0,0,0.4),
+        inset 0px 0px 12px 0px rgba(0,0,0,0.1);
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -78,28 +82,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      padding: 8px 16px;
-      background: #fff679;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      box-shadow: 0px 0px 15px 0px rgba(255, 246, 121, 0.2);
-      font-family: inherit;
-      font-size: 16px;
-      color: #141414;
-      white-space: nowrap;
-      transition: background 0.15s ease;
       z-index: 10;
-    }
-    .upload-btn:hover { background: #fff9a7; }
-    .upload-btn:active { background: #bdb545; }
-    .upload-btn-icon {
-      width: 24px;
-      height: 24px;
-      flex-shrink: 0;
     }
 
     /* ── Fit/Fill control ─────────────────────────────────────── */
@@ -579,6 +562,29 @@
       transform: scale(1.02);
     }
     .knob-value-display:active { transform: scale(1.03); }
+
+    /* ── Action bar ───────────────────────────────────────────── */
+    .action-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 16px;
+      padding: 0 16px;
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                  padding  0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                  opacity  0.25s ease 0.1s,
+                  transform 0.3s ease 0.05s;
+    }
+    .action-bar.visible {
+      max-height: 72px;
+      padding: 0 16px 16px;
+      opacity: 1;
+      transform: translateY(0);
+    }
   </style>
 </head>
 <body>
@@ -594,13 +600,13 @@
 
   <!-- Image preview — canvas injected by ShaderMount -->
   <div class="image-area">
-    <button class="upload-btn">
-      <svg class="upload-btn-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M11.25 20.25H5.75C4.64543 20.25 3.75 19.3546 3.75 18.25V5.75C3.75 4.64543 4.64543 3.75 5.75 3.75H18.25C19.3546 3.75 20.25 4.64543 20.25 5.75V11.25" stroke="#141414" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M3.75 16.25L6.58579 13.41375C7.36683 12.63275 8.63317 12.63275 9.41421 13.41375L12 16" stroke="#141414" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M14.5 11.5C15.6046 11.5 16.5 10.6046 16.5 9.5C16.5 8.39543 15.6046 7.5 14.5 7.5C13.3954 7.5 12.5 8.39543 12.5 9.5C12.5 10.6046 13.3954 11.5 14.5 11.5Z" stroke="#141414" stroke-width="1.5"/>
-        <path d="M15.75 18.5H21.25" stroke="#141414" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M18.5 15.75V21.25" stroke="#141414" stroke-width="1.5" stroke-linecap="round"/>
+    <button class="btn btn-primary upload-btn">
+      <svg class="btn-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11.25 20.25H5.75C4.64543 20.25 3.75 19.3546 3.75 18.25V5.75C3.75 4.64543 4.64543 3.75 5.75 3.75H18.25C19.3546 3.75 20.25 4.64543 20.25 5.75V11.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M3.75 16.25L6.58579 13.41375C7.36683 12.63275 8.63317 12.63275 9.41421 13.41375L12 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M14.5 11.5C15.6046 11.5 16.5 10.6046 16.5 9.5C16.5 8.39543 15.6046 7.5 14.5 7.5C13.3954 7.5 12.5 8.39543 12.5 9.5C12.5 10.6046 13.3954 11.5 14.5 11.5Z" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M15.75 18.5H21.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M18.5 15.75V21.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
       Upload image
     </button>
@@ -702,8 +708,8 @@
                 <div class="option-icon" id="selectedIcon"></div>
                 <span class="option-text" id="selectedText"></span>
               </div>
-              <svg class="chevron" viewBox="-8.55 -10.25 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M1.26982 0C0.202609 0 -0.386826 1.23833 0.286157 2.06662L2.51636 4.81146C3.02354 5.43574 3.97644 5.43574 4.48372 4.81146L6.71388 2.06662C7.38683 1.23833 6.79743 0 5.73016 0H1.26982Z" fill="#C7C7C7"/>
+              <svg class="chevron" viewBox="-7 -8 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1.81403 0C0.289441 0 -0.552607 1.87637 0.408795 3.13143L3.59479 7.29054C4.31932 8.23649 5.68061 8.23649 6.40529 7.29054L9.59123 3.13143C10.5526 1.87637 9.71058 0 8.18591 0H1.81403Z" fill="#C7C7C7"/>
               </svg>
               <div class="dropdown" id="dropdown">
                 <div class="dropdown-item" data-value="lines">
@@ -780,6 +786,29 @@
     </div>
 
   </div>
+
+  <!-- Action bar -->
+  <div class="action-bar">
+    <button class="btn btn-secondary" id="uploadNewBtn">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11.25 20.25H5.75C4.64543 20.25 3.75 19.3546 3.75 18.25V5.75C3.75 4.64543 4.64543 3.75 5.75 3.75H18.25C19.3546 3.75 20.25 4.64543 20.25 5.75V11.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M3.75 16.25L6.58579 13.41375C7.36683 12.63275 8.63317 12.63275 9.41421 13.41375L12 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M14.5 11.5C15.6046 11.5 16.5 10.6046 16.5 9.5C16.5 8.39543 15.6046 7.5 14.5 7.5C13.3954 7.5 12.5 8.39543 12.5 9.5C12.5 10.6046 13.3954 11.5 14.5 11.5Z" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M15.75 18.5H21.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M18.5 15.75V21.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Upload new
+    </button>
+    <button class="btn btn-primary" id="saveBtn">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 3.75V15.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M7.75 11L12 15.25L16.25 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M3.75 18.25H20.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Save
+    </button>
+  </div>
+
 </div>
 
 <script>
@@ -1853,8 +1882,52 @@ void main() {
       uploadBtn.style.display = 'none';
       imageArea.classList.add('has-image');
       imageArea.classList.add('fill-mode'); // default is fill
+      document.querySelector('.action-bar').classList.add('visible');
     }, { once: true });
     fileInput.value = '';
+  });
+
+  // ── Upload new button ──────────────────────────────────────────
+  document.getElementById('uploadNewBtn').addEventListener('click', () => fileInput.click());
+
+  // ── Save button ────────────────────────────────────────────────
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    if (!shaderMount) return;
+    const sourceImg = shaderMount.providedUniforms.u_image;
+    if (!sourceImg) return;
+
+    // Output at original image dimensions, capped at 4096px on the long side
+    const nw = sourceImg.naturalWidth;
+    const nh = sourceImg.naturalHeight;
+    const scale = Math.min(1, 4096 / Math.max(nw, nh));
+    const outW = Math.round(nw * scale);
+    const outH = Math.round(nh * scale);
+
+    // Hidden container sized exactly to output — minPixelRatio=1 so canvas = outW×outH
+    const tempDiv = document.createElement('div');
+    tempDiv.style.cssText = `position:fixed;left:-99999px;top:0;width:${outW}px;height:${outH}px;overflow:hidden`;
+    document.body.appendChild(tempDiv);
+
+    const tempMount = new ShaderMount(
+      tempDiv, flutedGlassFragmentShader,
+      { ...shaderMount.providedUniforms, u_fit: 1, u_offsetX: 0, u_offsetY: 0 },
+      undefined, 0, 0, 1, outW * outH + 1
+    );
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const tempCanvas = tempDiv.querySelector('canvas');
+      if (!tempCanvas) { tempMount.dispose?.(); tempDiv.remove(); return; }
+      tempCanvas.toBlob(blob => {
+        tempMount.dispose?.();
+        tempDiv.remove();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'neuropic.png';
+        a.click();
+        URL.revokeObjectURL(url);
+      }, 'image/png');
+    }));
   });
 
   // ── Fill-mode image drag ───────────────────────────────────────────

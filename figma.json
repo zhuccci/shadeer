@@ -1,0 +1,16 @@
+{
+  "fileKey": "vuz3bNrwb0IuzmzhgDuxk1",
+  "components": {
+    "Button": {
+      "figmaNodeId": "169:685",
+      "cssFile": "components/Button/Button.css",
+      "variants": {
+        "primary": "169:684",
+        "secondary": "224:1042"
+      }
+    }
+  },
+  "globals": {
+    "appShell": "202:680"
+  }
+}
