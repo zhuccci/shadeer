@@ -1,0 +1,81 @@
+/* ─────────────────────────────────────────────────────────
+   Neuroshade — Slider component
+   Usage:
+     <div class="slider-row">
+       <div class="slider-container">
+         <div class="slider-label">Label</div>
+         <div class="slider-track" id="myTrack">
+           <div class="track-fill" id="myFill"></div>
+           <div class="slider-thumb" id="myThumb"></div>
+           <div class="track-empty"></div>
+         </div>
+       </div>
+       <input class="knob-value-display" id="myDisplay" />
+     </div>
+───────────────────────────────────────────────────────── */
+
+.slider-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 8px;
+  border-radius: 8px;
+  background: transparent;
+  transition: background 0.2s ease-out;
+}
+
+.slider-row:hover { background: rgba(20,20,20,0.3); }
+
+.slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.slider-label {
+  color: #d6d6d6;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.slider-track {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  user-select: none;
+}
+
+.track-fill {
+  height: 6px;
+  border-radius: 40px 0 0 40px;
+  flex-shrink: 0;
+  background: #fff679;
+  width: 0;
+  transition: width 0.04s linear;
+}
+
+.slider-thumb {
+  width: 6px;
+  height: 12px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: #fff679;
+  box-shadow: -2px 0 8px 0 rgba(0,0,0,0.25);
+  position: relative;
+  z-index: 1;
+  transition: background 0.15s ease-out, transform 0.1s ease-out;
+}
+
+.slider-track:active .slider-thumb {
+  transform: scaleY(1.2);
+}
+
+.track-empty {
+  height: 6px;
+  border-radius: 0 40px 40px 0;
+  background: #6a6a6a;
+  flex: 1;
+  min-width: 0;
+}
