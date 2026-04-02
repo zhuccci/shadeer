@@ -37,7 +37,7 @@
 .slider-label {
   color: #d6d6d6;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .slider-track {
@@ -79,3 +79,29 @@
   flex: 1;
   min-width: 0;
 }
+
+.value-display {
+  background: #141414;
+  border: 0.5px solid #262626;
+  border-radius: 8px;
+  padding: 8px 16px;
+  color: #c7c7c7;
+  font-size: 16px;
+  font-weight: 500;
+  width: 62px;
+  height: 40px;
+  text-align: center;
+  outline: none;
+  font-family: inherit;
+  flex-shrink: 0;
+  cursor: ew-resize;
+  transition: border-color 0.2s ease-out, box-shadow 0.2s ease-out, transform 0.2s ease-out, background 0.2s ease-out;
+}
+.value-display:hover { border-color: #484848; background: #1c1c1c; }
+.value-display:focus {
+  border-color: #686868;
+  background: #1e1e1e;
+  transform: scale(1.02);
+  cursor: text;
+}
+.value-display:active { transform: scale(1.03); }
