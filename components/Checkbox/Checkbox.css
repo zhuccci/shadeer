@@ -37,20 +37,10 @@
 .checkbox.checked {
   border-color: #fff679;
   box-shadow: 0 0 18.75px 0.25px rgba(255, 246, 121, 0.2);
-}
-
-/* Checkmark via CSS */
-.checkbox.checked::after {
-  content: '';
-  position: absolute;
-  left: 4px;
-  top: 2px;
-  width: 13px;
-  height: 7px;
-  border-left: 2px solid #fff679;
-  border-bottom: 2px solid #fff679;
-  transform: rotate(-45deg);
-  border-radius: 1px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 8' fill='none'%3E%3Cpath d='M1 3.5L4 6.5L9 1' stroke='%23FFF679' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 10px 8px;
 }
 
 .checkbox-label {

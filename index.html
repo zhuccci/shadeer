@@ -8,6 +8,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="components/Button/Button.css" />
+  <link rel="stylesheet" href="components/Checkbox/Checkbox.css" />
+  <link rel="stylesheet" href="components/ColorSelector/ColorSelector.css" />
+  <link rel="stylesheet" href="components/Slider/Slider.css" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -26,7 +29,7 @@
       width: 672px;
       border: 0.5px solid #606060;
       border-radius: 24px;
-      background: radial-gradient(ellipse at 50% 100%, #373737 0%, #202020 100%);
+      background: linear-gradient(to right, #373737, #202020);
       box-shadow:
         0px 4px 4px 0px rgba(0,0,0,0.25),
         inset 0px 0px 20px 0px rgba(0,0,0,0.4),
@@ -38,16 +41,11 @@
 
     /* ── Header ───────────────────────────────────────────────── */
     .header {
-      padding: 16px;
+      padding: 24px;
     }
 
-    .app-title {
-      font-size: 32px;
-      font-weight: 500;
-      color: #d6d6d6;
-      text-shadow: -1px 2px 2px rgba(0,0,0,0.25);
-      white-space: nowrap;
-    }
+
+    .header svg { display: block; }
 
     /* ── Image area ───────────────────────────────────────────── */
     .image-area {
@@ -167,8 +165,7 @@
       align-items: center;
       gap: 4px;
       flex: 1;
-      height: 97px;
-      padding: 24px 8px;
+      padding: 16px 8px;
       border-radius: 16px;
       border: 0.5px solid transparent;
       background: linear-gradient(180deg, #505050 0%, #434343 100%);
@@ -427,6 +424,7 @@
       font-size: 16px;
       font-weight: 500;
       width: 62px;
+      height: 40px;
       text-align: center;
       outline: none;
       font-family: inherit;
@@ -559,6 +557,7 @@
       font-size: 16px;
       font-weight: 500;
       width: 62px;
+      height: 40px;
       text-align: center;
       outline: none;
       font-family: inherit;
@@ -599,7 +598,7 @@
     /* ── Panel divider ───────────────────────────────────────── */
     .panel-divider {
       width: 0.5px;
-      background: #606060;
+      background: #2B2B2B;
       align-self: stretch;
       flex-shrink: 0;
     }
@@ -610,7 +609,12 @@
     #ditheringPanel .widget-label { font-size: 14px; }
     #ditheringPanel .slider-label { font-size: 14px; }
     #ditheringPanel .checkbox-label { font-size: 14px; font-weight: 500; }
-    #ditheringPanel .checkbox-row { gap: 8px; padding: 4px; }
+    #ditheringPanel .checkbox-row { gap: 8px; padding: 8px; }
+
+    #ditheringPanel .controls-left {
+      flex: none;
+      width: fit-content;
+    }
 
     .dither-right {
       display: flex;
@@ -687,7 +691,36 @@
 
   <!-- Header -->
   <div class="header">
-    <h1 class="app-title">Neuroshade</h1>
+    <svg width="251" height="30" viewBox="0 0 255 34" preserveAspectRatio="none" overflow="visible" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g filter="url(#ns-filter-shadow)">
+        <path d="M233.139 18.3333V8.5H236.504V10.8333H236.941C237.278 9.3 238.388 8.5 240.205 8.5H254V13.3C254 13.3667 254 13.4 254 13.4667V16.8H240.205C238.388 16.8 237.278 16 236.941 14.4667H236.504V18.3333H254V21.6667H236.504C234.317 21.6667 233.139 20.5 233.139 18.3333ZM236.504 13.4667H250.635V11.8333H236.504V13.4667Z" fill="url(#ns-grad)"/>
+        <path d="M228.436 21.6667H225.072V19.3H224.634C224.298 20.8333 223.187 21.6333 221.37 21.6333H210.94C208.753 21.6333 207.575 20.4667 207.575 18.3333V8.5H210.94V10.8333H211.377C211.714 9.3 212.824 8.5 214.641 8.5H225.072V0H228.436V21.6667ZM210.94 18.3H225.072V11.8333H210.94V18.3Z" fill="url(#ns-grad)"/>
+        <path d="M199.508 21.6667V19.3333H199.071C198.734 20.8667 197.624 21.6667 195.807 21.6667H185.376C183.223 21.6667 182.045 20.5333 182.012 18.4V16.1667L185.141 11.8333H182.012V8.5H195.807C197.624 8.5 198.734 9.3 199.071 10.8333H199.508V8.5H202.873V21.6667H199.508ZM199.508 18.3333V11.8333H189.279L185.174 17.4667V18.3333H199.508Z" fill="url(#ns-grad)"/>
+        <path d="M156.448 18.3333V0H159.813V10.8333H160.25C160.586 9.3 161.697 8.5 163.514 8.5H177.309V21.6667H173.944V11.8333H159.813V21.6667C157.626 21.6667 156.448 20.5 156.448 18.3333Z" fill="url(#ns-grad)"/>
+        <path d="M130.884 16.8V8.5H134.249V10.8333H134.686C135.023 9.3 136.133 8.5 137.95 8.5H151.745V11.8333H134.249V13.4667H151.745V21.6667H134.249C132.062 21.6667 130.884 20.5 130.884 18.3333H148.381V16.8H130.884Z" fill="url(#ns-grad)"/>
+        <path d="M105.32 18.3333V8.5H108.685V10.8333H109.123C109.459 9.3 110.569 8.5 112.386 8.5H126.182V21.6667H108.685C106.498 21.6667 105.32 20.5 105.32 18.3333ZM108.685 18.3333H122.817V11.8333H108.685V18.3333Z" fill="url(#ns-grad)"/>
+        <path d="M79.7568 26.6667V8.5H83.1215V10.8333H83.5589C83.8954 9.3 85.0057 8.5 86.8226 8.5H100.618V11.8333H83.1215V30C80.9344 30 79.7568 28.8333 79.7568 26.6667Z" fill="url(#ns-grad)"/>
+        <path d="M54.1931 18.3333V8.5H57.5578V18.3333H71.6894V8.5H75.0541V21.6667H71.6894V19.3333H71.252C70.9156 20.8667 69.8052 21.6667 67.9883 21.6667H56.582V21.5667C55.0343 21.2667 54.1931 20.1667 54.1931 18.3333Z" fill="url(#ns-grad)"/>
+        <path d="M28.5637 18.3333V8.5H31.9284V10.8333H32.3658C32.7023 9.3 33.8126 8.5 35.6295 8.5H49.4247V13.3C49.4247 13.3667 49.4247 13.4 49.4247 13.4667V16.8H35.6295C33.8126 16.8 32.7023 16 32.3658 14.4667H31.9284V18.3333H49.4247V21.6667H31.9284C29.7413 21.6667 28.5637 20.5 28.5637 18.3333ZM31.9284 13.4667H46.06V11.8333H31.9284V13.4667Z" fill="url(#ns-grad)"/>
+        <path d="M3 18.3333V8.5H6.36468V10.8333H6.80209C7.13856 9.3 8.2489 8.5 10.0658 8.5H23.861V21.6667H20.4963V11.8333H6.36468V21.6667C4.17764 21.6667 3 20.5 3 18.3333Z" fill="url(#ns-grad)"/>
+      </g>
+      <defs>
+        <filter id="ns-filter-shadow" x="0" y="0" width="255" height="34" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+          <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+          <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+          <feOffset dx="-1" dy="2"/>
+          <feGaussianBlur stdDeviation="1"/>
+          <feComposite in2="hardAlpha" operator="out"/>
+          <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+          <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/>
+          <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape"/>
+        </filter>
+        <linearGradient id="ns-grad" x1="3.53952" y1="2.38091" x2="303.691" y2="28.0926" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#D6D6D6"/>
+          <stop offset="0.837358" stop-color="#707070"/>
+        </linearGradient>
+      </defs>
+    </svg>
   </div>
 
   <!-- Image preview — canvas injected by ShaderMount -->
@@ -857,6 +890,9 @@
 
       </div>
 
+      <!-- Divider -->
+      <div class="panel-divider"></div>
+
       <!-- Right column — angle knob -->
       <div class="controls-right">
         <span class="knob-label">Angle</span>
@@ -883,27 +919,27 @@
       <!-- Left column -->
       <div class="controls-left">
 
-        <div class="widget-group">
-          <span class="widget-label">Background Color</span>
-          <div class="color-selector">
-            <div class="color-swatch" id="bgSwatch" style="background:#000000"></div>
-            <input class="color-hex" id="bgHex" type="text" value="#000000" />
+        <div class="color-selector">
+          <span class="color-label">Background Color</span>
+          <div class="color-row">
+            <div class="color-swatch" id="bgSwatch" style="background:#FFF679"></div>
+            <input class="color-hex" id="bgHex" type="text" value="#FFF679" />
           </div>
         </div>
 
-        <div class="widget-group">
-          <span class="widget-label">Front Color</span>
-          <div class="color-selector">
-            <div class="color-swatch" id="fgSwatch" style="background:#ffffff"></div>
-            <input class="color-hex" id="fgHex" type="text" value="#FFFFFF" />
+        <div class="color-selector">
+          <span class="color-label">Front Color</span>
+          <div class="color-row">
+            <div class="color-swatch" id="fgSwatch" style="background:#798FFF"></div>
+            <input class="color-hex" id="fgHex" type="text" value="#798FFF" />
           </div>
         </div>
 
-        <div class="widget-group">
-          <span class="widget-label">Highlight</span>
-          <div class="color-selector">
-            <div class="color-swatch" id="hlSwatch" style="background:#fff679"></div>
-            <input class="color-hex" id="hlHex" type="text" value="#FFF679" />
+        <div class="color-selector">
+          <span class="color-label">Highlight</span>
+          <div class="color-row">
+            <div class="color-swatch" id="hlSwatch" style="background:#FA4F29"></div>
+            <input class="color-hex" id="hlHex" type="text" value="#FA4F29" />
           </div>
         </div>
 
@@ -1772,24 +1808,8 @@ void main() {
     imgOffsetX = 0; imgOffsetY = 0;
     try {
       shaderMount = new ShaderMount(imageArea, imageDitheringFragmentShader, {
-        u_image:          img,
-        u_fit:            shaderFit,
-        u_colorBack:      [0, 0, 0, 1],
-        u_colorFront:     [1, 1, 1, 1],
-        u_colorHighlight: [1, 1, 0.47, 1],
-        u_type:           2,
-        u_pxSize:         5,
-        u_originalColors: false,
-        u_inverted:       false,
-        u_colorSteps:     4,
-        u_scale:          1,
-        u_rotation:       0,
-        u_offsetX:        0,
-        u_offsetY:        0,
-        u_originX:        0.5,
-        u_originY:        0.5,
-        u_worldWidth:     0,
-        u_worldHeight:    0,
+        u_image: img,
+        ...getDitherUniforms(),
       });
     } catch(e) {
       console.error('Dither ShaderMount init failed:', e);
