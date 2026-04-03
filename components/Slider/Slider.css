@@ -22,6 +22,7 @@
   border-radius: 8px;
   background: transparent;
   transition: background 0.2s ease-out;
+  isolation: isolate;
 }
 
 .slider-row:hover { background: rgba(20,20,20,0.3); }
@@ -96,6 +97,7 @@
   flex-shrink: 0;
   cursor: ew-resize;
   transition: border-color 0.2s ease-out, box-shadow 0.2s ease-out, transform 0.2s ease-out, background 0.2s ease-out;
+  isolation: isolate;
 }
 .value-display:hover { border-color: #484848; background: #1c1c1c; }
 .value-display:focus {

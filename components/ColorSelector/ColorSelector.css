@@ -17,6 +17,7 @@
   padding: 8px;
   border-radius: 8px;
   transition: background 0.2s ease-out;
+  isolation: isolate;
 }
 
 .color-selector:hover { background: rgba(20, 20, 20, 0.3); }
