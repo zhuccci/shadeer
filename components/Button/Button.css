@@ -23,6 +23,24 @@
   font-weight: 400;
   white-space: nowrap;
   transition: background 0.2s ease-out, box-shadow 0.2s ease-out, transform 0.15s ease-out, color 0.2s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn .action-btn-grain {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  opacity: 0.20;
+  z-index: 0;
+}
+
+.btn > :not(.action-btn-grain) {
+  position: relative;
+  z-index: 1;
 }
 
 .btn-icon {
