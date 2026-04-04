@@ -586,9 +586,14 @@
 
     #ditheringPanel .checkbox-row { gap: 8px; padding: 8px; }
 
-    #ditheringPanel .controls-left {
+    #ditheringPanel .controls-left,
+    #liquidPanel .controls-left {
       flex: none;
       width: fit-content;
+    }
+
+    #liquidPanel .controls-left {
+      align-self: stretch;
     }
 
     .dither-right {
@@ -1125,6 +1130,14 @@ void main(){
             <input class="color-hex" id="liqHlHex" type="text" value="#FFFFFF" />
           </div>
         </div>
+
+        <button class="btn btn-tertiary" id="liqPlayPauseBtn" style="margin-top:auto">
+          <svg class="btn-icon" id="liqPlayPauseIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5.75" y="4.75" width="4.5" height="14.5" rx="1.5" fill="currentColor"/>
+            <rect x="13.75" y="4.75" width="4.5" height="14.5" rx="1.5" fill="currentColor"/>
+          </svg>
+          <span id="liqPlayPauseLabel">Pause Effect</span>
+        </button>
 
       </div>
 
@@ -2223,7 +2236,7 @@ void main() {
       u_caustic:        liqCaustic / 10,
       u_size:           liqSize / 100,
       u_layering:       liqLayering / 100,
-      u_edges:          0,
+      u_edges:          1,
       u_fit:            shaderFit,
       u_scale:          1,
       u_rotation:       0,
@@ -2241,6 +2254,22 @@ void main() {
     shaderMount.setUniforms(getLiquidUniforms());
   }
 
+  let liquidPlaying = true;
+
+  function syncLiqPlayPauseBtn() {
+    const btn   = document.getElementById('liqPlayPauseBtn');
+    const icon  = document.getElementById('liqPlayPauseIcon');
+    const label = document.getElementById('liqPlayPauseLabel');
+    if (!btn) return;
+    if (liquidPlaying) {
+      icon.innerHTML = '<rect x="5.75" y="4.75" width="4.5" height="14.5" rx="1.5" fill="currentColor"/><rect x="13.75" y="4.75" width="4.5" height="14.5" rx="1.5" fill="currentColor"/>';
+      label.textContent = 'Pause Effect';
+    } else {
+      icon.innerHTML = '<path d="M7.75 5.44a.75.75 0 0 1 1.13-.65l10.5 6.56a.75.75 0 0 1 0 1.3l-10.5 6.56A.75.75 0 0 1 7.75 18.56V5.44Z" fill="currentColor"/>';
+      label.textContent = 'Play Effect';
+    }
+  }
+
   function initLiquidShader(img) {
     imgAspect = img.naturalWidth / img.naturalHeight;
     imgOffsetX = 0; imgOffsetY = 0;
@@ -2248,10 +2277,11 @@ void main() {
       shaderMount = new ShaderMount(imageArea, waterFragmentShader, {
         u_image: img,
         ...getLiquidUniforms(),
-      });
+      }, undefined, liquidPlaying ? 1 : 0);
     } catch(e) {
       console.error('Liquid ShaderMount init failed:', e);
     }
+    syncLiqPlayPauseBtn();
   }
 
   // ── Filter tabs + panel switcher ─────────────────────────────
@@ -2396,6 +2426,15 @@ void main() {
         updateLiquidShader();
       }
     });
+  });
+
+  // ── Liquid play/pause ─────────────────────────────────────────
+  document.getElementById('liqPlayPauseBtn').addEventListener('click', () => {
+    liquidPlaying = !liquidPlaying;
+    if (shaderMount && activeFilter === 'liquid') {
+      shaderMount.setSpeed(liquidPlaying ? 1 : 0);
+    }
+    syncLiqPlayPauseBtn();
   });
 
   // ── Shape selector ────────────────────────────────────────────
