@@ -2953,7 +2953,7 @@ void main() {
 
     const nw = sourceImg.naturalWidth;
     const nh = sourceImg.naturalHeight;
-    const scale = Math.min(1, 4096 / Math.max(nw, nh));
+    const scale = Math.min(1, 2048 / Math.max(nw, nh));
     const outW = Math.round(nw * scale);
     const outH = Math.round(nh * scale);
 
