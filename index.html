@@ -2948,7 +2948,7 @@ void main() {
 
     const tempDiv = document.createElement('div');
     tempDiv.style.cssText = `position:fixed;left:-99999px;top:0;width:${outW}px;height:${outH}px;overflow:hidden`;
-    document.body.appendChild(tempDiv);
+    document.documentElement.appendChild(tempDiv);
 
     const saveShader = activeFilter === 'dithering' ? imageDitheringFragmentShader : activeFilter === 'liquid' ? waterFragmentShader : flutedGlassFragmentShader;
     const tempMount = new ShaderMount(
