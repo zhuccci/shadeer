@@ -2991,13 +2991,15 @@ void main() {
   });
 
   // ── Copy to clipboard (Cmd+C / Ctrl+C) ───────────────────────
+  // ClipboardItem is given a Promise<Blob> so clipboard.write() is called
+  // synchronously inside the keydown gesture — before async rAF/toBlob
+  // callbacks expire the user-gesture context.
   document.addEventListener('keydown', (e) => {
     if (!(e.metaKey || e.ctrlKey) || e.key !== 'c') return;
     if (!shaderMount) return;
     e.preventDefault();
-    renderToBlob(blob => {
-      navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-    });
+    const blobPromise = new Promise(resolve => renderToBlob(resolve));
+    navigator.clipboard.write([new ClipboardItem({ 'image/png': blobPromise })]);
   });
 
   // ── Fill-mode image drag ───────────────────────────────────────────
