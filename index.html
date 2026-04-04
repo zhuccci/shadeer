@@ -2991,11 +2991,40 @@ void main() {
   });
 
   // ── Copy to clipboard (Cmd+C / Ctrl+C) ───────────────────────
+  // Renders an offscreen canvas at the same dimensions and uniforms as the
+  // live view so the copy is pixel-accurate to what the user sees.
+  function captureCurrentView(callback) {
+    if (!shaderMount) return;
+    if (!shaderMount.providedUniforms.u_image) return;
+    const outW = imageArea.offsetWidth;
+    const outH = imageArea.offsetHeight;
+    const tempDiv = document.createElement('div');
+    tempDiv.style.cssText = `position:fixed;left:-99999px;top:0;width:${outW}px;height:${outH}px;overflow:hidden`;
+    document.body.appendChild(tempDiv);
+    const saveShader = activeFilter === 'dithering' ? imageDitheringFragmentShader
+                     : activeFilter === 'liquid'    ? waterFragmentShader
+                     : flutedGlassFragmentShader;
+    const tempMount = new ShaderMount(
+      tempDiv, saveShader,
+      { ...shaderMount.providedUniforms },
+      undefined, 0, shaderMount.currentFrame, 2, outW * outH * 4 + 1
+    );
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const tempCanvas = tempDiv.querySelector('canvas');
+      if (!tempCanvas) { tempMount.dispose?.(); tempDiv.remove(); return; }
+      tempCanvas.toBlob(blob => {
+        tempMount.dispose?.();
+        tempDiv.remove();
+        callback(blob);
+      }, 'image/png');
+    }));
+  }
+
   document.addEventListener('keydown', (e) => {
     if (!(e.metaKey || e.ctrlKey) || e.key !== 'c') return;
     if (!shaderMount) return;
     e.preventDefault();
-    renderToBlob(blob => {
+    captureCurrentView(blob => {
       navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
     });
   });
