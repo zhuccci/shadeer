@@ -2965,7 +2965,7 @@ void main() {
     const tempMount = new ShaderMount(
       tempDiv, saveShader,
       { ...shaderMount.providedUniforms, u_fit: 1, u_offsetX: 0, u_offsetY: 0 },
-      undefined, 0, shaderMount.currentFrame, 2, outW * outH * 4 + 1
+      undefined, 0, shaderMount.currentFrame, 1, outW * outH + 1
     );
 
     requestAnimationFrame(() => requestAnimationFrame(() => {
