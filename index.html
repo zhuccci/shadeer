@@ -2957,15 +2957,26 @@ void main() {
       undefined, 0, shaderMount.currentFrame, 1, outW * outH + 1
     );
 
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      const tempCanvas = tempDiv.querySelector('canvas');
-      if (!tempCanvas) { tempMount.dispose?.(); tempDiv.remove(); return; }
+    // ResizeObserver is async and may report 0×0 for off-screen fixed elements.
+    // Disconnect it and manually size + render the canvas at the exact output dimensions.
+    tempMount.resizeObserver?.disconnect();
+    const tempCanvas = tempDiv.querySelector('canvas');
+    if (!tempCanvas) { tempMount.dispose?.(); tempDiv.remove(); return; }
+    tempCanvas.width  = outW;
+    tempCanvas.height = outH;
+    tempMount.gl.viewport(0, 0, outW, outH);
+    tempMount.resolutionChanged = true;
+    tempMount.renderScale = 1;
+    tempMount.render(performance.now());
+
+    // One rAF lets the GPU flush before we read the framebuffer.
+    requestAnimationFrame(() => {
       tempCanvas.toBlob(blob => {
         tempMount.dispose?.();
         tempDiv.remove();
         callback(blob);
       }, 'image/png');
-    }));
+    });
   }
 
   document.getElementById('saveBtn').addEventListener('click', () => {
