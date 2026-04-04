@@ -2229,8 +2229,8 @@ void main() {
     const frontHex = document.getElementById('liqFrontHex')?.value || '#FFF679';
     const hlHex    = document.getElementById('liqHlHex')?.value    || '#FFFFFF';
     return {
-      u_colorBack:      [0, 0, 0, 0],
-      u_colorHighlight: hexToVec4(frontHex),
+      u_colorBack:      hexToVec4(frontHex),
+      u_colorHighlight: hexToVec4(hlHex),
       u_highlights:     liqHighlights / 10,
       u_waves:          liqWaves / 100,
       u_caustic:        liqCaustic / 10,
@@ -2965,7 +2965,7 @@ void main() {
     const tempMount = new ShaderMount(
       tempDiv, saveShader,
       { ...shaderMount.providedUniforms, u_fit: 1, u_offsetX: 0, u_offsetY: 0 },
-      undefined, 0, 0, 1, outW * outH + 1
+      undefined, 0, shaderMount.currentFrame, 1, outW * outH + 1
     );
 
     requestAnimationFrame(() => requestAnimationFrame(() => {
