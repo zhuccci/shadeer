@@ -2907,19 +2907,17 @@ void main() {
   document.getElementById('uploadNewBtn').addEventListener('click', () => fileInput.click());
 
   // ── Save button ────────────────────────────────────────────────
-  document.getElementById('saveBtn').addEventListener('click', () => {
+  function renderToBlob(callback) {
     if (!shaderMount) return;
     const sourceImg = shaderMount.providedUniforms.u_image;
     if (!sourceImg) return;
 
-    // Output at original image dimensions, capped at 4096px on the long side
     const nw = sourceImg.naturalWidth;
     const nh = sourceImg.naturalHeight;
     const scale = Math.min(1, 4096 / Math.max(nw, nh));
     const outW = Math.round(nw * scale);
     const outH = Math.round(nh * scale);
 
-    // Hidden container sized exactly to output — minPixelRatio=1 so canvas = outW×outH
     const tempDiv = document.createElement('div');
     tempDiv.style.cssText = `position:fixed;left:-99999px;top:0;width:${outW}px;height:${outH}px;overflow:hidden`;
     document.body.appendChild(tempDiv);
@@ -2937,14 +2935,30 @@ void main() {
       tempCanvas.toBlob(blob => {
         tempMount.dispose?.();
         tempDiv.remove();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'neuropic.png';
-        a.click();
-        URL.revokeObjectURL(url);
+        callback(blob);
       }, 'image/png');
     }));
+  }
+
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    renderToBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'neuropic.png';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  });
+
+  // ── Copy to clipboard (Cmd+C / Ctrl+C) ───────────────────────
+  document.addEventListener('keydown', (e) => {
+    if (!(e.metaKey || e.ctrlKey) || e.key !== 'c') return;
+    if (!shaderMount) return;
+    e.preventDefault();
+    renderToBlob(blob => {
+      navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    });
   });
 
   // ── Fill-mode image drag ───────────────────────────────────────────
