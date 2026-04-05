@@ -41,7 +41,6 @@
       display: flex;
       flex-direction: column;
       gap: 16px;
-      border: 0.5px solid #606060;
       border-radius: 24px;
       background: linear-gradient(to bottom, #373737 0%, #202020 100%);
       overflow: hidden;
@@ -53,7 +52,6 @@
     /* ── Preview panel (right panel) ──────────────────────────── */
     .preview-panel {
       flex: 1;
-      border: 0.5px solid #606060;
       border-radius: 24px;
       overflow: hidden;
       display: flex;
@@ -178,50 +176,80 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
+      gap: 12px;
       flex: 1;
-      padding: 16px 8px;
+      min-width: 120px;
+      padding: 0 0 12px 0;
       border-radius: 16px;
-      border: 0.5px solid #5c5c5c;
-      background: linear-gradient(225deg, rgba(0,0,0,0.2) 10.02%, rgba(102,102,102,0.2) 89.98%), linear-gradient(180deg, rgb(80,80,80) 0.418%, rgb(67,67,67) 99.871%);
-      box-shadow: 0px 2px 7px 0px rgba(0,0,0,0.5), inset 0px -2px 3px 0px rgba(0,0,0,0.25), inset 0px 1px 3px 0px rgba(255,255,255,0.2);
+      border: 0.5px solid #606060;
+      background: linear-gradient(244deg, rgba(0,0,0,0.2) 10.02%, rgba(102,102,102,0.2) 89.98%), linear-gradient(180deg, rgb(80,80,80) 0.418%, rgb(67,67,67) 99.871%);
+      box-shadow: 0px 0px 24px -4px rgba(0,0,0,0.2);
+      overflow: hidden;
       cursor: pointer;
       user-select: none;
-      transition: background 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out, transform 0.15s ease-out;
+      transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                  box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .filter-btn:hover {
-      background: linear-gradient(225deg, rgba(0,0,0,0.15) 10.02%, rgba(102,102,102,0.15) 89.98%), linear-gradient(180deg, rgb(90,90,90) 0%, rgb(75,75,75) 100%);
-      border-color: #707070;
-      box-shadow: 0px 4px 14px rgba(0,0,0,0.5), inset 0px -2px 3px 0px rgba(0,0,0,0.25), inset 0px 1px 3px 0px rgba(255,255,255,0.22);
-      transform: translateY(-1px);
+      background: linear-gradient(180deg, #828282, #535353);
+      box-shadow: none;
     }
-    .filter-btn:active {
-      background: #1b1b1b;
-      border-color: rgba(255, 246, 121, 0.4);
-      box-shadow: inset 0px 0px 12px 0px #141414;
-      transform: translateY(1px);
-    }
-    .filter-btn:hover .filter-icon { color: #fff679; filter: drop-shadow(0 0 8px rgba(255,246,121,0.6)); }
-    .filter-btn:hover .filter-label { color: #fff679; }
 
     .filter-btn.selected {
       background: #1b1b1b;
-      border-color: #fff679;
-      box-shadow: none;
+      box-shadow: inset 0px 0px 10px 6px rgba(0,0,0,0.3);
     }
-    .filter-btn.selected:hover { transform: none; }
+    .filter-btn.selected:hover {
+      background: #1b1b1b;
+      box-shadow: inset 0px 0px 10px 6px rgba(0,0,0,0.3);
+    }
     .filter-btn.selected .filter-icon { color: #fff679; filter: drop-shadow(0 0 8px rgba(255,246,121,0.6)); }
     .filter-btn.selected .filter-label { color: #fff679; text-shadow: 0 0 15px rgba(255,246,121,0.5); }
 
     .filter-btn.selected::after { display: none; }
+
+    .btn-thumbnail {
+      position: relative;
+      height: 128px;
+      width: 100%;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .btn-thumbnail img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .btn-thumbnail img.thumb-hover {
+      opacity: 0;
+      transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      will-change: opacity;
+    }
+
+    .filter-btn:hover .btn-thumbnail img.thumb-hover,
+    .filter-btn.selected .btn-thumbnail img.thumb-hover {
+      opacity: 1;
+    }
+
+    .btn-bottom {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
 
     .filter-icon {
       width: 24px;
       height: 24px;
       flex-shrink: 0;
       color: #c7c7c7;
-      transition: color 0.2s ease-out, filter 0.2s ease-out;
+      transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1), filter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .filter-icon svg { display: block; width: 100%; height: 100%; }
 
@@ -230,7 +258,7 @@
       font-size: 16px;
       font-weight: 400;
       white-space: nowrap;
-      transition: color 0.2s ease-out, text-shadow 0.2s ease-out;
+      transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1), text-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     /* ── Controls panel ───────────────────────────────────────── */
@@ -566,6 +594,19 @@
       flex-shrink: 0;
       position: relative;
       z-index: 1;
+      overflow: hidden;
+      max-height: 0;
+      margin-top: -16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: max-height 0.25s ease, opacity 0.25s ease, margin-top 0.25s ease;
+    }
+
+    .action-bar.visible {
+      max-height: 60px;
+      margin-top: 0;
+      opacity: 1;
+      pointer-events: auto;
     }
 
     /* ── Panel divider ───────────────────────────────────────── */
@@ -703,7 +744,7 @@
     <div class="filter-buttons">
 
       <!-- Glass (selected) -->
-      <div class="filter-btn selected" data-filter="glass">
+      <div class="filter-btn selected" data-filter="glass" data-thumb="placeholders/glass.png" data-thumb-hover="placeholders/glass_hover.png">
         <media-shader class="btn-grain" width="200" height="100" fragment-shader='#version 300 es
 precision highp float;
 out vec4 glFragColor;
@@ -727,14 +768,20 @@ void main(){
     }
     glFragColor = vec4(u_color,col.r);
 }' uniforms='{"u_color":[0,0,0],"u_scale":0.01}'></media-shader>
-        <div class="filter-icon">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19.5 5.75C19.5 5.05964 18.9404 4.5 18.25 4.5H5.75C5.05964 4.5 4.5 5.05964 4.5 5.75V18.25C4.5 18.9404 5.05964 19.5 5.75 19.5H18.25C18.9404 19.5 19.5 18.9404 19.5 18.25V5.75ZM21 18.25C21 19.7688 19.7688 21 18.25 21H5.75C4.23122 21 3 19.7688 3 18.25V5.75C3 4.23122 4.23122 3 5.75 3H18.25C19.7688 3 21 4.23122 21 5.75V18.25Z" fill="currentColor"/>
-            <path d="M18.9697 3.96973C19.2626 3.67684 19.7374 3.67684 20.0303 3.96973C20.3232 4.26262 20.3232 4.73738 20.0303 5.03028L5.03028 20.0303C4.73738 20.3232 4.26262 20.3232 3.96973 20.0303C3.67684 19.7374 3.67684 19.2626 3.96973 18.9697L18.9697 3.96973Z" fill="currentColor"/>
-            <path d="M12.7197 3.21973C13.0126 2.92684 13.4874 2.92684 13.7803 3.21973C14.0732 3.51262 14.0732 3.98738 13.7803 4.28028L4.28028 13.7803C3.98738 14.0732 3.51262 14.0732 3.21973 13.7803C2.92684 13.4874 2.92684 13.0126 3.21973 12.7197L12.7197 3.21973Z" fill="currentColor"/>
-          </svg>
+        <div class="btn-thumbnail">
+          <img src="placeholders/glass.png" alt="" class="thumb-default">
+          <img src="placeholders/glass_hover.png" alt="" class="thumb-hover">
         </div>
-        <span class="filter-label">Glass</span>
+        <div class="btn-bottom">
+          <div class="filter-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M19.5 5.75C19.5 5.05964 18.9404 4.5 18.25 4.5H5.75C5.05964 4.5 4.5 5.05964 4.5 5.75V18.25C4.5 18.9404 5.05964 19.5 5.75 19.5H18.25C18.9404 19.5 19.5 18.9404 19.5 18.25V5.75ZM21 18.25C21 19.7688 19.7688 21 18.25 21H5.75C4.23122 21 3 19.7688 3 18.25V5.75C3 4.23122 4.23122 3 5.75 3H18.25C19.7688 3 21 4.23122 21 5.75V18.25Z" fill="currentColor"/>
+              <path d="M18.9697 3.96973C19.2626 3.67684 19.7374 3.67684 20.0303 3.96973C20.3232 4.26262 20.3232 4.73738 20.0303 5.03028L5.03028 20.0303C4.73738 20.3232 4.26262 20.3232 3.96973 20.0303C3.67684 19.7374 3.67684 19.2626 3.96973 18.9697L18.9697 3.96973Z" fill="currentColor"/>
+              <path d="M12.7197 3.21973C13.0126 2.92684 13.4874 2.92684 13.7803 3.21973C14.0732 3.51262 14.0732 3.98738 13.7803 4.28028L4.28028 13.7803C3.98738 14.0732 3.51262 14.0732 3.21973 13.7803C2.92684 13.4874 2.92684 13.0126 3.21973 12.7197L12.7197 3.21973Z" fill="currentColor"/>
+            </svg>
+          </div>
+          <span class="filter-label">Glass</span>
+        </div>
       </div>
 
       <!-- Dithering -->
@@ -762,20 +809,26 @@ void main(){
     }
     glFragColor = vec4(u_color,col.r);
 }' uniforms='{"u_color":[0,0,0],"u_scale":0.01}'></media-shader>
-        <div class="filter-icon">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12Z" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M13 7.5C13 8.05228 12.5523 8.5 12 8.5C11.4477 8.5 11 8.05228 11 7.5C11 6.94772 11.4477 6.5 12 6.5C12.5523 6.5 13 6.94772 13 7.5Z" fill="currentColor"/>
-            <path d="M17.5 12C17.5 12.5523 17.0523 13 16.5 13C15.9477 13 15.5 12.5523 15.5 12C15.5 11.4477 15.9477 11 16.5 11C17.0523 11 17.5 11.4477 17.5 12Z" fill="currentColor"/>
-            <path d="M8.5 12C8.5 12.5523 8.05228 13 7.5 13C6.94772 13 6.5 12.5523 6.5 12C6.5 11.4477 6.94772 11 7.5 11C8.05228 11 8.5 11.4477 8.5 12Z" fill="currentColor"/>
-            <path d="M13 16.5C13 17.0523 12.5523 17.5 12 17.5C11.4477 17.5 11 17.0523 11 16.5C11 15.9477 11.4477 15.5 12 15.5C12.5523 15.5 13 15.9477 13 16.5Z" fill="currentColor"/>
-            <path d="M9.5251 8.11091C9.91562 8.50144 9.91562 9.1346 9.5251 9.52513C9.13457 9.91565 8.50141 9.91565 8.11088 9.52513C7.72036 9.1346 7.72036 8.50144 8.11088 8.11091C8.50141 7.72039 9.13457 7.72039 9.5251 8.11091Z" fill="currentColor"/>
-            <path d="M15.8891 8.11091C16.2796 8.50144 16.2796 9.1346 15.8891 9.52513C15.4986 9.91565 14.8654 9.91565 14.4749 9.52513C14.0843 9.1346 14.0843 8.50144 14.4749 8.11091C14.8654 7.72039 15.4986 7.72039 15.8891 8.11091Z" fill="currentColor"/>
-            <path d="M9.5251 14.4749C9.91562 14.8654 9.91562 15.4986 9.5251 15.8891C9.13457 16.2796 8.50141 16.2796 8.11088 15.8891C7.72036 15.4986 7.72036 14.8654 8.11088 14.4749C8.50141 14.0843 9.13457 14.0843 9.5251 14.4749Z" fill="currentColor"/>
-            <path d="M15.8891 14.4749C16.2796 14.8654 16.2796 15.4986 15.8891 15.8891C15.4986 16.2796 14.8654 16.2796 14.4749 15.8891C14.0843 15.4986 14.0843 14.8654 14.4749 14.4749C14.8654 14.0843 15.4986 14.0843 15.8891 14.4749Z" fill="currentColor"/>
-          </svg>
+        <div class="btn-thumbnail">
+          <img src="placeholders/dither_hover.png" alt="" class="thumb-default">
+          <img src="placeholders/dither.png" alt="" class="thumb-hover">
         </div>
-        <span class="filter-label">Dithering</span>
+        <div class="btn-bottom">
+          <div class="filter-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12Z" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M13 7.5C13 8.05228 12.5523 8.5 12 8.5C11.4477 8.5 11 8.05228 11 7.5C11 6.94772 11.4477 6.5 12 6.5C12.5523 6.5 13 6.94772 13 7.5Z" fill="currentColor"/>
+              <path d="M17.5 12C17.5 12.5523 17.0523 13 16.5 13C15.9477 13 15.5 12.5523 15.5 12C15.5 11.4477 15.9477 11 16.5 11C17.0523 11 17.5 11.4477 17.5 12Z" fill="currentColor"/>
+              <path d="M8.5 12C8.5 12.5523 8.05228 13 7.5 13C6.94772 13 6.5 12.5523 6.5 12C6.5 11.4477 6.94772 11 7.5 11C8.05228 11 8.5 11.4477 8.5 12Z" fill="currentColor"/>
+              <path d="M13 16.5C13 17.0523 12.5523 17.5 12 17.5C11.4477 17.5 11 17.0523 11 16.5C11 15.9477 11.4477 15.5 12 15.5C12.5523 15.5 13 15.9477 13 16.5Z" fill="currentColor"/>
+              <path d="M9.5251 8.11091C9.91562 8.50144 9.91562 9.1346 9.5251 9.52513C9.13457 9.91565 8.50141 9.91565 8.11088 9.52513C7.72036 9.1346 7.72036 8.50144 8.11088 8.11091C8.50141 7.72039 9.13457 7.72039 9.5251 8.11091Z" fill="currentColor"/>
+              <path d="M15.8891 8.11091C16.2796 8.50144 16.2796 9.1346 15.8891 9.52513C15.4986 9.91565 14.8654 9.91565 14.4749 9.52513C14.0843 9.1346 14.0843 8.50144 14.4749 8.11091C14.8654 7.72039 15.4986 7.72039 15.8891 8.11091Z" fill="currentColor"/>
+              <path d="M9.5251 14.4749C9.91562 14.8654 9.91562 15.4986 9.5251 15.8891C9.13457 16.2796 8.50141 16.2796 8.11088 15.8891C7.72036 15.4986 7.72036 14.8654 8.11088 14.4749C8.50141 14.0843 9.13457 14.0843 9.5251 14.4749Z" fill="currentColor"/>
+              <path d="M15.8891 14.4749C16.2796 14.8654 16.2796 15.4986 15.8891 15.8891C15.4986 16.2796 14.8654 16.2796 14.4749 15.8891C14.0843 15.4986 14.0843 14.8654 14.4749 14.4749C14.8654 14.0843 15.4986 14.0843 15.8891 14.4749Z" fill="currentColor"/>
+            </svg>
+          </div>
+          <span class="filter-label">Dithering</span>
+        </div>
       </div>
 
       <!-- Halftone -->
@@ -803,20 +856,25 @@ void main(){
     }
     glFragColor = vec4(u_color,col.r);
 }' uniforms='{"u_color":[0,0,0],"u_scale":0.01}'></media-shader>
-        <div class="filter-icon">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M13.85 6.99998C13.85 5.97825 13.0218 5.14997 12 5.14997C10.9783 5.14997 10.15 5.97825 10.15 6.99998C10.15 8.0217 10.9783 8.84998 12 8.84998C13.0218 8.84998 13.85 8.0217 13.85 6.99998Z" stroke="currentColor" stroke-width="1.3"/>
-            <path d="M13.35 13C13.35 12.2544 12.7456 11.65 12 11.65C11.2544 11.65 10.65 12.2544 10.65 13C10.65 13.7456 11.2544 14.35 12 14.35C12.7456 14.35 13.35 13.7456 13.35 13Z" stroke="currentColor" stroke-width="1.3"/>
-            <path d="M12.85 18C12.85 17.5305 12.4695 17.15 12 17.15C11.5306 17.15 11.15 17.5305 11.15 18C11.15 18.4694 11.5306 18.85 12 18.85C12.4695 18.85 12.85 18.4694 12.85 18Z" stroke="currentColor" stroke-width="1.3"/>
-            <path d="M19.85 6.99998C19.85 5.97825 19.0218 5.14997 18 5.14997C16.9783 5.14997 16.15 5.97825 16.15 6.99998C16.15 8.0217 16.9783 8.84998 18 8.84998C19.0218 8.84998 19.85 8.0217 19.85 6.99998Z" stroke="currentColor" stroke-width="1.3"/>
-            <path d="M19.35 13C19.35 12.2544 18.7456 11.65 18 11.65C17.2544 11.65 16.65 12.2544 16.65 13C16.65 13.7456 17.2544 14.35 18 14.35C18.7456 14.35 19.35 13.7456 19.35 13Z" stroke="currentColor" stroke-width="1.3"/>
-            <path d="M18.85 18C18.85 17.5305 18.4695 17.15 18 17.15C17.5306 17.15 17.15 17.5305 17.15 18C17.15 18.4694 17.5306 18.85 18 18.85C18.4695 18.85 18.85 18.4694 18.85 18Z" stroke="currentColor" stroke-width="1.3"/>
-            <path d="M7.85002 6.99998C7.85002 5.97825 7.02175 5.14997 6.00002 5.14997C4.9783 5.14997 4.15002 5.97825 4.15002 6.99998C4.15002 8.0217 4.9783 8.84998 6.00002 8.84998C7.02175 8.84998 7.85002 8.0217 7.85002 6.99998Z" stroke="currentColor" stroke-width="1.3"/>
-            <path d="M7.35002 13C7.35002 12.2544 6.74561 11.65 6.00002 11.65C5.25444 11.65 4.65002 12.2544 4.65002 13C4.65002 13.7456 5.25444 14.35 6.00002 14.35C6.74561 14.35 7.35002 13.7456 7.35002 13Z" stroke="currentColor" stroke-width="1.3"/>
-            <path d="M6.85002 18C6.85002 17.5305 6.46947 17.15 6.00002 17.15C5.53058 17.15 5.15002 17.5305 5.15002 18C5.15002 18.4694 5.53058 18.85 6.00002 18.85C6.46947 18.85 6.85002 18.4694 6.85002 18Z" stroke="currentColor" stroke-width="1.3"/>
-          </svg>
+        <div class="btn-thumbnail">
+          <img src="placeholder.png" alt="">
         </div>
-        <span class="filter-label">Halftone</span>
+        <div class="btn-bottom">
+          <div class="filter-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13.85 6.99998C13.85 5.97825 13.0218 5.14997 12 5.14997C10.9783 5.14997 10.15 5.97825 10.15 6.99998C10.15 8.0217 10.9783 8.84998 12 8.84998C13.0218 8.84998 13.85 8.0217 13.85 6.99998Z" stroke="currentColor" stroke-width="1.3"/>
+              <path d="M13.35 13C13.35 12.2544 12.7456 11.65 12 11.65C11.2544 11.65 10.65 12.2544 10.65 13C10.65 13.7456 11.2544 14.35 12 14.35C12.7456 14.35 13.35 13.7456 13.35 13Z" stroke="currentColor" stroke-width="1.3"/>
+              <path d="M12.85 18C12.85 17.5305 12.4695 17.15 12 17.15C11.5306 17.15 11.15 17.5305 11.15 18C11.15 18.4694 11.5306 18.85 12 18.85C12.4695 18.85 12.85 18.4694 12.85 18Z" stroke="currentColor" stroke-width="1.3"/>
+              <path d="M19.85 6.99998C19.85 5.97825 19.0218 5.14997 18 5.14997C16.9783 5.14997 16.15 5.97825 16.15 6.99998C16.15 8.0217 16.9783 8.84998 18 8.84998C19.0218 8.84998 19.85 8.0217 19.85 6.99998Z" stroke="currentColor" stroke-width="1.3"/>
+              <path d="M19.35 13C19.35 12.2544 18.7456 11.65 18 11.65C17.2544 11.65 16.65 12.2544 16.65 13C16.65 13.7456 17.2544 14.35 18 14.35C18.7456 14.35 19.35 13.7456 19.35 13Z" stroke="currentColor" stroke-width="1.3"/>
+              <path d="M18.85 18C18.85 17.5305 18.4695 17.15 18 17.15C17.5306 17.15 17.15 17.5305 17.15 18C17.15 18.4694 17.5306 18.85 18 18.85C18.4695 18.85 18.85 18.4694 18.85 18Z" stroke="currentColor" stroke-width="1.3"/>
+              <path d="M7.85002 6.99998C7.85002 5.97825 7.02175 5.14997 6.00002 5.14997C4.9783 5.14997 4.15002 5.97825 4.15002 6.99998C4.15002 8.0217 4.9783 8.84998 6.00002 8.84998C7.02175 8.84998 7.85002 8.0217 7.85002 6.99998Z" stroke="currentColor" stroke-width="1.3"/>
+              <path d="M7.35002 13C7.35002 12.2544 6.74561 11.65 6.00002 11.65C5.25444 11.65 4.65002 12.2544 4.65002 13C4.65002 13.7456 5.25444 14.35 6.00002 14.35C6.74561 14.35 7.35002 13.7456 7.35002 13Z" stroke="currentColor" stroke-width="1.3"/>
+              <path d="M6.85002 18C6.85002 17.5305 6.46947 17.15 6.00002 17.15C5.53058 17.15 5.15002 17.5305 5.15002 18C5.15002 18.4694 5.53058 18.85 6.00002 18.85C6.46947 18.85 6.85002 18.4694 6.85002 18Z" stroke="currentColor" stroke-width="1.3"/>
+            </svg>
+          </div>
+          <span class="filter-label">Halftone</span>
+        </div>
       </div>
 
       <!-- Liquid -->
@@ -844,12 +902,17 @@ void main(){
     }
     glFragColor = vec4(u_color,col.r);
 }' uniforms='{"u_color":[0,0,0],"u_scale":0.01}'></media-shader>
-        <div class="filter-icon">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7.11391 6C8.79458 6.00008 10.3094 6.72404 11.3781 7.88361C12.1783 8.75191 13.1915 9.50004 14.3578 9.50004C15.2634 9.50004 16.0868 9.01536 16.868 8.54671C17.4469 8.19937 18.121 8.0002 18.8407 8.00017C20.9995 8.00017 22.7497 9.7905 22.75 11.9995C22.75 14.2087 20.9997 15.9998 18.8407 15.9998C18.121 15.9998 17.4469 15.8006 16.8679 15.4533C16.0868 14.9846 15.2634 14.5 14.3579 14.5C13.1915 14.5 12.1784 15.2482 11.3781 16.1165C10.3095 17.2761 8.79468 17.9999 7.11391 18C3.8756 18 1.25015 15.3142 1.25 12.0005C1.25 8.68667 3.87551 6 7.11391 6Z" stroke="currentColor" stroke-width="1.5"/>
-          </svg>
+        <div class="btn-thumbnail">
+          <img src="placeholder.png" alt="">
         </div>
-        <span class="filter-label">Liquid</span>
+        <div class="btn-bottom">
+          <div class="filter-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7.11391 6C8.79458 6.00008 10.3094 6.72404 11.3781 7.88361C12.1783 8.75191 13.1915 9.50004 14.3578 9.50004C15.2634 9.50004 16.0868 9.01536 16.868 8.54671C17.4469 8.19937 18.121 8.0002 18.8407 8.00017C20.9995 8.00017 22.7497 9.7905 22.75 11.9995C22.75 14.2087 20.9997 15.9998 18.8407 15.9998C18.121 15.9998 17.4469 15.8006 16.8679 15.4533C16.0868 14.9846 15.2634 14.5 14.3579 14.5C13.1915 14.5 12.1784 15.2482 11.3781 16.1165C10.3095 17.2761 8.79468 17.9999 7.11391 18C3.8756 18 1.25015 15.3142 1.25 12.0005C1.25 8.68667 3.87551 6 7.11391 6Z" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <span class="filter-label">Liquid</span>
+        </div>
       </div>
 
       <!-- Granny -->
@@ -877,13 +940,18 @@ void main(){
     }
     glFragColor = vec4(u_color,col.r);
 }' uniforms='{"u_color":[0,0,0],"u_scale":0.01}'></media-shader>
-        <div class="filter-icon">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2.75 8.75C2.75 7.64543 3.64543 6.75 4.75 6.75H19.25C20.3546 6.75 21.25 7.64543 21.25 8.75V18.25C21.25 19.3546 20.3546 20.25 19.25 20.25H4.75C3.64543 20.25 2.75 19.3546 2.75 18.25V8.75Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M7.5 3.25L12 6.75L16.5 3.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+        <div class="btn-thumbnail">
+          <img src="placeholder.png" alt="">
         </div>
-        <span class="filter-label">Granny</span>
+        <div class="btn-bottom">
+          <div class="filter-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2.75 8.75C2.75 7.64543 3.64543 6.75 4.75 6.75H19.25C20.3546 6.75 21.25 7.64543 21.25 8.75V18.25C21.25 19.3546 20.3546 20.25 19.25 20.25H4.75C3.64543 20.25 2.75 19.3546 2.75 18.25V8.75Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M7.5 3.25L12 6.75L16.5 3.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <span class="filter-label">Granny</span>
+        </div>
       </div>
 
     </div>
@@ -2209,6 +2277,7 @@ void main() {
     } catch(e) {
       console.error('Dither ShaderMount init failed:', e);
     }
+    requestAnimationFrame(updateFitClip);
   }
 
   function updateShader() {
@@ -2279,6 +2348,7 @@ void main() {
       console.error('Liquid ShaderMount init failed:', e);
     }
     syncLiqPlayPauseBtn();
+    requestAnimationFrame(updateFitClip);
   }
 
   // ── Filter tabs + panel switcher ─────────────────────────────
@@ -2861,6 +2931,7 @@ void main() {
     } catch (e) {
       console.error('ShaderMount init failed:', e);
     }
+    requestAnimationFrame(updateFitClip);
   }
 
   function tryInitWithImage(img) {
@@ -2881,6 +2952,28 @@ void main() {
   const fitControl = document.getElementById('fitControl');
   const fitBtns = fitControl.querySelectorAll('.fit-btn');
 
+  function updateFitClip() {
+    if (!shaderMount?.canvasElement) return;
+    const canvas = shaderMount.canvasElement;
+    if (shaderFit !== 1) {
+      canvas.style.clipPath = '';
+      return;
+    }
+    const rect = canvas.getBoundingClientRect();
+    const cw = rect.width;
+    const ch = rect.height;
+    const aspect = imgAspect || 1;
+    let top = 0, right = 0, bottom = 0, left = 0;
+    if (cw / ch > aspect) {
+      const imgW = ch * aspect;
+      left = right = (cw - imgW) / 2;
+    } else {
+      const imgH = cw / aspect;
+      top = bottom = (ch - imgH) / 2;
+    }
+    canvas.style.clipPath = `inset(${top}px ${right}px ${bottom}px ${left}px)`;
+  }
+
   function applyFit(mode) {
     shaderFit = mode === 'fill' ? 2 : 1;
     imgOffsetX = 0; imgOffsetY = 0;
@@ -2893,7 +2986,10 @@ void main() {
       u_offsetX: 0,
       u_offsetY: 0,
     });
+    updateFitClip();
   }
+
+  new ResizeObserver(() => updateFitClip()).observe(imageArea);
 
   fitBtns.forEach(btn => btn.addEventListener('click', () => applyFit(btn.dataset.fit)));
 
@@ -2926,7 +3022,7 @@ void main() {
       uploadBtn.style.display = 'none';
       imageArea.classList.add('has-image');
       imageArea.classList.add('fill-mode'); // default is fill
-      // action-bar is always visible in new layout
+      document.querySelector('.action-bar').classList.add('visible');
     }, { once: true });
     fileInput.value = '';
   });
@@ -2951,9 +3047,13 @@ void main() {
     document.documentElement.appendChild(tempDiv);
 
     const saveShader = activeFilter === 'dithering' ? imageDitheringFragmentShader : activeFilter === 'liquid' ? waterFragmentShader : flutedGlassFragmentShader;
+    const exportUniforms = { ...shaderMount.providedUniforms, u_fit: 1, u_offsetX: 0, u_offsetY: 0 };
+    if (activeFilter === 'dithering' && exportUniforms.u_pxSize !== undefined) {
+      exportUniforms.u_pxSize = exportUniforms.u_pxSize * (outW / shaderMount.parentWidth);
+    }
     const tempMount = new ShaderMount(
       tempDiv, saveShader,
-      { ...shaderMount.providedUniforms, u_fit: 1, u_offsetX: 0, u_offsetY: 0 },
+      exportUniforms,
       undefined, 0, shaderMount.currentFrame, 1, outW * outH + 1
     );
 
@@ -3074,6 +3174,12 @@ void main(){
     }
     glFragColor = vec4(u_color,col.r);
 }`;
+  // Pre-decode all hover thumbnail images so they're GPU-ready before first hover
+  document.querySelectorAll('.btn-thumbnail img').forEach(img => {
+    if (img.complete) return;
+    img.decode?.().catch(() => {});
+  });
+
   // Hide all grain elements before shaders compile
   document.querySelectorAll('media-shader').forEach(el => {
     el.style.transition = 'none';
