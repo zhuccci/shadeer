@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Angle Knob</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #202020;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Geist', 'Inter', sans-serif;
+    }
+
+    .widget {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 4px;
+    }
+
+    .label {
+      color: #c7c7c7;
+      font-size: 16px;
+      font-weight: 400;
+    }
+
+    .dial-wrap {
+      position: relative;
+      width: 152px;
+      height: 132px;
+    }
+
+    .deg-top, .deg-bottom {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 8px;
+      line-height: 1;
+      color: #595959;
+      text-align: center;
+      white-space: nowrap;
+      user-select: none;
+      padding-left: 3px;
+    }
+    .deg-top { top: 2px; padding-left: 4px; }
+    .deg-bottom { bottom: 2px; }
+
+    .deg-left, .deg-right {
+      position: absolute;
+      font-size: 8px;
+      color: #595959;
+      top: 66px;
+      transform: translateY(-50%);
+      text-align: center;
+      user-select: none;
+      width: 22px;
+    }
+    .deg-left { left: 0; }
+    .deg-right { left: 130px; }
+
+    .knob-area {
+      position: absolute;
+      left: 26px;
+      top: 16px;
+      width: 100px;
+      height: 100px;
+    }
+
+    .knob {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 0.625px solid #262626;
+      background: radial-gradient(circle at center, #202020 0%, #191919 100%);
+      position: relative;
+      cursor: grab;
+      user-select: none;
+    }
+    .knob:active { cursor: grabbing; }
+
+    @property --kf-top    { syntax: '<color>'; inherits: false; initial-value: #656565; }
+    @property --kf-bottom { syntax: '<color>'; inherits: false; initial-value: #515151; }
+
+    .knob-face {
+      position: absolute;
+      width: 80px; height: 80px;
+      left: 10px; top: 10px;
+      border-radius: 50%;
+      --kf-top: #656565;
+      --kf-bottom: #515151;
+      background: linear-gradient(to bottom, var(--kf-top), var(--kf-bottom));
+      box-shadow: 0 1px 1px rgba(255,255,255,0.04), inset 0 2.5px 6.25px rgba(255,255,255,0.1);
+      pointer-events: none;
+      transition: --kf-top 0.2s ease-out, --kf-bottom 0.2s ease-out;
+    }
+    .knob:hover .knob-face {
+      --kf-top: #828282;
+      --kf-bottom: #535353;
+    }
+    .knob.dragging .knob-face {
+      --kf-top: #4F4F4F;
+      --kf-bottom: #393939;
+    }
+
+    .tick {
+      position: absolute;
+      border-radius: 20px;
+      pointer-events: none;
+      transition: none;
+    }
+
+    .indicator {
+      position: absolute;
+      width: 7.5px;
+      height: 7.5px;
+      background: #fff679;
+      border-radius: 50%;
+      box-shadow: 0 0 18.75px 6.25px rgba(255, 246, 121, 0.2);
+      pointer-events: none;
+    }
+
+    .value-display {
+      background: #141414;
+      border: 0.5px solid #262626;
+      border-radius: 8px;
+      padding: 8px 10px 8px 14px;
+      color: #c7c7c7;
+      font-size: 16px;
+      font-weight: 500;
+      width: 82px;
+      text-align: center;
+      outline: none;
+      font-family: inherit;
+    }
+    .value-display:focus {
+      border-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+<div class="widget">
+  <span class="label">Angle</span>
+
+  <div class="dial-wrap">
+    <span class="deg-top">0°</span>
+    <span class="deg-left">270°</span>
+    <span class="deg-right">90°</span>
+    <span class="deg-bottom">180°</span>
+
+    <div class="knob-area">
+      <div class="knob" id="knob">
+        <div class="knob-face"></div>
+        <div class="indicator" id="indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <input class="value-display" id="valueDisplay" type="text" value="0°" />
+</div>
+
+<script>
+  const knob     = document.getElementById('knob');
+  const indicator = document.getElementById('indicator');
+  const valueDisplay = document.getElementById('valueDisplay');
+
+  const KNOB_R   = 50;     // half of knob 100px
+  const GREY_R   = 40;     // grey circle radius (80px / 2)
+  const IND_R    = GREY_R - 3.75 - 2.5; // gap from grey circle edge, accounting for dot radius
+  const TICK_R   = 45;     // tick orbit radius — centered between grey (r=40) and outer (r=50)
+  const TICK_STEP = 15;  // degrees between ticks
+  const TICK_COUNT = 360 / TICK_STEP; // 24
+
+  let angle = 0;
+  let dragging = false;
+  let center = { x: 0, y: 0 };
+  let dragStartMouseAngle = 0;
+  let dragStartKnobAngle  = 0;
+
+  // Build tick elements
+  const ticks = [];
+  for (let i = 0; i < TICK_COUNT; i++) {
+    const deg = i * TICK_STEP; // 0, 15, 30 ... 345
+    const rad = (deg - 90) * Math.PI / 180;
+    const x = Math.cos(rad) * TICK_R;
+    const y = Math.sin(rad) * TICK_R;
+
+    // Cardinals (0,90,180,270) are 2.5px; diagonals are 2.434px
+    const isCardinal = deg % 90 === 0;
+    const size = isCardinal ? 2.5 : 2.434;
+
+    const el = document.createElement('div');
+    el.className = 'tick';
+    el.style.width  = size + 'px';
+    el.style.height = size + 'px';
+    el.style.left   = (KNOB_R + x - size / 2) + 'px';
+    el.style.top    = (KNOB_R + y - size / 2) + 'px';
+    knob.appendChild(el);
+    ticks.push({ el, deg });
+  }
+
+  function updateVisuals() {
+    const norm = ((angle % 360) + 360) % 360;
+
+    // Move indicator
+    const indRad = (angle - 90) * Math.PI / 180;
+    indicator.style.left = (KNOB_R + Math.cos(indRad) * IND_R - 3.75) + 'px';
+    indicator.style.top  = (KNOB_R + Math.sin(indRad) * IND_R - 3.75) + 'px';
+
+    // Update ticks
+    ticks.forEach(({ el, deg }) => {
+      const lit = deg <= norm;
+      el.style.background  = lit ? '#fff679' : '#2b2b2b';
+      el.style.boxShadow   = 'none';
+    });
+
+    if (document.activeElement !== valueDisplay)
+      valueDisplay.value = Math.round(norm) + '°';
+  }
+
+  function angleFromEvent(e) {
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return Math.atan2(clientY - center.y, clientX - center.x) * 180 / Math.PI + 90;
+  }
+
+  function startDrag(e) {
+    e.preventDefault();
+    const rect = knob.getBoundingClientRect();
+    center = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    dragging = true;
+    knob.classList.add('dragging');
+    dragStartMouseAngle = angleFromEvent(e);
+    dragStartKnobAngle  = angle;
+  }
+
+  function onDrag(e) {
+    if (!dragging) return;
+    e.preventDefault();
+    let delta = angleFromEvent(e) - dragStartMouseAngle;
+    // handle wrap-around: keep delta in [-180, 180]
+    if (delta >  180) delta -= 360;
+    if (delta < -180) delta += 360;
+    angle = ((dragStartKnobAngle + delta) % 360 + 360) % 360;
+    updateVisuals();
+  }
+
+  knob.addEventListener('mousedown', startDrag);
+  window.addEventListener('mousemove', onDrag);
+  window.addEventListener('mouseup', () => { dragging = false; knob.classList.remove('dragging'); });
+
+  knob.addEventListener('touchstart', startDrag, { passive: false });
+  window.addEventListener('touchmove', onDrag, { passive: false });
+  window.addEventListener('touchend', () => { dragging = false; });
+
+  knob.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    angle = ((angle - e.deltaY * 0.3) % 360 + 360) % 360;
+    updateVisuals();
+  }, { passive: false });
+
+  function applyInput() {
+    const raw = parseFloat(valueDisplay.value);
+    const norm = ((angle % 360) + 360) % 360;
+    if (!isNaN(raw)) {
+      angle = ((raw % 360) + 360) % 360;
+      updateVisuals();
+    }
+    valueDisplay.value = Math.round(((angle % 360) + 360) % 360) + '°';
+  }
+
+  valueDisplay.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { applyInput(); valueDisplay.blur(); }
+    if (e.key === 'Escape') { valueDisplay.blur(); }
+  });
+  valueDisplay.addEventListener('blur', applyInput);
+  valueDisplay.addEventListener('focus', () => {
+    // strip the ° so user can type cleanly
+    valueDisplay.value = Math.round(((angle % 360) + 360) % 360).toString();
+    valueDisplay.select();
+  });
+
+  updateVisuals();
+</script>
+</body>
+</html>

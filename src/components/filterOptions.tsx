@@ -1,0 +1,51 @@
+import type { ActiveFilter } from '../types/editor';
+
+const baseUrl = import.meta.env.BASE_URL;
+
+export interface FilterOption {
+  id: ActiveFilter | 'halftone';
+  label: string;
+  thumbnail: string;
+  hoverThumbnail?: string;
+  implemented: boolean;
+}
+
+export const filterOptions: FilterOption[] = [
+  {
+    id: 'glass',
+    label: 'Glass',
+    thumbnail: `${baseUrl}placeholders/glass.png`,
+    hoverThumbnail: `${baseUrl}placeholders/glass_hover.png`,
+    implemented: true,
+  },
+  {
+    id: 'dithering',
+    label: 'Dithering',
+    thumbnail: `${baseUrl}placeholders/dither.png`,
+    hoverThumbnail: `${baseUrl}placeholders/dither_hover.png`,
+    implemented: true,
+  },
+  {
+    id: 'halftone',
+    label: 'Halftone',
+    thumbnail: `${baseUrl}placeholder.png`,
+    implemented: false,
+  },
+  {
+    id: 'liquid',
+    label: 'Liquid',
+    thumbnail: `${baseUrl}placeholders/liquid.png`,
+    hoverThumbnail: `${baseUrl}placeholders/liquid_hover.png`,
+    implemented: true,
+  },
+  {
+    id: 'glitchy',
+    label: 'Glitchy',
+    thumbnail: `${baseUrl}placeholder.png`,
+    implemented: true,
+  },
+];
+
+export function isActiveFilter(filterId: FilterOption['id']): filterId is ActiveFilter {
+  return filterId === 'glass' || filterId === 'dithering' || filterId === 'liquid' || filterId === 'glitchy';
+}

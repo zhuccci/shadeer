@@ -1,0 +1,61 @@
+/* ─────────────────────────────────────────────────────────
+   Neuroshade — ColorSelector component
+   Usage:
+     <div class="color-selector">
+       <span class="color-label">Label</span>
+       <div class="color-row">
+         <div class="color-swatch" style="background:#000000"></div>
+         <input class="color-hex" type="text" value="#000000" />
+       </div>
+     </div>
+───────────────────────────────────────────────────────── */
+
+.color-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.2s ease-out;
+  isolation: isolate;
+}
+
+.color-selector:hover { background: rgba(20, 20, 20, 0.3); }
+
+.color-label {
+  color: #d6d6d6;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.color-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.color-swatch {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.color-hex {
+  width: 95px;
+  height: 40px;
+  background: #141414;
+  border: 0.5px solid #262626;
+  border-radius: 8px;
+  color: #c7c7c7;
+  font-size: 16px;
+  font-weight: 400;
+  font-family: 'Geist', 'Inter', system-ui, sans-serif;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.2s ease-out, background 0.2s ease-out;
+}
+
+.color-hex:hover { border-color: #484848; background: #1c1c1c; }
+.color-hex:focus { border-color: #686868; background: #1e1e1e; }

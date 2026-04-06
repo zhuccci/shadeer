@@ -1,0 +1,142 @@
+#panelWrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.controls-panel {
+  display: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.42s ease;
+  gap: 24px;
+  padding: 24px;
+  border-radius: 16px;
+  background: #202020;
+  border: 0.5px solid #494949;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.controls-panel.panel-active {
+  display: flex;
+  opacity: 1;
+}
+
+.panel-grain {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  opacity: 0.18;
+}
+
+.controls-left,
+.dither-right {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.panel-divider {
+  width: 0.5px;
+  background: #2b2b2b;
+}
+
+.widget-group,
+.input-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-row {
+  gap: 12px;
+}
+
+.widget-label {
+  color: #d6d6d6;
+  font-size: 16px;
+}
+
+.type-label {
+  margin-left: 8px;
+}
+
+.dither-type-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dither-type-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.dither-type-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.dither-type-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  background: #141414;
+  color: var(--text-muted);
+  border: 0.5px solid #6a6a6a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.dither-type-btn.selected {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 18.75px 0 rgba(255, 246, 121, 0.2);
+}
+
+.dither-type-btn img {
+  width: 20px;
+  height: 20px;
+  filter: brightness(0) saturate(100%) invert(43%) sepia(0%) saturate(0%) hue-rotate(194deg) brightness(95%) contrast(93%);
+}
+
+.dither-type-btn.selected img {
+  filter: brightness(0) saturate(100%) invert(92%) sepia(85%) saturate(510%) hue-rotate(335deg) brightness(104%) contrast(101%);
+}
+
+.dither-type-label {
+  font-size: 16px;
+  font-weight: 400;
+  color: #d9d9d9;
+}
+
+.dither-type-label.selected {
+  color: var(--accent);
+}
+
+.dither-slider-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.liq-play-pause-btn {
+  margin-top: auto;
+}
