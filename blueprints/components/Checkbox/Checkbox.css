@@ -1,0 +1,50 @@
+/* ─────────────────────────────────────────────────────────
+   Neuroshade — Checkbox component
+   Usage:
+     <label class="checkbox-row">
+       <div class="checkbox"></div>
+       <span class="checkbox-label">Label</span>
+     </label>
+   Add class "checked" to .checkbox to mark it checked.
+───────────────────────────────────────────────────────── */
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s ease-out;
+}
+
+.checkbox-row:hover { background: rgba(20, 20, 20, 0.3); }
+
+.checkbox {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  border: 1px solid #6a6a6a;
+  background: #141414;
+  position: relative;
+  transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.checkbox-row:hover .checkbox { border-color: #d9d9d9; }
+
+.checkbox.checked {
+  border-color: #fff679;
+  box-shadow: 0 0 18.75px 0.25px rgba(255, 246, 121, 0.2);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 8' fill='none'%3E%3Cpath d='M1 3.5L4 6.5L9 1' stroke='%23FFF679' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 10px 8px;
+}
+
+.checkbox-label {
+  color: #d6d6d6;
+  font-size: 16px;
+  font-weight: 400;
+}

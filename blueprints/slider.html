@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Slider</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #202020;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Geist', 'Inter', sans-serif;
+    }
+
+    .widget {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .slider-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 315px;
+    }
+
+    .slider-label {
+      color: #d6d6d6;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .slider-track {
+      display: flex;
+      align-items: center;
+      width: 315px;
+      user-select: none;
+    }
+
+    .track-fill {
+      height: 6px;
+      border-radius: 40px 0 0 40px;
+      flex-shrink: 0;
+      background: #fff679;
+      width: 0;
+    }
+
+    .slider-thumb {
+      width: 6px;
+      height: 12px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      background: #fff679;
+      box-shadow: -2px 0 8px 0 rgba(0, 0, 0, 0.25);
+      position: relative;
+      z-index: 1;
+    }
+
+    .track-empty {
+      height: 6px;
+      border-radius: 0 40px 40px 0;
+      background: #6a6a6a;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .value-display {
+      background: #141414;
+      border: 0.5px solid #262626;
+      border-radius: 8px;
+      padding: 8px 16px;
+      color: #c7c7c7;
+      font-size: 16px;
+      font-weight: 500;
+      width: 62px;
+      text-align: center;
+      outline: none;
+      font-family: inherit;
+    }
+    .value-display:focus {
+      border-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+<div class="widget">
+  <div class="slider-container">
+    <div class="slider-label">Size</div>
+    <div class="slider-track" id="sliderTrack">
+      <div class="track-fill" id="trackFill"></div>
+      <div class="slider-thumb" id="sliderThumb"></div>
+      <div class="track-empty"></div>
+    </div>
+  </div>
+  <input class="value-display" id="valueDisplay" type="text" value="60" />
+</div>
+
+<script>
+  const track       = document.getElementById('sliderTrack');
+  const fill        = document.getElementById('trackFill');
+  const thumb       = document.getElementById('sliderThumb');
+  const valueDisplay = document.getElementById('valueDisplay');
+
+  const THUMB_W = 6;
+  const TRACK_W = 315;
+  const RANGE_W = TRACK_W - THUMB_W; // 309px usable range
+  const MIN = 0;
+  const MAX = 100;
+
+  let value = 60;
+  let dragging = false;
+  let hovered = false;
+  let pressed = false;
+  let dragStartX = 0;
+  let dragStartValue = 0;
+
+  function clamp(v) {
+    return Math.max(MIN, Math.min(MAX, v));
+  }
+
+  function thumbColor() {
+    if (value === 0)  return '#a6a6a6';
+    if (pressed)      return '#9D9635';
+    if (hovered)      return '#C7BE44';
+    return '#fff679';
+  }
+
+  function updateVisuals() {
+    const inactive = value === 0;
+    const norm = value / MAX;
+
+    fill.style.background = inactive ? '#6a6a6a' : '#fff679';
+    fill.style.width = inactive ? '2px' : (norm * RANGE_W) + 'px';
+    thumb.style.background = thumbColor();
+
+    if (dragging || document.activeElement !== valueDisplay) {
+      valueDisplay.value = Math.round(value).toString();
+    }
+  }
+
+  function valueFromClientX(clientX) {
+    const rect = track.getBoundingClientRect();
+    const x = clientX - rect.left - THUMB_W / 2;
+    return clamp((x / RANGE_W) * MAX);
+  }
+
+  // Hover & pressed states
+  thumb.addEventListener('mouseenter', () => { hovered = true;  updateVisuals(); });
+  thumb.addEventListener('mouseleave', () => { hovered = false; updateVisuals(); });
+
+  // Drag
+  thumb.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    pressed = true;
+    dragging = true;
+    dragStartX = e.clientX;
+    dragStartValue = value;
+    updateVisuals();
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    const delta = e.clientX - dragStartX;
+    value = clamp(dragStartValue + (delta / RANGE_W) * MAX);
+    updateVisuals();
+  });
+
+  window.addEventListener('mouseup', () => {
+    pressed = false;
+    dragging = false;
+    updateVisuals();
+  });
+
+  // Click on track
+  track.addEventListener('click', (e) => {
+    if (e.target === thumb) return;
+    value = valueFromClientX(e.clientX);
+    updateVisuals();
+  });
+
+  // Scroll
+  track.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    value = clamp(value - e.deltaY * 0.2);
+    updateVisuals();
+  }, { passive: false });
+
+  // Touch
+  thumb.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    dragging = true;
+    dragStartX = e.touches[0].clientX;
+    dragStartValue = value;
+  }, { passive: false });
+
+  window.addEventListener('touchmove', (e) => {
+    if (!dragging) return;
+    e.preventDefault();
+    const delta = e.touches[0].clientX - dragStartX;
+    value = clamp(dragStartValue + (delta / RANGE_W) * MAX);
+    updateVisuals();
+  }, { passive: false });
+
+  window.addEventListener('touchend', () => { dragging = false; });
+
+  // Input
+  function applyInput() {
+    const raw = parseFloat(valueDisplay.value);
+    if (!isNaN(raw)) value = clamp(raw);
+    updateVisuals();
+  }
+
+  valueDisplay.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { applyInput(); valueDisplay.blur(); }
+    if (e.key === 'Escape') { valueDisplay.blur(); }
+  });
+  valueDisplay.addEventListener('blur', applyInput);
+  valueDisplay.addEventListener('focus', () => {
+    valueDisplay.value = Math.round(value).toString();
+    valueDisplay.select();
+  });
+
+  updateVisuals();
+</script>
+</body>
+</html>

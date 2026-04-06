@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Glass Filter</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #151515;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Geist', 'Inter', sans-serif;
+    }
+
+    /* ── Filter panel ─────────────────────────────────────────── */
+    .filter-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 624px;
+    }
+
+    /* ── Filter buttons row ───────────────────────────────────── */
+    .filter-buttons {
+      display: flex;
+      gap: 16px;
+    }
+
+    .filter-btn {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      flex: 1;
+      height: 97px;
+      padding: 24px 8px;
+      border-radius: 16px;
+      border: 0.5px solid transparent;
+      background: #434343;
+      box-shadow: 0px 2px 10px 0px rgba(0,0,0,0.05);
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out;
+    }
+
+    .filter-btn:hover {
+      border-color: #606060;
+    }
+    .filter-btn:hover .filter-icon {
+      color: #fff679;
+      filter: drop-shadow(0px 0px 8px rgba(255,246,121,0.6));
+    }
+    .filter-btn:hover .filter-label {
+      color: #fff679;
+    }
+
+    .filter-btn.selected {
+      background: #191919;
+      border-color: #706f62;
+      box-shadow: 0px 4px 12px 0px rgba(0,0,0,0.15);
+    }
+    .filter-btn.selected .filter-icon {
+      color: #fff679;
+      filter: drop-shadow(0px 0px 8px rgba(255,246,121,0.6));
+    }
+    .filter-btn.selected .filter-label {
+      color: #fff679;
+      text-shadow: 0px 0px 15px rgba(255,246,121,0.5);
+    }
+    .filter-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      box-shadow:
+        inset -8px -8px 12px 0px rgba(19,19,19,0.16),
+        inset  8px  8px 12px 0px rgba(19,19,19,0.16);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease-out;
+    }
+    .filter-btn.selected::after {
+      opacity: 1;
+    }
+
+    .filter-icon {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+      color: #c7c7c7;
+      transition: color 0.2s ease-out, filter 0.2s ease-out;
+    }
+    .filter-icon svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .filter-label {
+      color: #c7c7c7;
+      font-size: 16px;
+      font-weight: 400;
+      white-space: nowrap;
+      transition: color 0.2s ease-out, text-shadow 0.2s ease-out;
+    }
+
+    /* ── Controls panel ───────────────────────────────────────── */
+    .controls-panel {
+      background: #202020;
+      border: 0.5px solid #606060;
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+      box-shadow:
+        inset -8px -8px 12px 0px rgba(0,0,0,0.16),
+        inset  8px  8px 12px 0px rgba(0,0,0,0.16);
+    }
+
+    /* ── Left column ──────────────────────────────────────────── */
+    .controls-left {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* ── Shape selector ───────────────────────────────────────── */
+    .widget-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .widget-label {
+      color: #c7c7c7;
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .selector {
+      position: relative;
+      background: #141414;
+      border: 0.5px solid #262626;
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color 0.2s ease-out, background 0.2s ease-out;
+    }
+
+    .selector-left {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .option-icon {
+      width: 16px;
+      height: 16px;
+      display: block;
+      flex-shrink: 0;
+      filter: brightness(0) invert(78%);
+    }
+    .option-icon svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .option-text {
+      color: #c7c7c7;
+      font-size: 16px;
+      font-weight: 400;
+    }
+
+    .chevron {
+      width: 24px;
+      height: 24px;
+      display: block;
+      flex-shrink: 0;
+      transition: transform 0.18s ease;
+    }
+
+    .selector.open .chevron {
+      transform: rotate(180deg);
+    }
+
+    .dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: #141414;
+      border: 0.5px solid #262626;
+      border-radius: 8px;
+      overflow: hidden;
+      z-index: 10;
+      display: none;
+    }
+
+    .selector.open .dropdown {
+      display: block;
+    }
+
+    .dropdown-item {
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .dropdown-item:hover { background: #1c1c1c; }
+    .dropdown-item.active { background: #1a1a1a; }
+
+    .dropdown-item-text {
+      color: #c7c7c7;
+      font-size: 16px;
+      font-weight: 400;
+    }
+
+    /* ── Input row (shared hover container) ──────────────────── */
+    .input-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 8px;
+      border-radius: 8px;
+      background: transparent;
+      transition: background 0.2s ease-out;
+    }
+
+    .input-row:hover {
+      background: rgba(20, 20, 20, 0.3);
+    }
+
+    /* ── Slider ───────────────────────────────────────────────── */
+    .slider-row {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      padding: 8px;
+      border-radius: 8px;
+      background: transparent;
+      transition: background 0.2s ease-out;
+    }
+
+    .slider-row:hover {
+      background: rgba(20, 20, 20, 0.3);
+    }
+
+    .slider-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .slider-label {
+      color: #d6d6d6;
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .slider-track {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      user-select: none;
+    }
+
+    .track-fill {
+      height: 6px;
+      border-radius: 40px 0 0 40px;
+      flex-shrink: 0;
+      background: #fff679;
+      width: 0;
+    }
+
+    .slider-thumb {
+      width: 6px;
+      height: 12px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      background: #fff679;
+      box-shadow: -2px 0 8px 0 rgba(0,0,0,0.25);
+      position: relative;
+      z-index: 1;
+    }
+
+    .track-empty {
+      height: 6px;
+      border-radius: 0 40px 40px 0;
+      background: #6a6a6a;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .value-display {
+      background: #141414;
+      border: 0.5px solid #262626;
+      border-radius: 8px;
+      padding: 8px 16px;
+      color: #c7c7c7;
+      font-size: 16px;
+      font-weight: 500;
+      width: 62px;
+      text-align: center;
+      outline: none;
+      font-family: inherit;
+      flex-shrink: 0;
+      transition: border-color 0.2s ease-out, box-shadow 0.2s ease-out, transform 0.2s ease-out, background 0.2s ease-out;
+    }
+    .value-display:hover {
+      border-color: #484848;
+      background: #1c1c1c;
+    }
+    .value-display:focus {
+      border-color: #686868;
+      background: #1e1e1e;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.05), 0 0 14px 0 rgba(255,255,255,0.07);
+      transform: scale(1.06);
+    }
+    .value-display:active {
+      transform: scale(1.03);
+    }
+
+    /* ── Right column — knob ──────────────────────────────────── */
+    .controls-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 4px;
+      flex-shrink: 0;
+    }
+
+    .knob-label {
+      color: #c7c7c7;
+      font-size: 16px;
+      font-weight: 400;
+    }
+
+    .dial-wrap {
+      position: relative;
+      width: 152px;
+      height: 132px;
+    }
+
+    .deg-top, .deg-bottom {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 8px;
+      line-height: 1;
+      color: #595959;
+      text-align: center;
+      white-space: nowrap;
+      user-select: none;
+      padding-left: 3px;
+    }
+    .deg-top { top: 2px; padding-left: 4px; }
+    .deg-bottom { bottom: 2px; }
+
+    .deg-left, .deg-right {
+      position: absolute;
+      font-size: 8px;
+      color: #595959;
+      top: 66px;
+      transform: translateY(-50%);
+      text-align: center;
+      user-select: none;
+      width: 22px;
+    }
+    .deg-left { left: 0; }
+    .deg-right { left: 130px; }
+
+    .knob-area {
+      position: absolute;
+      left: 26px;
+      top: 16px;
+      width: 100px;
+      height: 100px;
+    }
+
+    .knob {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 0.625px solid #262626;
+      background: radial-gradient(circle at center, #202020 0%, #191919 100%);
+      position: relative;
+      cursor: grab;
+      user-select: none;
+    }
+    .knob:active { cursor: grabbing; }
+
+    @property --kf-top    { syntax: '<color>'; inherits: false; initial-value: #656565; }
+    @property --kf-bottom { syntax: '<color>'; inherits: false; initial-value: #515151; }
+
+    .knob-face {
+      position: absolute;
+      width: 80px; height: 80px;
+      left: 10px; top: 10px;
+      border-radius: 50%;
+      --kf-top: #656565;
+      --kf-bottom: #515151;
+      background: linear-gradient(to bottom, var(--kf-top), var(--kf-bottom));
+      box-shadow: 0 1px 1px rgba(255,255,255,0.04), inset 0 2.5px 6.25px rgba(255,255,255,0.1);
+      pointer-events: none;
+      transition: --kf-top 0.2s ease-out, --kf-bottom 0.2s ease-out;
+    }
+    .knob:hover .knob-face {
+      --kf-top: #828282;
+      --kf-bottom: #535353;
+    }
+    .knob.dragging .knob-face {
+      --kf-top: #4F4F4F;
+      --kf-bottom: #393939;
+    }
+
+    .tick {
+      position: absolute;
+      border-radius: 20px;
+      pointer-events: none;
+    }
+
+    .indicator {
+      position: absolute;
+      width: 7.5px;
+      height: 7.5px;
+      background: #fff679;
+      border-radius: 50%;
+      box-shadow: 0 0 18.75px 6.25px rgba(255,246,121,0.2);
+      pointer-events: none;
+    }
+
+    .knob-value-display {
+      background: #141414;
+      border: 0.5px solid #262626;
+      border-radius: 8px;
+      padding: 8px 10px 8px 14px;
+      color: #c7c7c7;
+      font-size: 16px;
+      font-weight: 500;
+      width: 82px;
+      text-align: center;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.2s ease-out, box-shadow 0.2s ease-out, transform 0.2s ease-out, background 0.2s ease-out;
+    }
+    .knob-value-display:hover {
+      border-color: #484848;
+      background: #1c1c1c;
+    }
+    .knob-value-display:focus {
+      border-color: #686868;
+      background: #1e1e1e;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.05), 0 0 14px 0 rgba(255,255,255,0.07);
+      transform: scale(1.06);
+    }
+    .knob-value-display:active {
+      transform: scale(1.03);
+    }
+  </style>
+</head>
+<body>
+
+<div class="filter-panel">
+
+  <!-- Filter buttons -->
+  <div class="filter-buttons">
+
+    <!-- Dithering -->
+    <div class="filter-btn">
+      <div class="filter-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12Z" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M13 7.5C13 8.05228 12.5523 8.5 12 8.5C11.4477 8.5 11 8.05228 11 7.5C11 6.94772 11.4477 6.5 12 6.5C12.5523 6.5 13 6.94772 13 7.5Z" fill="currentColor"/>
+          <path d="M17.5 12C17.5 12.5523 17.0523 13 16.5 13C15.9477 13 15.5 12.5523 15.5 12C15.5 11.4477 15.9477 11 16.5 11C17.0523 11 17.5 11.4477 17.5 12Z" fill="currentColor"/>
+          <path d="M8.5 12C8.5 12.5523 8.05228 13 7.5 13C6.94772 13 6.5 12.5523 6.5 12C6.5 11.4477 6.94772 11 7.5 11C8.05228 11 8.5 11.4477 8.5 12Z" fill="currentColor"/>
+          <path d="M13 16.5C13 17.0523 12.5523 17.5 12 17.5C11.4477 17.5 11 17.0523 11 16.5C11 15.9477 11.4477 15.5 12 15.5C12.5523 15.5 13 15.9477 13 16.5Z" fill="currentColor"/>
+          <path d="M9.5251 8.11091C9.91562 8.50144 9.91562 9.1346 9.5251 9.52513C9.13457 9.91565 8.50141 9.91565 8.11088 9.52513C7.72036 9.1346 7.72036 8.50144 8.11088 8.11091C8.50141 7.72039 9.13457 7.72039 9.5251 8.11091Z" fill="currentColor"/>
+          <path d="M15.8891 8.11091C16.2796 8.50144 16.2796 9.1346 15.8891 9.52513C15.4986 9.91565 14.8654 9.91565 14.4749 9.52513C14.0843 9.1346 14.0843 8.50144 14.4749 8.11091C14.8654 7.72039 15.4986 7.72039 15.8891 8.11091Z" fill="currentColor"/>
+          <path d="M9.5251 14.4749C9.91562 14.8654 9.91562 15.4986 9.5251 15.8891C9.13457 16.2796 8.50141 16.2796 8.11088 15.8891C7.72036 15.4986 7.72036 14.8654 8.11088 14.4749C8.50141 14.0843 9.13457 14.0843 9.5251 14.4749Z" fill="currentColor"/>
+          <path d="M15.8891 14.4749C16.2796 14.8654 16.2796 15.4986 15.8891 15.8891C15.4986 16.2796 14.8654 16.2796 14.4749 15.8891C14.0843 15.4986 14.0843 14.8654 14.4749 14.4749C14.8654 14.0843 15.4986 14.0843 15.8891 14.4749Z" fill="currentColor"/>
+        </svg>
+      </div>
+      <span class="filter-label">Dithering</span>
+    </div>
+
+    <!-- Glass (selected) -->
+    <div class="filter-btn selected">
+      <div class="filter-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19.5 5.75C19.5 5.05964 18.9404 4.5 18.25 4.5H5.75C5.05964 4.5 4.5 5.05964 4.5 5.75V18.25C4.5 18.9404 5.05964 19.5 5.75 19.5H18.25C18.9404 19.5 19.5 18.9404 19.5 18.25V5.75ZM21 18.25C21 19.7688 19.7688 21 18.25 21H5.75C4.23122 21 3 19.7688 3 18.25V5.75C3 4.23122 4.23122 3 5.75 3H18.25C19.7688 3 21 4.23122 21 5.75V18.25Z" fill="currentColor"/>
+          <path d="M18.9697 3.96973C19.2626 3.67684 19.7374 3.67684 20.0303 3.96973C20.3232 4.26262 20.3232 4.73738 20.0303 5.03028L5.03028 20.0303C4.73738 20.3232 4.26262 20.3232 3.96973 20.0303C3.67684 19.7374 3.67684 19.2626 3.96973 18.9697L18.9697 3.96973Z" fill="currentColor"/>
+          <path d="M12.7197 3.21973C13.0126 2.92684 13.4874 2.92684 13.7803 3.21973C14.0732 3.51262 14.0732 3.98738 13.7803 4.28028L4.28028 13.7803C3.98738 14.0732 3.51262 14.0732 3.21973 13.7803C2.92684 13.4874 2.92684 13.0126 3.21973 12.7197L12.7197 3.21973Z" fill="currentColor"/>
+        </svg>
+      </div>
+      <span class="filter-label">Glass</span>
+    </div>
+
+    <!-- Halftone -->
+    <div class="filter-btn">
+      <div class="filter-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M13.85 6.99998C13.85 5.97825 13.0218 5.14997 12 5.14997C10.9783 5.14997 10.15 5.97825 10.15 6.99998C10.15 8.0217 10.9783 8.84998 12 8.84998C13.0218 8.84998 13.85 8.0217 13.85 6.99998Z" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M13.35 13C13.35 12.2544 12.7456 11.65 12 11.65C11.2544 11.65 10.65 12.2544 10.65 13C10.65 13.7456 11.2544 14.35 12 14.35C12.7456 14.35 13.35 13.7456 13.35 13Z" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M12.85 18C12.85 17.5305 12.4695 17.15 12 17.15C11.5306 17.15 11.15 17.5305 11.15 18C11.15 18.4694 11.5306 18.85 12 18.85C12.4695 18.85 12.85 18.4694 12.85 18Z" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M19.85 6.99998C19.85 5.97825 19.0218 5.14997 18 5.14997C16.9783 5.14997 16.15 5.97825 16.15 6.99998C16.15 8.0217 16.9783 8.84998 18 8.84998C19.0218 8.84998 19.85 8.0217 19.85 6.99998Z" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M19.35 13C19.35 12.2544 18.7456 11.65 18 11.65C17.2544 11.65 16.65 12.2544 16.65 13C16.65 13.7456 17.2544 14.35 18 14.35C18.7456 14.35 19.35 13.7456 19.35 13Z" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M18.85 18C18.85 17.5305 18.4695 17.15 18 17.15C17.5306 17.15 17.15 17.5305 17.15 18C17.15 18.4694 17.5306 18.85 18 18.85C18.4695 18.85 18.85 18.4694 18.85 18Z" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M7.85002 6.99998C7.85002 5.97825 7.02175 5.14997 6.00002 5.14997C4.9783 5.14997 4.15002 5.97825 4.15002 6.99998C4.15002 8.0217 4.9783 8.84998 6.00002 8.84998C7.02175 8.84998 7.85002 8.0217 7.85002 6.99998Z" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M7.35002 13C7.35002 12.2544 6.74561 11.65 6.00002 11.65C5.25444 11.65 4.65002 12.2544 4.65002 13C4.65002 13.7456 5.25444 14.35 6.00002 14.35C6.74561 14.35 7.35002 13.7456 7.35002 13Z" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M6.85002 18C6.85002 17.5305 6.46947 17.15 6.00002 17.15C5.53058 17.15 5.15002 17.5305 5.15002 18C5.15002 18.4694 5.53058 18.85 6.00002 18.85C6.46947 18.85 6.85002 18.4694 6.85002 18Z" stroke="currentColor" stroke-width="1.3"/>
+        </svg>
+      </div>
+      <span class="filter-label">Halftone</span>
+    </div>
+
+    <!-- Liquid -->
+    <div class="filter-btn">
+      <div class="filter-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7.11391 6C8.79458 6.00008 10.3094 6.72404 11.3781 7.88361C12.1783 8.75191 13.1915 9.50004 14.3578 9.50004C15.2634 9.50004 16.0868 9.01536 16.868 8.54671C17.4469 8.19937 18.121 8.0002 18.8407 8.00017C20.9995 8.00017 22.7497 9.7905 22.75 11.9995C22.75 14.2087 20.9997 15.9998 18.8407 15.9998C18.121 15.9998 17.4469 15.8006 16.8679 15.4533C16.0868 14.9846 15.2634 14.5 14.3579 14.5C13.1915 14.5 12.1784 15.2482 11.3781 16.1165C10.3095 17.2761 8.79468 17.9999 7.11391 18C3.8756 18 1.25015 15.3142 1.25 12.0005C1.25 8.68667 3.87551 6 7.11391 6Z" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <span class="filter-label">Liquid</span>
+    </div>
+
+    <!-- Granny -->
+    <div class="filter-btn">
+      <div class="filter-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2.75 8.75C2.75 7.64543 3.64543 6.75 4.75 6.75H19.25C20.3546 6.75 21.25 7.64543 21.25 8.75V18.25C21.25 19.3546 20.3546 20.25 19.25 20.25H4.75C3.64543 20.25 2.75 19.3546 2.75 18.25V8.75Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M7.5 3.25L12 6.75L16.5 3.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="filter-label">Granny</span>
+    </div>
+
+  </div>
+
+  <!-- Controls panel -->
+  <div class="controls-panel">
+
+    <!-- Left column -->
+    <div class="controls-left">
+
+      <!-- Shape selector -->
+      <div class="widget-group">
+        <div class="input-row">
+        <span class="widget-label">Shape</span>
+        <div class="selector" id="selector">
+          <div class="selector-left">
+            <div class="option-icon" id="selectedIcon"></div>
+            <span class="option-text" id="selectedText"></span>
+          </div>
+          <svg class="chevron" viewBox="-8.55 -10.25 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1.26982 0C0.202609 0 -0.386826 1.23833 0.286157 2.06662L2.51636 4.81146C3.02354 5.43574 3.97644 5.43574 4.48372 4.81146L6.71388 2.06662C7.38683 1.23833 6.79743 0 5.73016 0H1.26982Z" fill="#C7C7C7"/>
+          </svg>
+          <div class="dropdown" id="dropdown">
+            <div class="dropdown-item" data-value="wave">
+              <svg class="option-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M4.30523 9.50117C3.86611 9.76669 3.33777 10 2.75 10C2.33579 10 2 9.66421 2 9.25C2 8.83579 2.33579 8.5 2.75 8.5C2.94339 8.5 3.19298 8.42081 3.52907 8.21758C3.86431 8.01487 4.20974 7.73714 4.6035 7.41762C4.61402 7.40908 4.62458 7.40051 4.63519 7.3919C5.00222 7.09399 5.41507 6.7589 5.8368 6.50087C6.26916 6.23634 6.79252 6 7.375 6C7.96055 6 8.4868 6.23456 8.9231 6.49968C9.35333 6.76112 9.77246 7.10128 10.1437 7.40254L10.1623 7.41763C10.5569 7.73789 10.9012 8.01573 11.2347 8.21876C11.5694 8.42254 11.814 8.5 12 8.5C12.1825 8.5 12.4248 8.42337 12.7589 8.21931C13.0916 8.01613 13.4353 7.73823 13.8304 7.41763L13.8429 7.40749C14.216 7.10467 14.6381 6.76215 15.0723 6.49914C15.5104 6.23375 16.038 6 16.625 6C17.2062 6 17.7284 6.23708 18.1592 6.50135C18.5775 6.75799 18.9878 7.09104 19.3531 7.38759L19.3901 7.41761C19.7835 7.73684 20.1294 8.01452 20.4654 8.21711C20.8021 8.42013 21.0537 8.5 21.25 8.5C21.6642 8.5 22 8.83579 22 9.25C22 9.66421 21.6642 10 21.25 10C20.661 10 20.1315 9.76737 19.6908 9.50164C19.2509 9.23638 18.8247 8.89051 18.4488 8.58549L18.445 8.58239C18.0493 8.26129 17.7063 7.98331 17.3747 7.7799C17.0415 7.57542 16.8025 7.5 16.625 7.5C16.4335 7.5 16.1852 7.57875 15.8495 7.78211C15.5147 7.98491 15.1695 8.26266 14.7756 8.58237L14.7473 8.60535C14.3791 8.90413 13.9647 9.24053 13.5408 9.49944C13.1074 9.76413 12.5833 10 12 10C11.4153 10 10.8898 9.76496 10.4546 9.49999C10.0267 9.23949 9.60936 8.90074 9.2393 8.6004L9.21708 8.58237C8.82269 8.26232 8.47811 7.9845 8.14415 7.78157C7.80905 7.57794 7.56305 7.5 7.375 7.5C7.19444 7.5 6.95344 7.57616 6.61965 7.78038C6.28742 7.98365 5.94399 8.26158 5.54867 8.58238L5.53954 8.58978C5.16532 8.89346 4.74163 9.23728 4.30523 9.50117ZM4.30523 17.5012C3.86611 17.7667 3.33777 18 2.75 18C2.33579 18 2 17.6642 2 17.25C2 16.8358 2.33579 16.5 2.75 16.5C2.94339 16.5 3.19298 16.4208 3.52907 16.2176C3.86431 16.0149 4.20974 15.7371 4.6035 15.4176L4.6352 15.3919C5.00223 15.094 5.41507 14.7589 5.8368 14.5009C6.26916 14.2363 6.79252 14 7.375 14C7.96055 14 8.4868 14.2346 8.9231 14.4997C9.35334 14.7611 9.77247 15.1013 10.1437 15.4025L10.1623 15.4176C10.5569 15.7379 10.9012 16.0157 11.2347 16.2188C11.5694 16.4225 11.814 16.5 12 16.5C12.1825 16.5 12.4248 16.4234 12.7589 16.2193C13.0916 16.0161 13.4353 15.7382 13.8304 15.4176L13.8429 15.4075C14.216 15.1047 14.6381 14.7622 15.0723 14.4991C15.5104 14.2337 16.038 14 16.625 14C17.2062 14 17.7284 14.2371 18.1592 14.5014C18.5775 14.758 18.9878 15.091 19.3531 15.3876C19.3655 15.3976 19.3778 15.4076 19.3901 15.4176C19.7835 15.7368 20.1294 16.0145 20.4654 16.2171C20.8021 16.4201 21.0537 16.5 21.25 16.5C21.6642 16.5 22 16.8358 22 17.25C22 17.6642 21.6642 18 21.25 18C20.661 18 20.1315 17.7674 19.6908 17.5016C19.2509 17.2364 18.8247 16.8905 18.4488 16.5855L18.445 16.5824C18.0493 16.2613 17.7063 15.9833 17.3747 15.7799C17.0415 15.5754 16.8025 15.5 16.625 15.5C16.4335 15.5 16.1852 15.5788 15.8495 15.7821C15.5147 15.9849 15.1695 16.2627 14.7756 16.5824L14.7472 16.6054C14.3791 16.9041 13.9647 17.2405 13.5408 17.4994C13.1074 17.7641 12.5833 18 12 18C11.4153 18 10.8898 17.765 10.4546 17.5C10.0267 17.2395 9.60936 16.9007 9.2393 16.6004L9.21708 16.5824C8.82269 16.2623 8.47811 15.9845 8.14415 15.7816C7.80905 15.5779 7.56305 15.5 7.375 15.5C7.19444 15.5 6.95344 15.5762 6.61965 15.7804C6.28742 15.9837 5.94399 16.2616 5.54867 16.5824L5.53955 16.5898C5.16533 16.8935 4.74164 17.2373 4.30523 17.5012Z" fill="black"/>
+              </svg>
+              <span class="dropdown-item-text">Wave</span>
+            </div>
+            <div class="dropdown-item" data-value="zigzag">
+              <svg class="option-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8.14647 4.13783C8.34173 3.95406 8.65824 3.95406 8.8535 4.13783C9.04876 4.32161 9.04876 4.6195 8.8535 4.80328L5.207 8.23528L8.8535 11.6673C9.04876 11.8511 9.04876 12.1489 8.8535 12.3327L5.207 15.7647L8.8535 19.1967C9.04876 19.3805 9.04876 19.6784 8.8535 19.8622C8.65824 20.0459 8.34173 20.0459 8.14647 19.8622L4.14645 16.0974C3.95118 15.9137 3.95118 15.6158 4.14645 15.432L7.79295 12L4.14645 8.568C3.95118 8.38422 3.95118 8.08633 4.14645 7.90256L8.14647 4.13783ZM13.6465 4.13783C13.8418 3.95406 14.1583 3.95406 14.3535 4.13783C14.5488 4.32161 14.5488 4.6195 14.3535 4.80328L10.707 8.23528L14.3535 11.6673C14.5488 11.8511 14.5488 12.1489 14.3535 12.3327L10.707 15.7647L14.3535 19.1967C14.5488 19.3805 14.5488 19.6784 14.3535 19.8622C14.1583 20.0459 13.8418 20.0459 13.6465 19.8622L9.64647 16.0974C9.45121 15.9137 9.45121 15.6158 9.64647 15.432L13.293 12L9.64647 8.568C9.45121 8.38422 9.45121 8.08633 9.64647 7.90256L13.6465 4.13783ZM19.1465 4.13783C19.3418 3.95406 19.6583 3.95406 19.8536 4.13783C20.0488 4.32161 20.0488 4.6195 19.8536 4.80328L16.2071 8.23528L19.8536 11.6673C20.0488 11.8511 20.0488 12.1489 19.8536 12.3327L16.2071 15.7647L19.8536 19.1967C20.0488 19.3805 20.0488 19.6784 19.8536 19.8622C19.6583 20.0459 19.3418 20.0459 19.1465 19.8622L15.1465 16.0974C14.9512 15.9137 14.9512 15.6158 15.1465 15.432L18.793 12L15.1465 8.568C14.9512 8.38422 14.9512 8.08633 15.1465 7.90256L19.1465 4.13783Z" fill="black"/>
+              </svg>
+              <span class="dropdown-item-text">Zigzag</span>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <!-- Size slider -->
+      <div class="widget-group">
+        <div class="slider-row">
+          <div class="slider-container">
+            <div class="slider-label">Size</div>
+            <div class="slider-track" id="sizeTrack">
+              <div class="track-fill" id="sizeFill"></div>
+              <div class="slider-thumb" id="sizeThumb"></div>
+              <div class="track-empty"></div>
+            </div>
+          </div>
+          <input class="value-display" id="sizeDisplay" type="text" value="60" />
+        </div>
+      </div>
+
+      <!-- Grain slider -->
+      <div class="widget-group">
+        <div class="slider-row">
+          <div class="slider-container">
+            <div class="slider-label">Grain</div>
+            <div class="slider-track" id="grainTrack">
+              <div class="track-fill" id="grainFill"></div>
+              <div class="slider-thumb" id="grainThumb"></div>
+              <div class="track-empty"></div>
+            </div>
+          </div>
+          <input class="value-display" id="grainDisplay" type="text" value="0" />
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right column — angle knob -->
+    <div class="controls-right">
+      <span class="knob-label">Angle</span>
+      <div class="dial-wrap">
+        <span class="deg-top">0°</span>
+        <span class="deg-left">270°</span>
+        <span class="deg-right">90°</span>
+        <span class="deg-bottom">180°</span>
+        <div class="knob-area">
+          <div class="knob" id="knob">
+            <div class="knob-face"></div>
+            <div class="indicator" id="indicator"></div>
+          </div>
+        </div>
+      </div>
+      <input class="knob-value-display" id="knobDisplay" type="text" value="0°" />
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ── Filter buttons ────────────────────────────────────────────
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+  });
+
+  // ── Shape selector ────────────────────────────────────────────
+  const selector     = document.getElementById('selector');
+  const selectedIcon = document.getElementById('selectedIcon');
+  const selectedText = document.getElementById('selectedText');
+  const dropdown     = document.getElementById('dropdown');
+  const dropItems    = dropdown.querySelectorAll('.dropdown-item');
+
+  const shapeOptions = {
+    wave: {
+      label: 'Wave',
+      icon: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M4.30523 9.50117C3.86611 9.76669 3.33777 10 2.75 10C2.33579 10 2 9.66421 2 9.25C2 8.83579 2.33579 8.5 2.75 8.5C2.94339 8.5 3.19298 8.42081 3.52907 8.21758C3.86431 8.01487 4.20974 7.73714 4.6035 7.41762C4.61402 7.40908 4.62458 7.40051 4.63519 7.3919C5.00222 7.09399 5.41507 6.7589 5.8368 6.50087C6.26916 6.23634 6.79252 6 7.375 6C7.96055 6 8.4868 6.23456 8.9231 6.49968C9.35333 6.76112 9.77246 7.10128 10.1437 7.40254L10.1623 7.41763C10.5569 7.73789 10.9012 8.01573 11.2347 8.21876C11.5694 8.42254 11.814 8.5 12 8.5C12.1825 8.5 12.4248 8.42337 12.7589 8.21931C13.0916 8.01613 13.4353 7.73823 13.8304 7.41763L13.8429 7.40749C14.216 7.10467 14.6381 6.76215 15.0723 6.49914C15.5104 6.23375 16.038 6 16.625 6C17.2062 6 17.7284 6.23708 18.1592 6.50135C18.5775 6.75799 18.9878 7.09104 19.3531 7.38759L19.3901 7.41761C19.7835 7.73684 20.1294 8.01452 20.4654 8.21711C20.8021 8.42013 21.0537 8.5 21.25 8.5C21.6642 8.5 22 8.83579 22 9.25C22 9.66421 21.6642 10 21.25 10C20.661 10 20.1315 9.76737 19.6908 9.50164C19.2509 9.23638 18.8247 8.89051 18.4488 8.58549L18.445 8.58239C18.0493 8.26129 17.7063 7.98331 17.3747 7.7799C17.0415 7.57542 16.8025 7.5 16.625 7.5C16.4335 7.5 16.1852 7.57875 15.8495 7.78211C15.5147 7.98491 15.1695 8.26266 14.7756 8.58237L14.7473 8.60535C14.3791 8.90413 13.9647 9.24053 13.5408 9.49944C13.1074 9.76413 12.5833 10 12 10C11.4153 10 10.8898 9.76496 10.4546 9.49999C10.0267 9.23949 9.60936 8.90074 9.2393 8.6004L9.21708 8.58237C8.82269 8.26232 8.47811 7.9845 8.14415 7.78157C7.80905 7.57794 7.56305 7.5 7.375 7.5C7.19444 7.5 6.95344 7.57616 6.61965 7.78038C6.28742 7.98365 5.94399 8.26158 5.54867 8.58238L5.53954 8.58978C5.16532 8.89346 4.74163 9.23728 4.30523 9.50117ZM4.30523 17.5012C3.86611 17.7667 3.33777 18 2.75 18C2.33579 18 2 17.6642 2 17.25C2 16.8358 2.33579 16.5 2.75 16.5C2.94339 16.5 3.19298 16.4208 3.52907 16.2176C3.86431 16.0149 4.20974 15.7371 4.6035 15.4176L4.6352 15.3919C5.00223 15.094 5.41507 14.7589 5.8368 14.5009C6.26916 14.2363 6.79252 14 7.375 14C7.96055 14 8.4868 14.2346 8.9231 14.4997C9.35334 14.7611 9.77247 15.1013 10.1437 15.4025L10.1623 15.4176C10.5569 15.7379 10.9012 16.0157 11.2347 16.2188C11.5694 16.4225 11.814 16.5 12 16.5C12.1825 16.5 12.4248 16.4234 12.7589 16.2193C13.0916 16.0161 13.4353 15.7382 13.8304 15.4176L13.8429 15.4075C14.216 15.1047 14.6381 14.7622 15.0723 14.4991C15.5104 14.2337 16.038 14 16.625 14C17.2062 14 17.7284 14.2371 18.1592 14.5014C18.5775 14.758 18.9878 15.091 19.3531 15.3876C19.3655 15.3976 19.3778 15.4076 19.3901 15.4176C19.7835 15.7368 20.1294 16.0145 20.4654 16.2171C20.8021 16.4201 21.0537 16.5 21.25 16.5C21.6642 16.5 22 16.8358 22 17.25C22 17.6642 21.6642 18 21.25 18C20.661 18 20.1315 17.7674 19.6908 17.5016C19.2509 17.2364 18.8247 16.8905 18.4488 16.5855L18.445 16.5824C18.0493 16.2613 17.7063 15.9833 17.3747 15.7799C17.0415 15.5754 16.8025 15.5 16.625 15.5C16.4335 15.5 16.1852 15.5788 15.8495 15.7821C15.5147 15.9849 15.1695 16.2627 14.7756 16.5824L14.7472 16.6054C14.3791 16.9041 13.9647 17.2405 13.5408 17.4994C13.1074 17.7641 12.5833 18 12 18C11.4153 18 10.8898 17.765 10.4546 17.5C10.0267 17.2395 9.60936 16.9007 9.2393 16.6004L9.21708 16.5824C8.82269 16.2623 8.47811 15.9845 8.14415 15.7816C7.80905 15.5779 7.56305 15.5 7.375 15.5C7.19444 15.5 6.95344 15.5762 6.61965 15.7804C6.28742 15.9837 5.94399 16.2616 5.54867 16.5824L5.53955 16.5898C5.16533 16.8935 4.74164 17.2373 4.30523 17.5012Z" fill="black"/></svg>`,
+    },
+    zigzag: {
+      label: 'Zigzag',
+      icon: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.14647 4.13783C8.34173 3.95406 8.65824 3.95406 8.8535 4.13783C9.04876 4.32161 9.04876 4.6195 8.8535 4.80328L5.207 8.23528L8.8535 11.6673C9.04876 11.8511 9.04876 12.1489 8.8535 12.3327L5.207 15.7647L8.8535 19.1967C9.04876 19.3805 9.04876 19.6784 8.8535 19.8622C8.65824 20.0459 8.34173 20.0459 8.14647 19.8622L4.14645 16.0974C3.95118 15.9137 3.95118 15.6158 4.14645 15.432L7.79295 12L4.14645 8.568C3.95118 8.38422 3.95118 8.08633 4.14645 7.90256L8.14647 4.13783ZM13.6465 4.13783C13.8418 3.95406 14.1583 3.95406 14.3535 4.13783C14.5488 4.32161 14.5488 4.6195 14.3535 4.80328L10.707 8.23528L14.3535 11.6673C14.5488 11.8511 14.5488 12.1489 14.3535 12.3327L10.707 15.7647L14.3535 19.1967C14.5488 19.3805 14.5488 19.6784 14.3535 19.8622C14.1583 20.0459 13.8418 20.0459 13.6465 19.8622L9.64647 16.0974C9.45121 15.9137 9.45121 15.6158 9.64647 15.432L13.293 12L9.64647 8.568C9.45121 8.38422 9.45121 8.08633 9.64647 7.90256L13.6465 4.13783ZM19.1465 4.13783C19.3418 3.95406 19.6583 3.95406 19.8536 4.13783C20.0488 4.32161 20.0488 4.6195 19.8536 4.80328L16.2071 8.23528L19.8536 11.6673C20.0488 11.8511 20.0488 12.1489 19.8536 12.3327L16.2071 15.7647L19.8536 19.1967C20.0488 19.3805 20.0488 19.6784 19.8536 19.8622C19.6583 20.0459 19.3418 20.0459 19.1465 19.8622L15.1465 16.0974C14.9512 15.9137 14.9512 15.6158 15.1465 15.432L18.793 12L15.1465 8.568C14.9512 8.38422 14.9512 8.08633 15.1465 7.90256L19.1465 4.13783Z" fill="black"/></svg>`,
+    },
+  };
+
+  function applyShape(value) {
+    selectedIcon.innerHTML = shapeOptions[value].icon;
+    selectedText.textContent = shapeOptions[value].label;
+    dropItems.forEach(item => item.classList.toggle('active', item.dataset.value === value));
+  }
+
+  selector.addEventListener('click', (e) => {
+    if (e.target.closest('.dropdown-item')) return;
+    selector.classList.toggle('open');
+  });
+
+  dropItems.forEach(item => {
+    item.addEventListener('click', () => {
+      applyShape(item.dataset.value);
+      selector.classList.remove('open');
+    });
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!selector.contains(e.target)) selector.classList.remove('open');
+  });
+
+  applyShape('wave');
+
+  // ── Slider factory ────────────────────────────────────────────
+  function makeSlider({ trackEl, fillEl, thumbEl, displayEl, initialValue }) {
+    const MIN = 0, MAX = 100;
+    const THUMB_W = 6;
+    let value = initialValue;
+    let dragging = false, hovered = false, pressed = false;
+    let dragStartX = 0, dragStartValue = 0;
+    let trackWidth = 0;
+
+    function rangeW() {
+      trackWidth = trackEl.getBoundingClientRect().width || trackEl.offsetWidth;
+      return trackWidth - THUMB_W;
+    }
+
+    function clamp(v) { return Math.max(MIN, Math.min(MAX, v)); }
+
+    function thumbColor() {
+      if (value === 0)  return '#a6a6a6';
+      if (pressed)      return '#9D9635';
+      if (hovered)      return '#C7BE44';
+      return '#fff679';
+    }
+
+    function updateVisuals() {
+      const inactive = value === 0;
+      const rw = rangeW();
+      const norm = value / MAX;
+      fillEl.style.background = inactive ? '#6a6a6a' : '#fff679';
+      fillEl.style.width = inactive ? '2px' : (norm * rw) + 'px';
+      thumbEl.style.background = thumbColor();
+      if (dragging || document.activeElement !== displayEl) {
+        displayEl.value = Math.round(value).toString();
+      }
+    }
+
+    function valueFromClientX(clientX) {
+      const rect = trackEl.getBoundingClientRect();
+      const x = clientX - rect.left - THUMB_W / 2;
+      return clamp((x / rangeW()) * MAX);
+    }
+
+    thumbEl.addEventListener('mouseenter', () => { hovered = true;  updateVisuals(); });
+    thumbEl.addEventListener('mouseleave', () => { hovered = false; updateVisuals(); });
+
+    thumbEl.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      pressed = true; dragging = true;
+      dragStartX = e.clientX; dragStartValue = value;
+      updateVisuals();
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      const rw = rangeW();
+      value = clamp(dragStartValue + ((e.clientX - dragStartX) / rw) * MAX);
+      updateVisuals();
+    });
+
+    window.addEventListener('mouseup', () => {
+      pressed = false; dragging = false;
+      updateVisuals();
+    });
+
+    trackEl.addEventListener('click', (e) => {
+      if (e.target === thumbEl) return;
+      value = valueFromClientX(e.clientX);
+      updateVisuals();
+    });
+
+    trackEl.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      value = clamp(value - e.deltaY * 0.2);
+      updateVisuals();
+    }, { passive: false });
+
+    thumbEl.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      dragging = true;
+      dragStartX = e.touches[0].clientX; dragStartValue = value;
+    }, { passive: false });
+
+    window.addEventListener('touchmove', (e) => {
+      if (!dragging) return;
+      e.preventDefault();
+      value = clamp(dragStartValue + ((e.touches[0].clientX - dragStartX) / rangeW()) * MAX);
+      updateVisuals();
+    }, { passive: false });
+
+    window.addEventListener('touchend', () => { dragging = false; });
+
+    function applyInput() {
+      const raw = parseFloat(displayEl.value);
+      if (!isNaN(raw)) value = clamp(raw);
+      updateVisuals();
+    }
+
+    displayEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { applyInput(); displayEl.blur(); }
+      if (e.key === 'Escape') { displayEl.blur(); }
+    });
+    displayEl.addEventListener('blur', applyInput);
+    displayEl.addEventListener('focus', () => {
+      displayEl.value = Math.round(value).toString();
+      displayEl.select();
+    });
+
+    updateVisuals();
+  }
+
+  makeSlider({
+    trackEl: document.getElementById('sizeTrack'),
+    fillEl:  document.getElementById('sizeFill'),
+    thumbEl: document.getElementById('sizeThumb'),
+    displayEl: document.getElementById('sizeDisplay'),
+    initialValue: 60,
+  });
+
+  makeSlider({
+    trackEl: document.getElementById('grainTrack'),
+    fillEl:  document.getElementById('grainFill'),
+    thumbEl: document.getElementById('grainThumb'),
+    displayEl: document.getElementById('grainDisplay'),
+    initialValue: 0,
+  });
+
+  // ── Angle knob ────────────────────────────────────────────────
+  const knob        = document.getElementById('knob');
+  const indicator   = document.getElementById('indicator');
+  const knobDisplay = document.getElementById('knobDisplay');
+
+  const KNOB_R    = 50;
+  const GREY_R    = 40;
+  const IND_R     = GREY_R - 3.75 - 2.5;
+  const TICK_R    = 45;
+  const TICK_STEP = 15;
+  const TICK_COUNT = 360 / TICK_STEP;
+
+  let angle = 0;
+  let knobDragging = false;
+  let knobCenter = { x: 0, y: 0 };
+  let dragStartMouseAngle = 0, dragStartKnobAngle = 0;
+  let knobVelocity = 0, knobPrevAngle = 0, knobPrevTime = 0, knobInertiaId = null;
+
+  const ticks = [];
+  for (let i = 0; i < TICK_COUNT; i++) {
+    const deg = i * TICK_STEP;
+    const rad = (deg - 90) * Math.PI / 180;
+    const x = Math.cos(rad) * TICK_R;
+    const y = Math.sin(rad) * TICK_R;
+    const isCardinal = deg % 90 === 0;
+    const size = isCardinal ? 2.5 : 2.434;
+    const el = document.createElement('div');
+    el.className = 'tick';
+    el.style.width  = size + 'px';
+    el.style.height = size + 'px';
+    el.style.left   = (KNOB_R + x - size / 2) + 'px';
+    el.style.top    = (KNOB_R + y - size / 2) + 'px';
+    knob.appendChild(el);
+    ticks.push({ el, deg });
+  }
+
+  function updateKnob() {
+    const norm = ((angle % 360) + 360) % 360;
+    const indRad = (angle - 90) * Math.PI / 180;
+    indicator.style.left = (KNOB_R + Math.cos(indRad) * IND_R - 3.75) + 'px';
+    indicator.style.top  = (KNOB_R + Math.sin(indRad) * IND_R - 3.75) + 'px';
+    ticks.forEach(({ el, deg }) => {
+      const lit = deg <= norm;
+      el.style.background = lit ? '#fff679' : '#2b2b2b';
+      el.style.boxShadow  = 'none';
+    });
+    if (document.activeElement !== knobDisplay)
+      knobDisplay.value = Math.round(norm) + '°';
+  }
+
+  function angleFromEvent(e) {
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return Math.atan2(clientY - knobCenter.y, clientX - knobCenter.x) * 180 / Math.PI + 90;
+  }
+
+  function startKnobDrag(e) {
+    e.preventDefault();
+    if (knobInertiaId) { cancelAnimationFrame(knobInertiaId); knobInertiaId = null; }
+    const rect = knob.getBoundingClientRect();
+    knobCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    knobDragging = true;
+    knob.classList.add('dragging');
+    dragStartMouseAngle = angleFromEvent(e);
+    dragStartKnobAngle  = angle;
+    knobVelocity = 0;
+    knobPrevAngle = angle;
+    knobPrevTime  = performance.now();
+  }
+
+  function onKnobDrag(e) {
+    if (!knobDragging) return;
+    e.preventDefault();
+    let delta = angleFromEvent(e) - dragStartMouseAngle;
+    if (delta >  180) delta -= 360;
+    if (delta < -180) delta += 360;
+    const newAngle = ((dragStartKnobAngle + delta) % 360 + 360) % 360;
+    const now = performance.now();
+    const dt  = now - knobPrevTime;
+    if (dt > 0) {
+      let d = newAngle - knobPrevAngle;
+      if (d >  180) d -= 360;
+      if (d < -180) d += 360;
+      knobVelocity = d / dt;
+    }
+    knobPrevAngle = newAngle;
+    knobPrevTime  = performance.now();
+    angle = newAngle;
+    updateKnob();
+  }
+
+  function releaseKnobDrag() {
+    knobDragging = false;
+    knob.classList.remove('dragging');
+    if (Math.abs(knobVelocity) < 0.02) return;
+    let lastTime = performance.now();
+    function step(now) {
+      const dt = now - lastTime;
+      lastTime = now;
+      knobVelocity *= Math.pow(0.85, dt / (1000 / 60));
+      angle = ((angle + knobVelocity * dt) % 360 + 360) % 360;
+      updateKnob();
+      knobInertiaId = Math.abs(knobVelocity) > 0.01 ? requestAnimationFrame(step) : null;
+    }
+    knobInertiaId = requestAnimationFrame(step);
+  }
+
+  knob.addEventListener('mousedown', startKnobDrag);
+  window.addEventListener('mousemove', onKnobDrag);
+  window.addEventListener('mouseup', releaseKnobDrag);
+
+  knob.addEventListener('touchstart', startKnobDrag, { passive: false });
+  window.addEventListener('touchmove', onKnobDrag, { passive: false });
+  window.addEventListener('touchend', releaseKnobDrag);
+
+  knob.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    angle = ((angle - e.deltaY * 0.3) % 360 + 360) % 360;
+    updateKnob();
+  }, { passive: false });
+
+  function applyKnobInput() {
+    const raw = parseFloat(knobDisplay.value);
+    if (!isNaN(raw)) angle = ((raw % 360) + 360) % 360;
+    knobDisplay.value = Math.round(((angle % 360) + 360) % 360) + '°';
+    updateKnob();
+  }
+
+  knobDisplay.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { applyKnobInput(); knobDisplay.blur(); }
+    if (e.key === 'Escape') { knobDisplay.blur(); }
+  });
+  knobDisplay.addEventListener('blur', applyKnobInput);
+  knobDisplay.addEventListener('focus', () => {
+    knobDisplay.value = Math.round(((angle % 360) + 360) % 360).toString();
+    knobDisplay.select();
+  });
+
+  updateKnob();
+</script>
+</body>
+</html>

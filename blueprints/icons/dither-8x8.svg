@@ -1,0 +1,17 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Vector">
+<path d="M0 0H4V4H0V0Z" fill="var(--fill-0, black)"/>
+<path d="M8 0H12V4H8V0Z" fill="var(--fill-0, black)"/>
+<path d="M16 0H20V4H16V0Z" fill="var(--fill-0, black)"/>
+<path d="M16 8H20V12H16V8Z" fill="var(--fill-0, black)"/>
+<path d="M16 16H20V20H16V16Z" fill="var(--fill-0, black)"/>
+<path d="M12 12H16V16H12V12Z" fill="var(--fill-0, black)"/>
+<path d="M12 4H16V8H12V4Z" fill="var(--fill-0, black)"/>
+<path d="M4 4H8V8H4V4Z" fill="var(--fill-0, black)"/>
+<path d="M0 8H4V12H0V8Z" fill="var(--fill-0, black)"/>
+<path d="M4 12H8V16H4V12Z" fill="var(--fill-0, black)"/>
+<path d="M8 16H12V20H8V16Z" fill="var(--fill-0, black)"/>
+<path d="M0 16H4V20H0V16Z" fill="var(--fill-0, black)"/>
+<path d="M8 8H12V12H8V8Z" fill="var(--fill-0, black)"/>
+</g>
+</svg>
