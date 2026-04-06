@@ -1,19 +1,30 @@
 import './FilterStrip.css';
+import { useEffect, useRef } from 'react';
 import { NoiseLayer } from './NoiseLayer';
 import { filterOptions, isActiveFilter } from './filterOptions';
+import { useHorizontalWheelScroll } from '../hooks/useHorizontalWheelScroll';
 import { FilterIcon } from './icons/AppIcons';
 import type { ActiveFilter } from '../types/editor';
 
 interface FilterStripProps {
   activeFilter: ActiveFilter;
-  scrollRef: React.RefObject<HTMLDivElement | null>;
   onSelect: (filter: ActiveFilter) => void;
 }
 
-export function FilterStrip({ activeFilter, scrollRef, onSelect }: FilterStripProps) {
+export function FilterStrip({ activeFilter, onSelect }: FilterStripProps) {
+  const buttonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const { scrollRef, onWheel, scrollItemIntoView } = useHorizontalWheelScroll();
+
+  useEffect(() => {
+    const activeButton = buttonRefs.current[activeFilter];
+    if (activeButton) {
+      scrollItemIntoView(activeButton);
+    }
+  }, [activeFilter, scrollItemIntoView]);
+
   return (
     <div className="filter-buttons-wrap">
-      <div ref={scrollRef} className="filter-buttons-scroll">
+      <div ref={scrollRef} className="filter-buttons-scroll" onWheel={onWheel}>
         <div className="filter-buttons">
           {filterOptions.map((filter) => {
             const selected = activeFilter === filter.id;
@@ -21,14 +32,22 @@ export function FilterStrip({ activeFilter, scrollRef, onSelect }: FilterStripPr
 
             return (
               <button
+                ref={(node) => {
+                  if (enabled) {
+                    buttonRefs.current[filter.id] = node;
+                  }
+                }}
                 key={filter.id}
                 type="button"
                 className={`filter-btn${selected ? ' selected' : ''}${!filter.implemented ? ' is-disabled' : ''}`}
                 data-filter={filter.id}
                 aria-pressed={selected}
                 disabled={!enabled}
-                onClick={() => {
-                  if (isActiveFilter(filter.id)) onSelect(filter.id);
+                onClick={(event) => {
+                  if (isActiveFilter(filter.id)) {
+                    scrollItemIntoView(event.currentTarget);
+                    onSelect(filter.id);
+                  }
                 }}
               >
                 <NoiseLayer className="btn-grain" />

@@ -21,6 +21,7 @@ export function SliderControl({
   const displayRef = useRef<HTMLInputElement | null>(null);
   const [isHoveringThumb, setIsHoveringThumb] = useState(false);
   const [isPointerDown, setIsPointerDown] = useState(false);
+  const [trackWidth, setTrackWidth] = useState(0);
   const [displayValue, setDisplayValue] = useState(String(Math.round(value)));
   const dragStateRef = useRef<{
     mode: 'thumb' | 'track' | 'scrub' | null;
@@ -37,19 +38,28 @@ export function SliderControl({
 
   const clamp = (nextValue: number) => Math.max(min, Math.min(max, nextValue));
 
-  const rangeWidth = () => {
-    const track = trackRef.current;
-    if (!track) return 1;
-    return Math.max(1, track.getBoundingClientRect().width - 6);
-  };
-
   const rangeSpan = max - min;
+  const usableTrackWidth = Math.max(1, trackWidth - 6);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    const updateTrackWidth = () => {
+      setTrackWidth(track.getBoundingClientRect().width);
+    };
+
+    updateTrackWidth();
+    const resizeObserver = new ResizeObserver(updateTrackWidth);
+    resizeObserver.observe(track);
+    return () => resizeObserver.disconnect();
+  }, []);
 
   const updateFromClientX = (clientX: number) => {
     const track = trackRef.current;
     if (!track) return;
     const rect = track.getBoundingClientRect();
-    const nextValue = clamp(min + ((clientX - rect.left - 3) / rangeWidth()) * rangeSpan);
+    const nextValue = clamp(min + ((clientX - rect.left - 3) / Math.max(1, rect.width - 6)) * rangeSpan);
     onChange(nextValue);
   };
 
@@ -93,7 +103,7 @@ export function SliderControl({
     if (dragState.mode !== 'thumb') return;
 
     const delta = event.clientX - dragState.startX;
-    onChange(clamp(dragState.startValue + (delta / rangeWidth()) * rangeSpan));
+    onChange(clamp(dragState.startValue + (delta / usableTrackWidth) * rangeSpan));
   };
 
   const handleTrackPointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -136,7 +146,7 @@ export function SliderControl({
 
   const inactive = min === 0 && value === 0;
   const normalized = max === min ? 0 : (value - min) / rangeSpan;
-  const fillWidth = inactive ? 2 : normalized * rangeWidth();
+  const fillWidth = inactive ? 2 : normalized * usableTrackWidth;
   const thumbColor =
     inactive ? '#a6a6a6' : isPointerDown ? '#9D9635' : isHoveringThumb ? '#C7BE44' : '#fff679';
 

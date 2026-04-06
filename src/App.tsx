@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { ActionBar } from './components/ActionBar';
 import { EditorPanels } from './components/EditorPanels';
 import { FilterStrip } from './components/FilterStrip';
@@ -11,7 +12,6 @@ import {
   renderShaderToBlob,
 } from './lib/editor';
 import { ShaderMount } from './lib/shaders';
-import { useHorizontalWheelScroll } from './hooks/useHorizontalWheelScroll';
 import { useImageDrag } from './hooks/useImageDrag';
 import { useShaderPreview } from './hooks/useShaderPreview';
 import type { ActiveFilter, EditorState } from './types/editor';
@@ -20,10 +20,11 @@ const baseUrl = import.meta.env.BASE_URL;
 
 export default function App() {
   const [editorState, setEditorState] = useState<EditorState>(defaultEditorState);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null);
-  const scrollRef = useRef<HTMLDivElement | null>(null);
   const shaderMountRef = useRef<ShaderMount | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const downloadLinkRef = useRef<HTMLAnchorElement | null>(null);
 
   const updateState = useCallback((updater: (state: EditorState) => EditorState) => {
     setEditorState((current) => updater(current));
@@ -64,38 +65,21 @@ export default function App() {
   }, [updateState]);
 
   useShaderPreview({ editorState, previewRef, shaderMountRef });
-  useHorizontalWheelScroll(scrollRef);
-  useImageDrag({ editorState, previewRef, updateState });
+  const imageDrag = useImageDrag({ editorState, previewRef, updateState });
 
   useEffect(() => {
-    const handleCopy = (event: KeyboardEvent) => {
-      if (!(event.metaKey || event.ctrlKey) || event.key !== 'c') return;
-      if (!shaderMountRef.current || !previewRef.current) return;
-      event.preventDefault();
-      const blobPromise = renderShaderToBlob(previewRef.current, shaderMountRef.current, editorState).then((blob) => blob ?? new Blob());
-      void navigator.clipboard.write([new ClipboardItem({ 'image/png': blobPromise })]);
-    };
+    if (!downloadUrl) return;
 
-    document.addEventListener('keydown', handleCopy);
-    return () => document.removeEventListener('keydown', handleCopy);
-  }, [editorState]);
+    downloadLinkRef.current?.click();
+    const timeoutId = window.setTimeout(() => {
+      URL.revokeObjectURL(downloadUrl);
+      setDownloadUrl(null);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [downloadUrl]);
 
   const handleFilterSelect = useCallback((filterId: ActiveFilter) => {
-    const scrollElement = scrollRef.current;
-    const button = scrollElement?.querySelector<HTMLElement>(`.filter-btn[data-filter="${filterId}"]`);
-    if (scrollElement && button) {
-      const fadeLeft = 24;
-      const fadeRight = 16;
-      const scrollRect = scrollElement.getBoundingClientRect();
-      const buttonRect = button.getBoundingClientRect();
-
-      if (buttonRect.right > scrollRect.right - fadeRight) {
-        scrollElement.scrollBy({ left: buttonRect.right - scrollRect.right + fadeRight + 8, behavior: 'smooth' });
-      } else if (buttonRect.left < scrollRect.left + fadeLeft) {
-        scrollElement.scrollBy({ left: buttonRect.left - scrollRect.left - fadeLeft - 8, behavior: 'smooth' });
-      }
-    }
-
     updateState((current) => ({
       ...current,
       activeFilter: filterId,
@@ -126,16 +110,24 @@ export default function App() {
     if (!shaderMountRef.current || !previewRef.current) return;
     const blob = await renderShaderToBlob(previewRef.current, shaderMountRef.current, editorState);
     if (!blob) return;
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = 'neuropic.png';
-    anchor.click();
-    URL.revokeObjectURL(url);
+    setDownloadUrl(URL.createObjectURL(blob));
   }, [editorState]);
 
+  const handleCopy = useCallback((event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'c') return;
+    if (!shaderMountRef.current || !previewRef.current) return;
+
+    event.preventDefault();
+    const blobPromise = renderShaderToBlob(previewRef.current, shaderMountRef.current, editorState).then((blob) => blob ?? new Blob());
+    void navigator.clipboard.write([new ClipboardItem({ 'image/png': blobPromise })]);
+  }, [editorState]);
+
+  const handleUploadClick = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
   return (
-    <div className="app">
+    <div className="app" onKeyDownCapture={handleCopy}>
       <input
         ref={fileInputRef}
         type="file"
@@ -147,18 +139,27 @@ export default function App() {
           event.currentTarget.value = '';
         }}
       />
+      <a
+        ref={downloadLinkRef}
+        href={downloadUrl ?? undefined}
+        download="neuropic.png"
+        style={{ display: 'none' }}
+      >
+        Download
+      </a>
 
       <div className="sidebar">
-        <FilterStrip activeFilter={editorState.activeFilter} scrollRef={scrollRef} onSelect={handleFilterSelect} />
+        <FilterStrip activeFilter={editorState.activeFilter} onSelect={handleFilterSelect} />
         <EditorPanels state={editorState} updateState={updateState} />
-        <ActionBar visible={editorState.image.hasUserImage} onUpload={() => fileInputRef.current?.click()} onSave={() => void handleSave()} />
+        <ActionBar visible={editorState.image.hasUserImage} onUpload={handleUploadClick} onSave={() => void handleSave()} />
         <NoiseLayer className="app-grain" />
       </div>
 
       <PreviewStage
         state={editorState}
+        isDragging={imageDrag.isDragging}
         previewRef={previewRef}
-        onUpload={() => fileInputRef.current?.click()}
+        onUpload={handleUploadClick}
         onDropFile={(file) => void handleImageFile(file)}
         onFitModeChange={(fitMode) =>
           updateState((current) => ({
@@ -168,6 +169,11 @@ export default function App() {
             offsetY: 0,
           }))
         }
+        onPointerDown={imageDrag.onPointerDown}
+        onPointerMove={imageDrag.onPointerMove}
+        onPointerUp={imageDrag.onPointerUp}
+        onPointerCancel={imageDrag.onPointerCancel}
+        onLostPointerCapture={imageDrag.onLostPointerCapture}
       />
     </div>
   );

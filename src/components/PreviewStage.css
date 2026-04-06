@@ -22,10 +22,14 @@
 }
 
 .image-area::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0) 100%);
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.5) 0%,
+    rgba(0, 0, 0, 0) 100%
+  );
   pointer-events: none;
   z-index: 1;
 }
@@ -42,7 +46,7 @@
   z-index: 10;
 }
 
-.upload-btn:hover {
+button.upload-btn:hover {
   transform: translate(-50%, calc(-50% - 1px));
 }
 
@@ -58,7 +62,9 @@
   background: rgba(10, 10, 10, 0.35);
   border-radius: 56px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(20px) saturate(1.4);
   z-index: 2;
   opacity: 0;
@@ -78,7 +84,12 @@
   padding: 8px 24px;
   border-radius: 32px;
   cursor: pointer;
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 50%, rgba(0, 0, 0, 0.1) 100%);
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: rgba(220, 220, 220, 0.85);
 }
