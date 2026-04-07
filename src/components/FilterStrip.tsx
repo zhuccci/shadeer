@@ -1,6 +1,6 @@
 import './FilterStrip.css';
 import { useEffect, useRef } from 'react';
-import { NoiseLayer } from './NoiseLayer';
+import { GrainLayer } from './GrainLayer';
 import { filterOptions, isActiveFilter } from './filterOptions';
 import { useHorizontalWheelScroll } from '../hooks/useHorizontalWheelScroll';
 import { FilterIcon } from './icons/AppIcons';
@@ -50,7 +50,7 @@ export function FilterStrip({ activeFilter, onSelect }: FilterStripProps) {
                   }
                 }}
               >
-                <NoiseLayer className="btn-grain" strong />
+                <GrainLayer className="btn-grain" />
                 <div className="btn-thumbnail">
                   <img src={filter.thumbnail} className="thumb-default" alt="" />
                   {filter.hoverThumbnail ? <img src={filter.hoverThumbnail} className="thumb-hover" alt="" /> : null}
