@@ -3,9 +3,10 @@ import { useEffect, useRef } from 'react';
 interface NoiseLayerProps {
   className: string;
   opacity?: number;
+  strong?: boolean;
 }
 
-export function NoiseLayer({ className, opacity }: NoiseLayerProps) {
+export function NoiseLayer({ className, opacity, strong }: NoiseLayerProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -25,11 +26,11 @@ export function NoiseLayer({ className, opacity }: NoiseLayerProps) {
       if (!context) return;
       const imageData = context.createImageData(width, height);
       for (let index = 0; index < imageData.data.length; index += 4) {
-        const value = Math.floor(Math.random() * 40);
+        const value = Math.floor(Math.random() * (strong ? 255 : 40));
         imageData.data[index] = value;
         imageData.data[index + 1] = value;
         imageData.data[index + 2] = value;
-        imageData.data[index + 3] = 22;
+        imageData.data[index + 3] = strong ? 160 : 22;
       }
       context.putImageData(imageData, 0, 0);
     };

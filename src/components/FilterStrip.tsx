@@ -50,7 +50,7 @@ export function FilterStrip({ activeFilter, onSelect }: FilterStripProps) {
                   }
                 }}
               >
-                <NoiseLayer className="btn-grain" />
+                <NoiseLayer className="btn-grain" strong />
                 <div className="btn-thumbnail">
                   <img src={filter.thumbnail} className="thumb-default" alt="" />
                   {filter.hoverThumbnail ? <img src={filter.hoverThumbnail} className="thumb-hover" alt="" /> : null}
