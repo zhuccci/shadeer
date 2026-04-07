@@ -1,6 +1,6 @@
 import { CheckboxControl } from '../CheckboxControl';
 import { KnobControl } from '../KnobControl';
-import { NoiseLayer } from '../NoiseLayer';
+import { TextureLayer } from '../TextureLayer';
 import { SliderControl } from '../SliderControl';
 import type { EditorState } from '../../types/editor';
 
@@ -29,7 +29,7 @@ export function GlitchyPanel({
 }: GlitchyPanelProps) {
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="glitchyPanel">
-      <NoiseLayer className="panel-grain" />
+      <TextureLayer className="panel-grain" />
       <div className="controls-left">
         <div className="widget-group">
           <SliderControl label="RGB Shift" value={state.glitchy.rgbShift} onChange={onRgbShiftChange} />

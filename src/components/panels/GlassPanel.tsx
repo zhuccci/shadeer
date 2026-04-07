@@ -1,7 +1,7 @@
 import { ShapeSelector } from '../ShapeSelector';
 import { SliderControl } from '../SliderControl';
 import { KnobControl } from '../KnobControl';
-import { NoiseLayer } from '../NoiseLayer';
+import { TextureLayer } from '../TextureLayer';
 import type { EditorState } from '../../types/editor';
 
 interface GlassPanelProps {
@@ -23,7 +23,7 @@ export function GlassPanel({
 }: GlassPanelProps) {
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="glassPanel">
-      <NoiseLayer className="panel-grain" />
+      <TextureLayer className="panel-grain" />
       <div className="controls-left">
         <div className="widget-group">
           <div className="input-row">

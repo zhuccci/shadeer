@@ -1,7 +1,7 @@
 import { CheckboxControl } from '../CheckboxControl';
 import { ColorSelectorControl } from '../ColorSelectorControl';
 import { DitherTypeSelector } from '../DitherTypeSelector';
-import { NoiseLayer } from '../NoiseLayer';
+import { TextureLayer } from '../TextureLayer';
 import { SliderControl } from '../SliderControl';
 import type { DitherType, EditorState } from '../../types/editor';
 
@@ -32,7 +32,7 @@ export function DitheringPanel({
 }: DitheringPanelProps) {
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="ditheringPanel">
-      <NoiseLayer className="panel-grain" />
+      <TextureLayer className="panel-grain" />
       <div className="controls-left">
         <ColorSelectorControl label="Background Color" value={state.dithering.backgroundColor} onChange={onBackgroundColorChange} />
         <ColorSelectorControl label="Front Color" value={state.dithering.frontColor} onChange={onFrontColorChange} />

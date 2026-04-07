@@ -4,7 +4,7 @@ import { ActionBar } from './components/ActionBar';
 import { EditorPanels } from './components/EditorPanels';
 import { FilterStrip } from './components/FilterStrip';
 import { PreviewStage } from './components/PreviewStage';
-import { NoiseLayer } from './components/NoiseLayer';
+import { TextureLayer } from './components/TextureLayer';
 import {
   defaultEditorState,
   loadImage,
@@ -153,7 +153,7 @@ export default function App() {
         <FilterStrip activeFilter={editorState.activeFilter} onSelect={handleFilterSelect} />
         <EditorPanels state={editorState} updateState={updateState} />
         <ActionBar visible={editorState.image.hasUserImage} onUpload={handleUploadClick} onSave={() => void handleSave()} />
-        <NoiseLayer className="app-grain" />
+        <TextureLayer className="app-grain" />
       </div>
 
       <PreviewStage

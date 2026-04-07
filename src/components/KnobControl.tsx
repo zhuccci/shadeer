@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent } from 'react';
-import { NoiseLayer } from './NoiseLayer';
+import { TextureLayer } from './TextureLayer';
 import './KnobControl.css';
 
 interface KnobControlProps {
@@ -206,9 +206,9 @@ export function KnobControl({ labels, value, onChange }: KnobControlProps) {
             onLostPointerCapture={finishDrag}
             onWheel={handleWheel}
           >
-            <NoiseLayer className="knob-grain" />
+            <TextureLayer className="knob-grain" />
             <div className="knob-face">
-              <NoiseLayer className="knob-face-grain" />
+              <TextureLayer className="knob-face-grain" />
             </div>
             {ticks.map((tick) => (
               <div

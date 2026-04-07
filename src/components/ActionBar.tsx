@@ -1,5 +1,5 @@
 import './ActionBar.css';
-import { NoiseLayer } from './NoiseLayer';
+import { TextureLayer } from './TextureLayer';
 import { SaveIcon, UploadIcon } from './icons/AppIcons';
 
 interface ActionBarProps {
@@ -16,7 +16,7 @@ export function ActionBar({ visible, onUpload, onSave }: ActionBarProps) {
         Upload new
       </button>
       <button className="btn btn-primary" onClick={onSave}>
-        <NoiseLayer className="action-btn-grain" />
+        <TextureLayer className="action-btn-grain" />
         <SaveIcon />
         Save
       </button>

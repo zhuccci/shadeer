@@ -1,5 +1,5 @@
 import { ColorSelectorControl } from '../ColorSelectorControl';
-import { NoiseLayer } from '../NoiseLayer';
+import { TextureLayer } from '../TextureLayer';
 import { PauseIcon, PlayIcon } from '../icons/AppIcons';
 import { SliderControl } from '../SliderControl';
 import type { EditorState } from '../../types/editor';
@@ -31,7 +31,7 @@ export function LiquidPanel({
 }: LiquidPanelProps) {
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="liquidPanel">
-      <NoiseLayer className="panel-grain" />
+      <TextureLayer className="panel-grain" />
       <div className="controls-left">
         <ColorSelectorControl label="Front Color" value={state.liquid.frontColor} onChange={onFrontColorChange} />
         <ColorSelectorControl label="Highlight" value={state.liquid.highlightColor} onChange={onHighlightColorChange} />
