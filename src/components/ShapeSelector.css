@@ -55,7 +55,7 @@
   left: 0;
   right: 0;
   display: none;
-  padding: 0;
+  padding: 8px;
   border-radius: 8px;
   background: #141414;
   border: 0.5px solid #262626;
@@ -71,7 +71,8 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 8px;
+  padding: 4px 4px 4px 8px;
+  border-radius: 4px;
   background: transparent;
   color: #c7c7c7;
   cursor: pointer;

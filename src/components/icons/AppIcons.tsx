@@ -57,6 +57,23 @@ export function FilterIcon({ id }: { id: string }) {
   );
 }
 
+export function PlayIcon() {
+  return (
+    <svg className="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8.75 5.75L19.25 12L8.75 18.25V5.75Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function PauseIcon() {
+  return (
+    <svg className="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="5.75" y="4.75" width="4.5" height="14.5" rx="1.5" fill="currentColor" />
+      <rect x="13.75" y="4.75" width="4.5" height="14.5" rx="1.5" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function UploadIcon() {
   return (
     <svg className="btn-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

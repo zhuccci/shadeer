@@ -34,7 +34,7 @@
   height: 100%;
   pointer-events: none;
   mix-blend-mode: overlay;
-  opacity: 0.18;
+  opacity: 0.20;
 }
 
 .controls-left,
@@ -44,7 +44,22 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
+}
+
+#ditheringPanel,
+#liquidPanel {
+  gap: 32px;
+}
+
+#ditheringPanel .controls-left,
+#liquidPanel .controls-left {
+  flex: none;
+  width: fit-content;
+}
+
+#liquidPanel .controls-left {
+  align-self: stretch;
 }
 
 .panel-divider {
@@ -89,6 +104,13 @@
   flex-direction: column;
   gap: 8px;
   align-items: center;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.15s ease-out;
+}
+
+.dither-type-item:hover {
+  background: rgba(20, 20, 20, 0.3);
 }
 
 .dither-type-btn {
@@ -103,6 +125,15 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
+  transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.dither-type-btn:hover {
+  border-color: #d9d9d9;
+}
+
+.dither-type-btn:hover img {
+  filter: brightness(0) saturate(100%) invert(89%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(95%);
 }
 
 .dither-type-btn.selected {
@@ -134,7 +165,7 @@
 .dither-slider-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 24px;
 }
 
 .liq-play-pause-btn {

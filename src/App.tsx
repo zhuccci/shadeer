@@ -149,6 +149,7 @@ export default function App() {
       </a>
 
       <div className="sidebar">
+        <div className="app-shadow-overlay" />
         <FilterStrip activeFilter={editorState.activeFilter} onSelect={handleFilterSelect} />
         <EditorPanels state={editorState} updateState={updateState} />
         <ActionBar visible={editorState.image.hasUserImage} onUpload={handleUploadClick} onSave={() => void handleSave()} />

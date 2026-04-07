@@ -1,3 +1,8 @@
+@property --kf-top    { syntax: '<color>'; inherits: false; initial-value: #656565; }
+@property --kf-bottom { syntax: '<color>'; inherits: false; initial-value: #515151; }
+@property --kf-inner2 { syntax: '<color>'; inherits: false; initial-value: rgba(255,255,255,0.3); }
+@property --kf-inner3 { syntax: '<color>'; inherits: false; initial-value: rgba(0,0,0,0.3); }
+
 .controls-right {
   padding: 4px;
   width: 160px;
@@ -107,7 +112,7 @@
     inset 0 2.5px 6.25px rgba(255, 255, 255, 0.1),
     inset 0 2px 2px var(--kf-inner2),
     inset 0 -4px 4px var(--kf-inner3);
-  transition: --kf-top 0.2s ease-out, --kf-bottom 0.2s ease-out;
+  transition: --kf-top 0.2s ease-out, --kf-bottom 0.2s ease-out, --kf-inner2 0.2s ease-out, --kf-inner3 0.2s ease-out;
 }
 
 .knob:hover .knob-face {

@@ -28,7 +28,17 @@ export function SliderControl({
     pointerId: number;
     startX: number;
     startValue: number;
-  }>({ mode: null, pointerId: -1, startX: 0, startValue: 0 });
+    trackWidth: number;
+    rangeSpan: number;
+    min: number;
+    max: number;
+  }>({ mode: null, pointerId: -1, startX: 0, startValue: 0, trackWidth: 1, rangeSpan: 100, min: 0, max: 100 });
+  const onChangeRef = useRef(onChange);
+  const cleanupRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   useEffect(() => {
     if (document.activeElement !== displayRef.current) {
@@ -55,22 +65,79 @@ export function SliderControl({
     return () => resizeObserver.disconnect();
   }, []);
 
+  useEffect(() => {
+    return () => {
+      cleanupRef.current?.();
+    };
+  }, []);
+
   const updateFromClientX = (clientX: number) => {
     const track = trackRef.current;
     if (!track) return;
     const rect = track.getBoundingClientRect();
-    const nextValue = clamp(min + ((clientX - rect.left - 3) / Math.max(1, rect.width - 6)) * rangeSpan);
-    onChange(nextValue);
+    const ds = dragStateRef.current;
+    const nextValue = Math.max(ds.min, Math.min(ds.max,
+      ds.min + ((clientX - rect.left - 3) / Math.max(1, rect.width - 6)) * ds.rangeSpan
+    ));
+    onChangeRef.current(nextValue);
   };
 
   const resetDrag = () => {
+    cleanupRef.current?.();
+    cleanupRef.current = null;
     dragStateRef.current.mode = null;
     dragStateRef.current.pointerId = -1;
     setIsPointerDown(false);
     document.body.style.cursor = '';
   };
 
-  useEffect(() => resetDrag, []);
+  const attachDocumentListeners = (pointerId: number, isDisplay: boolean) => {
+    const onMove = (e: PointerEvent) => {
+      const dragState = dragStateRef.current;
+      if (dragState.pointerId !== e.pointerId) return;
+
+      if (dragState.mode === 'scrub') {
+        const delta = e.clientX - dragState.startX;
+        const next = Math.max(dragState.min, Math.min(dragState.max, dragState.startValue + delta));
+        onChangeRef.current(next);
+        return;
+      }
+
+      if (dragState.mode === 'track') {
+        updateFromClientX(e.clientX);
+        return;
+      }
+
+      if (dragState.mode === 'thumb') {
+        const delta = e.clientX - dragState.startX;
+        const usable = Math.max(1, dragState.trackWidth - 6);
+        const next = Math.max(dragState.min, Math.min(dragState.max,
+          dragState.startValue + (delta / usable) * dragState.rangeSpan
+        ));
+        onChangeRef.current(next);
+      }
+    };
+
+    const onUp = (e: PointerEvent) => {
+      if (dragStateRef.current.pointerId !== e.pointerId) return;
+      if (isDisplay) {
+        displayRef.current?.releasePointerCapture(e.pointerId);
+      } else {
+        trackRef.current?.releasePointerCapture(e.pointerId);
+      }
+      resetDrag();
+    };
+
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onUp);
+
+    cleanupRef.current = () => {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      document.removeEventListener('pointercancel', onUp);
+    };
+  };
 
   const handleTrackPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return;
@@ -82,66 +149,38 @@ export function SliderControl({
       pointerId: event.pointerId,
       startX: event.clientX,
       startValue: value,
+      trackWidth: usableTrackWidth + 6,
+      rangeSpan,
+      min,
+      max,
     };
     setIsPointerDown(true);
     event.currentTarget.setPointerCapture(event.pointerId);
+    attachDocumentListeners(event.pointerId, false);
 
     if (mode === 'track') {
       updateFromClientX(event.clientX);
     }
   };
 
-  const handleTrackPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const dragState = dragStateRef.current;
-    if (dragState.pointerId !== event.pointerId) return;
-
-    if (dragState.mode === 'track') {
-      updateFromClientX(event.clientX);
-      return;
-    }
-
-    if (dragState.mode !== 'thumb') return;
-
-    const delta = event.clientX - dragState.startX;
-    onChange(clamp(dragState.startValue + (delta / usableTrackWidth) * rangeSpan));
-  };
-
-  const handleTrackPointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (dragStateRef.current.pointerId !== event.pointerId) return;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-    resetDrag();
-  };
-
   const handleDisplayPointerDown = (event: ReactPointerEvent<HTMLInputElement>) => {
     if (event.button !== 0 || event.pointerType !== 'mouse' || event.currentTarget === document.activeElement) return;
 
+    event.preventDefault();
     dragStateRef.current = {
       mode: 'scrub',
       pointerId: event.pointerId,
       startX: event.clientX,
       startValue: value,
+      trackWidth: usableTrackWidth + 6,
+      rangeSpan,
+      min,
+      max,
     };
     setIsPointerDown(true);
     document.body.style.cursor = 'ew-resize';
     event.currentTarget.setPointerCapture(event.pointerId);
-  };
-
-  const handleDisplayPointerMove = (event: ReactPointerEvent<HTMLInputElement>) => {
-    const dragState = dragStateRef.current;
-    if (dragState.mode !== 'scrub' || dragState.pointerId !== event.pointerId) return;
-
-    const delta = event.clientX - dragState.startX;
-    onChange(clamp(dragState.startValue + delta));
-  };
-
-  const handleDisplayPointerUp = (event: ReactPointerEvent<HTMLInputElement>) => {
-    if (dragStateRef.current.pointerId !== event.pointerId) return;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-    resetDrag();
+    attachDocumentListeners(event.pointerId, true);
   };
 
   const inactive = min === 0 && value === 0;
@@ -158,10 +197,6 @@ export function SliderControl({
           ref={trackRef}
           className="slider-track"
           onPointerDown={handleTrackPointerDown}
-          onPointerMove={handleTrackPointerMove}
-          onPointerUp={handleTrackPointerUp}
-          onPointerCancel={resetDrag}
-          onLostPointerCapture={resetDrag}
           onWheel={(event) => {
             event.preventDefault();
             onChange(clamp(value - event.deltaY * 0.2));
@@ -193,10 +228,6 @@ export function SliderControl({
           event.target.select();
         }}
         onPointerDown={handleDisplayPointerDown}
-        onPointerMove={handleDisplayPointerMove}
-        onPointerUp={handleDisplayPointerUp}
-        onPointerCancel={resetDrag}
-        onLostPointerCapture={resetDrag}
         onBlur={() => {
           const parsedValue = parseFloat(displayValue);
           onChange(Number.isNaN(parsedValue) ? value : clamp(parsedValue));

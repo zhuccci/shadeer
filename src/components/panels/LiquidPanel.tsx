@@ -1,5 +1,6 @@
 import { ColorSelectorControl } from '../ColorSelectorControl';
 import { NoiseLayer } from '../NoiseLayer';
+import { PauseIcon, PlayIcon } from '../icons/AppIcons';
 import { SliderControl } from '../SliderControl';
 import type { EditorState } from '../../types/editor';
 
@@ -35,6 +36,7 @@ export function LiquidPanel({
         <ColorSelectorControl label="Front Color" value={state.liquid.frontColor} onChange={onFrontColorChange} />
         <ColorSelectorControl label="Highlight" value={state.liquid.highlightColor} onChange={onHighlightColorChange} />
         <button type="button" className="btn btn-tertiary liq-play-pause-btn" onClick={onTogglePlaying}>
+          {state.liquid.playing ? <PauseIcon /> : <PlayIcon />}
           {state.liquid.playing ? 'Pause Effect' : 'Play Effect'}
         </button>
       </div>

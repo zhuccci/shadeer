@@ -59,6 +59,15 @@ button {
   position: relative;
 }
 
+.app-shadow-overlay {
+  position: absolute;
+  inset: -0.5px;
+  border-radius: 24px;
+  pointer-events: none;
+  box-shadow: inset 0px 0px 40px 0px rgba(0, 0, 0, 0.68);
+  z-index: 10;
+}
+
 @media (max-width: 1200px) {
   .app {
     flex-direction: column;
