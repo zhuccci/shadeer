@@ -17,10 +17,13 @@ export function NoiseLayer({ className, opacity, strong }: NoiseLayerProps) {
 
     const draw = () => {
       const rect = parent.getBoundingClientRect();
+      const dpr = Math.round(window.devicePixelRatio || 1);
       const width = Math.max(1, Math.round(rect.width));
       const height = Math.max(1, Math.round(rect.height));
-      canvas.width = width;
-      canvas.height = height;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
 
       const context = canvas.getContext('2d');
       if (!context) return;
