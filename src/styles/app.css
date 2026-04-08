@@ -59,6 +59,11 @@ button {
   position: relative;
 }
 
+.sidebar > *:not(.app-grain):not(.app-shadow-overlay) {
+  position: relative;
+  z-index: 1;
+}
+
 .app-shadow-overlay {
   position: absolute;
   inset: -0.5px;

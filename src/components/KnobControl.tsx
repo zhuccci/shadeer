@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent } from 'react';
-import { TextureLayer } from './TextureLayer';
 import './KnobControl.css';
 
 interface KnobControlProps {
@@ -14,7 +13,7 @@ interface KnobControlProps {
   onChange: (value: number) => void;
 }
 
-const normalizeAngle = (angle: number) => ((angle % 360) + 360) % 360;
+const wrapAngle = (angle: number) => ((angle % 180) + 180) % 180;
 
 export function KnobControl({ labels, value, onChange }: KnobControlProps) {
   const knobRef = useRef<HTMLDivElement | null>(null);
@@ -39,13 +38,13 @@ export function KnobControl({ labels, value, onChange }: KnobControlProps) {
     valueRef.current = value;
     onChangeRef.current = onChange;
     if (document.activeElement !== displayRef.current) {
-      setDisplayValue(`${Math.round(normalizeAngle(value))}°`);
+      setDisplayValue(`${Math.round(wrapAngle(value))}°`);
     }
   }, [onChange, value]);
 
   const ticks = useMemo(() => {
     const items: Array<{ left: number; top: number; isActive: boolean; size: number; key: number }> = [];
-    const normalized = normalizeAngle(value);
+    const visualDeg = wrapAngle(value) * 2;
     for (let degree = 0; degree < 360; degree += 15) {
       const radians = (degree - 90) * Math.PI / 180;
       const isCardinal = degree % 90 === 0;
@@ -55,14 +54,14 @@ export function KnobControl({ labels, value, onChange }: KnobControlProps) {
         size,
         left: 50 + Math.cos(radians) * 45 - size / 2,
         top: 50 + Math.sin(radians) * 45 - size / 2,
-        isActive: degree <= normalized,
+        isActive: degree <= visualDeg,
       });
     }
     return items;
   }, [value]);
 
   const indicatorStyle = useMemo(() => {
-    const radians = (value - 90) * Math.PI / 180;
+    const radians = (wrapAngle(value) * 2 - 90) * Math.PI / 180;
     return {
       left: `${50 + Math.cos(radians) * 33.75 - 3.75}px`,
       top: `${50 + Math.sin(radians) * 33.75 - 3.75}px`,
@@ -84,9 +83,9 @@ export function KnobControl({ labels, value, onChange }: KnobControlProps) {
   };
 
   const updateValue = (nextValue: number) => {
-    const normalizedValue = normalizeAngle(nextValue);
-    valueRef.current = normalizedValue;
-    onChangeRef.current(normalizedValue);
+    const clamped = wrapAngle(nextValue);
+    valueRef.current = clamped;
+    onChangeRef.current(clamped);
   };
 
   const stopInertia = () => {
@@ -118,7 +117,7 @@ export function KnobControl({ labels, value, onChange }: KnobControlProps) {
       const elapsed = now - lastTime;
       lastTime = now;
       dragState.velocity *= Math.pow(0.85, elapsed / (1000 / 60));
-      dragState.previousAngle = normalizeAngle(dragState.previousAngle + dragState.velocity * elapsed);
+      dragState.previousAngle = wrapAngle(dragState.previousAngle + dragState.velocity * elapsed * 0.5);
       updateValue(dragState.previousAngle);
       inertiaFrameRef.current = Math.abs(dragState.velocity) > 0.01 ? requestAnimationFrame(step) : null;
     };
@@ -161,7 +160,7 @@ export function KnobControl({ labels, value, onChange }: KnobControlProps) {
     if (delta > 180) delta -= 360;
     if (delta < -180) delta += 360;
 
-    const nextValue = normalizeAngle(dragState.startValue + delta);
+    const nextValue = wrapAngle(dragState.startValue + delta * 0.5);
     const now = performance.now();
     const elapsed = now - dragState.previousTime;
 
@@ -184,7 +183,7 @@ export function KnobControl({ labels, value, onChange }: KnobControlProps) {
 
   const handleWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
     event.preventDefault();
-    updateValue(valueRef.current - event.deltaY * 0.3);
+    updateValue(valueRef.current - event.deltaY * 0.15);
   };
 
   return (
@@ -206,10 +205,7 @@ export function KnobControl({ labels, value, onChange }: KnobControlProps) {
             onLostPointerCapture={finishDrag}
             onWheel={handleWheel}
           >
-            <TextureLayer className="knob-grain" />
-            <div className="knob-face">
-              <TextureLayer className="knob-face-grain" />
-            </div>
+            <div className="knob-face" />
             {ticks.map((tick) => (
               <div
                 key={tick.key}
@@ -238,13 +234,13 @@ export function KnobControl({ labels, value, onChange }: KnobControlProps) {
         }}
         onBlur={() => {
           const parsedValue = parseFloat(displayValue);
-          const nextValue = Number.isNaN(parsedValue) ? value : normalizeAngle(parsedValue);
+          const nextValue = Number.isNaN(parsedValue) ? value : wrapAngle(parsedValue);
           onChange(nextValue);
         }}
         onKeyDown={(event) => {
           if (event.key === 'Enter') event.currentTarget.blur();
           if (event.key === 'Escape') {
-            setDisplayValue(`${Math.round(value)}°`);
+            setDisplayValue(`${Math.round(wrapAngle(value))}°`);
             event.currentTarget.blur();
           }
         }}

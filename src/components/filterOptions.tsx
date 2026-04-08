@@ -21,15 +21,9 @@ export const filterOptions: FilterOption[] = [
   {
     id: 'dithering',
     label: 'Dithering',
-    thumbnail: `${baseUrl}placeholders/dither.png`,
-    hoverThumbnail: `${baseUrl}placeholders/dither_hover.png`,
+    thumbnail: `${baseUrl}placeholders/dither_hover.png`,
+    hoverThumbnail: `${baseUrl}placeholders/dither.png`,
     implemented: true,
-  },
-  {
-    id: 'halftone',
-    label: 'Halftone',
-    thumbnail: `${baseUrl}placeholder.png`,
-    implemented: false,
   },
   {
     id: 'liquid',
@@ -41,8 +35,15 @@ export const filterOptions: FilterOption[] = [
   {
     id: 'glitchy',
     label: 'Glitchy',
-    thumbnail: `${baseUrl}placeholder.png`,
+    thumbnail: `${baseUrl}placeholders/glitchy.png`,
+    hoverThumbnail: `${baseUrl}placeholders/glitchy_hover.png`,
     implemented: true,
+  },
+  {
+    id: 'halftone',
+    label: 'Halftone',
+    thumbnail: `${baseUrl}placeholder.png`,
+    implemented: false,
   },
 ];
 
