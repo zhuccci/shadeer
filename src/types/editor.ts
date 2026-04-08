@@ -4,6 +4,8 @@ export type FitMode = 'fill' | 'fit';
 
 export type GlassShape = 'lines' | 'wave' | 'zigzag' | 'circles';
 
+export type GlitchMode = 'none' | 'invert' | 'corrupt' | 'smear' | 'channel' | 'bleach';
+
 export type DitherType = '2x2' | '4x4' | '8x8';
 
 export interface GlassSettings {
@@ -37,12 +39,15 @@ export interface LiquidSettings {
 
 export interface GlitchySettings {
   rgbShift: number;
-  crt: number;
-  glow: number;
-  scanlines: number;
-  invertGlitch: number;
-  tvDistortion: boolean;
   angle: number;
+  glitchStrength: number;
+  glitchAmount: number;
+  glitchMode: GlitchMode;
+  crt: boolean;
+  scanlines: number;
+  glow: number;
+  vhsDistortion: boolean;
+  playing: boolean;
 }
 
 export interface EditorImageState {
@@ -95,12 +100,15 @@ export const defaultLiquidSettings: LiquidSettings = {
 };
 
 export const defaultGlitchySettings: GlitchySettings = {
-  rgbShift: 50,
-  crt: 30,
-  glow: 30,
-  scanlines: 50,
-  invertGlitch: 0,
-  tvDistortion: false,
+  rgbShift: 30,
   angle: 0,
+  glitchStrength: 50,
+  glitchAmount: 40,
+  glitchMode: 'invert',
+  crt: false,
+  scanlines: 50,
+  glow: 20,
+  vhsDistortion: false,
+  playing: true,
 };
 

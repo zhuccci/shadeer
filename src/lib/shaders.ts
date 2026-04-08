@@ -427,31 +427,57 @@ uniform float u_rgbShift;
 uniform float u_angle;
 uniform float u_crtScale;
 uniform float u_glow;
-uniform float u_invertGlitch;
-uniform float u_tvDistortion;
+uniform float u_vhsDistortion;
 uniform float u_scanlineScale;
+uniform float u_glitchStrength;
+uniform float u_glitchAmount;
+uniform float u_glitchMode;
 in vec2 v_imageUV;
 out vec4 fragColor;
 float rand(vec2 co) {
   return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
 void main() {
+  float inBounds = float(v_imageUV.x >= 0.0 && v_imageUV.x <= 1.0 && v_imageUV.y >= 0.0 && v_imageUV.y <= 1.0);
   vec2 uv = v_imageUV;
-  vec2 c = uv - 0.5;
-  uv = uv + c * dot(c, c) * 0.25 * u_crtScale;
-  float inBounds = float(uv.x >= 0.0 && uv.x <= 1.0 && uv.y >= 0.0 && uv.y <= 1.0);
-  if (u_tvDistortion > 0.5) {
-    float syncBand = floor(uv.y * 6.0 + u_time * 0.4);
-    uv.x -= rand(vec2(syncBand, 1.7)) * 0.04 * smoothstep(0.12, 0.0, uv.x);
+
+  // VHS: subtle tape wobble warp before sampling
+  if (u_vhsDistortion > 0.5) {
+    uv.x += sin(uv.y * 80.0 + u_time * 3.0) * 0.0015;
+    uv.x += sin(uv.y * 31.0 - u_time * 1.7) * 0.0008;
   }
-  float t = floor(u_time * 5.0);
-  float row = floor(uv.y * 64.0);
-  float r = rand(vec2(row, t));
-  float glitchX = 0.0;
-  if (r > 0.90) {
-    glitchX = (rand(vec2(r, t + 1.0)) * 2.0 - 1.0) * 0.04;
+
+  // Glitch: primary band displacement — partial-width segments only
+  float glitchT = floor(u_time * 6.0);
+  float glitchRow = floor(v_imageUV.y * 64.0);
+  float glitchSeed = rand(vec2(glitchRow, glitchT));
+  float glitchThresh = 1.0 - u_glitchAmount * 0.5;
+  bool inGlitch = false;
+  if (glitchSeed > glitchThresh) {
+    float gStart = rand(vec2(glitchSeed, glitchT + 3.0));
+    float gWidth = 0.07 + rand(vec2(glitchSeed, glitchT + 4.0)) * 0.5;
+    if (v_imageUV.x >= gStart && v_imageUV.x <= gStart + gWidth) {
+      inGlitch = true;
+      uv.x += (rand(vec2(glitchSeed, glitchT + 1.0)) * 2.0 - 1.0) * u_glitchStrength * 0.12;
+    }
   }
-  uv.x += glitchX;
+  // Fine secondary layer: micro-tears, also partial-width
+  float fineT = floor(u_time * 18.0);
+  float fineSeed = rand(vec2(floor(v_imageUV.y * 256.0) + 33.0, fineT));
+  if (fineSeed > (1.0 - u_glitchAmount * 0.3)) {
+    float fStart = rand(vec2(fineSeed, fineT + 5.0));
+    float fWidth = 0.04 + rand(vec2(fineSeed, fineT + 6.0)) * 0.3;
+    if (v_imageUV.x >= fStart && v_imageUV.x <= fStart + fWidth) {
+      uv.x += (rand(vec2(fineSeed, fineT + 2.0)) - 0.5) * u_glitchStrength * 0.04;
+    }
+  }
+  // Block artifacts: codec-style rectangular corruption
+  float blockT = floor(u_time * 3.0);
+  float blockSeed = rand(vec2(floor(v_imageUV.y * 18.0) + floor(v_imageUV.x * 12.0) * 0.31, blockT + 17.0));
+  if (blockSeed > 0.97) {
+    uv.x += (rand(vec2(blockSeed, 0.5)) - 0.5) * u_glitchStrength * 0.18;
+  }
+
   vec2 shiftDir = vec2(cos(u_angle), sin(u_angle));
   float shiftAmt = u_rgbShift * 0.03;
   vec2 uvR = clamp(uv + shiftDir * shiftAmt, 0.0, 1.0);
@@ -462,6 +488,29 @@ void main() {
   float b_ch = texture(u_image, uvB).b;
   float a_ch = texture(u_image, uvG).a;
   vec3 color = vec3(r_ch, g_ch, b_ch);
+
+  // Glitch mode: color effect applied within active bands
+  if (inGlitch && u_glitchMode > 0.5) {
+    if (u_glitchMode < 1.5) {
+      // Invert
+      color = 1.0 - color;
+    } else if (u_glitchMode < 2.5) {
+      // Data Corrupt: inject colored noise
+      float n = rand(vec2(v_imageUV.x * 500.0 + glitchT, glitchRow));
+      color = vec3(n, rand(vec2(n, 0.77)), rand(vec2(n, 1.33)));
+    } else if (u_glitchMode < 3.5) {
+      // Smear: sample from vertically shifted position
+      float smearOff = rand(vec2(glitchSeed, 9.9)) * u_glitchStrength * 0.2;
+      color = texture(u_image, clamp(vec2(uvG.x, uvG.y - smearOff), 0.0, 1.0)).rgb;
+    } else if (u_glitchMode < 4.5) {
+      // Channel Swap: rotate RGB
+      color = color.gbr;
+    } else {
+      // Bleach: blow out to white
+      color = mix(color, vec3(1.0), 0.78);
+    }
+  }
+
   if (u_glow > 0.001) {
     float s = 0.004 + u_glow * 0.01;
     vec3 bloom = vec3(0.0);
@@ -477,28 +526,53 @@ void main() {
     bloom = max(vec3(0.0), bloom - 0.3) * (1.0 / 0.7);
     color = clamp(color + bloom * u_glow * 2.0, 0.0, 1.0);
   }
-  if (u_invertGlitch > 0.001) {
-    float t2 = floor(u_time * 4.0);
-    float invRow = floor(v_imageUV.y * 48.0);
-    float invR = rand(vec2(invRow + 77.0, t2 + 3.0));
-    if (invR > (1.0 - u_invertGlitch * 0.35)) {
-      color = 1.0 - color;
-    }
-  }
+
+  // CRT: RGB phosphor square dots + vignette
   if (u_crtScale > 0.001) {
-    float scanFreq = 10.0 + u_scanlineScale * 390.0;
-    float scan = sin(v_imageUV.y * scanFreq * 3.14159265) * 0.5 + 0.5;
-    float scanDim = mix(1.0, scan * 0.7 + 0.3, u_crtScale * 0.7);
-    color *= scanDim;
+    float scanFreq = 40.0 + u_scanlineScale * 60.0;
+    float spIdx = mod(floor(v_imageUV.x * scanFreq * 3.0), 3.0);
+    vec3 rgbMask;
+    rgbMask.r = spIdx < 0.5 ? 1.0 : 0.08;
+    rgbMask.g = (spIdx >= 0.5 && spIdx < 1.5) ? 1.0 : 0.08;
+    rgbMask.b = spIdx >= 1.5 ? 1.0 : 0.08;
+    vec2 cellUV = fract(v_imageUV * vec2(scanFreq * 3.0, scanFreq));
+    vec2 d = abs(cellUV - 0.5);
+    float sq = 1.0 - smoothstep(0.28, 0.42, max(d.x, d.y));
+    float shapeDim = sq * 0.8 + 0.2;
+    vec3 crtColor = color * rgbMask * 3.0 * shapeDim;
+    color = mix(color, crtColor, u_crtScale * 0.7);
     vec2 vigUV = v_imageUV - 0.5;
     float vignette = clamp(1.0 - dot(vigUV, vigUV) * 1.8 * u_crtScale, 0.0, 1.0);
     color *= vignette;
   }
-  if (u_tvDistortion > 0.5) {
-    float barPos = fract(u_time * 0.18);
-    float barDist = abs(fract(v_imageUV.y - barPos + 0.5) - 0.5);
-    color += vec3(exp(-barDist * barDist * 600.0) * 0.35);
+
+  // VHS: color-space effects
+  if (u_vhsDistortion > 0.5) {
+    // Chroma bleed: color channels lag horizontally (low-bandwidth chroma signal)
+    vec3 bleed;
+    bleed.r = texture(u_image, clamp(uvG + vec2(0.018, 0.0), 0.0, 1.0)).r;
+    bleed.g = texture(u_image, clamp(uvG + vec2(0.009, 0.0), 0.0, 1.0)).g;
+    bleed.b = color.b;
+    color = mix(color, bleed, 0.4);
+    // Luma noise: static in random horizontal bands
+    float bandT = floor(u_time * 4.0);
+    float bandSeed = rand(vec2(floor(v_imageUV.y * 60.0 + bandT * 0.5), 7.7 + bandT * 0.1));
+    if (bandSeed > 0.82) {
+      float noiseVal = rand(vec2(v_imageUV.x * 150.0 + u_time * 8.0, v_imageUV.y * 80.0));
+      color = mix(color, vec3(noiseVal), 0.28);
+    }
+    // Signal distortion: chromatic aberration bursts
+    float sigSeed = rand(vec2(floor(v_imageUV.y * 10.0 + u_time * 0.25), 3.3));
+    if (sigSeed > 0.55) {
+      float caAmt = (rand(vec2(sigSeed, 0.7)) - 0.5) * 0.011;
+      color.r = texture(u_image, clamp(uvG + vec2(caAmt, 0.0), 0.0, 1.0)).r;
+      color.b = texture(u_image, clamp(uvG - vec2(caAmt, 0.0), 0.0, 1.0)).b;
+    }
+    // Warm color cast: tape tends toward warm/slightly desaturated in shadows
+    float luma = dot(color, vec3(0.299, 0.587, 0.114));
+    color = mix(color, vec3(luma) * vec3(1.05, 1.0, 0.88), 0.1 * (1.0 - luma));
   }
+
   fragColor = vec4(color, a_ch) * inBounds;
 }`;
 

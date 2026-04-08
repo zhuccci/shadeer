@@ -9,8 +9,8 @@
   overflow-x: auto;
   scrollbar-width: none;
   padding-left: 24px;
-  mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, black 16px);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px);
 }
 
 .filter-buttons-scroll::-webkit-scrollbar {
@@ -20,11 +20,11 @@
 .filter-buttons {
   display: flex;
   gap: 16px;
-  padding: 3px 0 16px 2px;
+  padding: 3px 0 16px 0;
 }
 
 .filter-strip-end {
-  min-width: 16px;
+  min-width: 2px;
   flex-shrink: 0;
 }
 

@@ -165,6 +165,34 @@
   color: var(--accent);
 }
 
+.crt-type-row {
+  display: flex;
+  gap: 8px;
+}
+
+.crt-type-btn {
+  flex: 1;
+  padding: 8px 0;
+  border-radius: 8px;
+  border: 0.5px solid #4a4a4a;
+  background: var(--panel-dark);
+  color: #888;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s ease-out, color 0.15s ease-out;
+}
+
+.crt-type-btn:hover {
+  border-color: #d9d9d9;
+  color: #d9d9d9;
+}
+
+.crt-type-btn.selected {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 18px 0 rgba(255, 246, 121, 0.2);
+}
+
 .dither-slider-section {
   display: flex;
   flex-direction: column;

@@ -125,15 +125,14 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         state={state}
         isActive={state.activeFilter === 'glitchy'}
         onRgbShiftChange={(rgbShift) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, rgbShift } }))}
+        onGlitchStrengthChange={(glitchStrength) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, glitchStrength } }))}
+        onGlitchAmountChange={(glitchAmount) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, glitchAmount } }))}
+        onGlitchModeChange={(glitchMode) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, glitchMode } }))}
         onCrtChange={(crt) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, crt } }))}
-        onGlowChange={(glow) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, glow } }))}
         onScanlinesChange={(scanlines) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, scanlines } }))}
-        onInvertGlitchChange={(invertGlitch) =>
-          updateState((current) => ({ ...current, glitchy: { ...current.glitchy, invertGlitch } }))
-        }
-        onTvDistortionChange={(tvDistortion) =>
-          updateState((current) => ({ ...current, glitchy: { ...current.glitchy, tvDistortion } }))
-        }
+        onGlowChange={(glow) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, glow } }))}
+        onVhsDistortionChange={(vhsDistortion) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, vhsDistortion } }))}
+        onTogglePlaying={() => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, playing: !current.glitchy.playing } }))}
         onAngleChange={(angle) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, angle } }))}
       />
     </div>

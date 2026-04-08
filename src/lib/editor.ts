@@ -174,11 +174,13 @@ export function buildGlitchyUniforms(
     u_offsetY: offsetY,
     u_rgbShift: glitchy.rgbShift / 100,
     u_angle: glitchy.angle * Math.PI / 180,
-    u_crtScale: glitchy.crt / 100,
-    u_glow: glitchy.glow / 100,
-    u_invertGlitch: glitchy.invertGlitch / 100,
-    u_tvDistortion: glitchy.tvDistortion ? 1 : 0,
+    u_glitchStrength: glitchy.glitchStrength / 100,
+    u_glitchAmount: glitchy.glitchAmount / 100,
+    u_glitchMode: ({ none: 0, invert: 1, corrupt: 2, smear: 3, channel: 4, bleach: 5 } as const)[glitchy.glitchMode],
+    u_crtScale: glitchy.crt ? 0.5 : 0,
     u_scanlineScale: glitchy.scanlines / 100,
+    u_glow: glitchy.glow / 100,
+    u_vhsDistortion: glitchy.vhsDistortion ? 1 : 0,
   };
 }
 
@@ -212,7 +214,7 @@ export function getShaderConfig(state: EditorState, image: HTMLImageElement) {
         u_image: image,
         ...buildGlitchyUniforms(state.glitchy, state.fitMode, state.offsetX, state.offsetY),
       },
-      speed: 1,
+      speed: state.glitchy.playing ? 1 : 0,
     };
   }
 
