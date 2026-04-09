@@ -124,16 +124,18 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
       <GlitchyPanel
         state={state}
         isActive={state.activeFilter === 'glitchy'}
-        onRgbShiftChange={(rgbShift) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, rgbShift } }))}
         onGlitchStrengthChange={(glitchStrength) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, glitchStrength } }))}
         onGlitchAmountChange={(glitchAmount) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, glitchAmount } }))}
         onGlitchModeChange={(glitchMode) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, glitchMode } }))}
+        onGlitchFormChange={(glitchForm) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, glitchForm } }))}
         onCrtChange={(crt) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, crt } }))}
         onScanlinesChange={(scanlines) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, scanlines } }))}
-        onGlowChange={(glow) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, glow } }))}
         onVhsDistortionChange={(vhsDistortion) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, vhsDistortion } }))}
+        onVhsWaveStrengthChange={(vhsWaveStrength) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, vhsWaveStrength } }))}
+        onVhsBandOpacityChange={(vhsBandOpacity) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, vhsBandOpacity } }))}
+        onVhsNoiseLevelChange={(vhsNoiseLevel) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, vhsNoiseLevel } }))}
+        onVhsBandHeightChange={(vhsBandHeight) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, vhsBandHeight } }))}
         onTogglePlaying={() => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, playing: !current.glitchy.playing } }))}
-        onAngleChange={(angle) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, angle } }))}
       />
     </div>
   );

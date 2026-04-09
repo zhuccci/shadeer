@@ -113,7 +113,7 @@
 }
 
 .dither-type-item:hover {
-  background: rgba(20, 20, 20, 0.3);
+  background: rgba(20, 20, 20, 0.6);
 }
 
 .dither-type-btn {
@@ -131,11 +131,18 @@
   transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
 }
 
-.dither-type-btn:hover {
+.dither-type-item:hover .dither-type-btn {
   border-color: #d9d9d9;
+  color: #d9d9d9;
 }
 
-.dither-type-btn:hover img {
+.dither-type-item:hover .dither-type-btn.selected {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 18.75px 0 rgba(255, 246, 121, 0.2);
+}
+
+.dither-type-item:hover .dither-type-btn img {
   filter: brightness(0) saturate(100%) invert(89%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(95%);
 }
 
@@ -162,6 +169,10 @@
 }
 
 .dither-type-label.selected {
+  color: var(--accent);
+}
+
+.dither-type-item:hover .dither-type-label.selected {
   color: var(--accent);
 }
 
@@ -200,5 +211,5 @@
 }
 
 .liq-play-pause-btn {
-  margin-top: auto;
+  flex-shrink: 0;
 }

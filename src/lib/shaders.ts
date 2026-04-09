@@ -423,11 +423,14 @@ export const glitchyFragmentShader = `#version 300 es
 precision highp float;
 uniform sampler2D u_image;
 uniform float u_time;
-uniform float u_rgbShift;
-uniform float u_angle;
+uniform float u_glitchForm;
 uniform float u_crtScale;
 uniform float u_glow;
 uniform float u_vhsDistortion;
+uniform float u_vhsWaveStrength;
+uniform float u_vhsBandOpacity;
+uniform float u_vhsNoiseLevel;
+uniform float u_vhsBandHeight;
 uniform float u_scanlineScale;
 uniform float u_glitchStrength;
 uniform float u_glitchAmount;
@@ -441,53 +444,112 @@ void main() {
   float inBounds = float(v_imageUV.x >= 0.0 && v_imageUV.x <= 1.0 && v_imageUV.y >= 0.0 && v_imageUV.y <= 1.0);
   vec2 uv = v_imageUV;
 
-  // VHS: subtle tape wobble warp before sampling
+  // VHS: stepped tape wobble warp before sampling
   if (u_vhsDistortion > 0.5) {
-    uv.x += sin(uv.y * 80.0 + u_time * 3.0) * 0.0015;
-    uv.x += sin(uv.y * 31.0 - u_time * 1.7) * 0.0008;
+    float ws = u_vhsWaveStrength;
+    // Layer 1: slow wide bands, coarsely quantized
+    float s1 = floor(sin(uv.y * 18.0 + u_time * 1.8) * 4.0) / 4.0;
+    // Layer 2: faster mid-frequency, more steps
+    float s2 = floor(sin(uv.y * 47.0 - u_time * 3.1) * 7.0) / 7.0;
+    // Layer 3: high-frequency fine detail
+    float s3 = floor(sin(uv.y * 110.0 + u_time * 5.5) * 3.0) / 3.0;
+    // Layer 4: low drift — shifts the whole frame slowly
+    float s4 = floor(sin(uv.y * 6.0 + u_time * 0.7) * 2.0) / 2.0;
+    uv.x += (s1 * 0.018 + s2 * 0.009 + s3 * 0.004 + s4 * 0.012) * ws;
   }
 
-  // Glitch: primary band displacement — partial-width segments only
+  // Shared timing seeds used by color modes too
   float glitchT = floor(u_time * 6.0);
   float glitchRow = floor(v_imageUV.y * 64.0);
   float glitchSeed = rand(vec2(glitchRow, glitchT));
-  float glitchThresh = 1.0 - u_glitchAmount * 0.5;
+
   bool inGlitch = false;
-  if (glitchSeed > glitchThresh) {
-    float gStart = rand(vec2(glitchSeed, glitchT + 3.0));
-    float gWidth = 0.07 + rand(vec2(glitchSeed, glitchT + 4.0)) * 0.5;
-    if (v_imageUV.x >= gStart && v_imageUV.x <= gStart + gWidth) {
+  bool wrapUV = false;
+
+  if (u_glitchForm < 0.5) {
+    // Bands: horizontal row tears, partial width
+    float glitchThresh = 1.0 - u_glitchAmount * 0.85;
+    if (glitchSeed > glitchThresh) {
+      float gStart = rand(vec2(glitchSeed, glitchT + 3.0));
+      float gWidth = 0.07 + rand(vec2(glitchSeed, glitchT + 4.0)) * 0.6;
+      if (v_imageUV.x >= gStart && v_imageUV.x <= gStart + gWidth) {
+        inGlitch = true;
+        uv.x += (rand(vec2(glitchSeed, glitchT + 1.0)) * 2.0 - 1.0) * u_glitchStrength * 0.22;
+      }
+    }
+    float fineT = floor(u_time * 18.0);
+    float fineSeed = rand(vec2(floor(v_imageUV.y * 256.0) + 33.0, fineT));
+    if (fineSeed > (1.0 - u_glitchAmount * 0.5)) {
+      float fStart = rand(vec2(fineSeed, fineT + 5.0));
+      float fWidth = 0.04 + rand(vec2(fineSeed, fineT + 6.0)) * 0.4;
+      if (v_imageUV.x >= fStart && v_imageUV.x <= fStart + fWidth) {
+        uv.x += (rand(vec2(fineSeed, fineT + 2.0)) - 0.5) * u_glitchStrength * 0.1;
+      }
+    }
+    float blockT = floor(u_time * 3.0);
+    float blockSeed = rand(vec2(floor(v_imageUV.y * 18.0) + floor(v_imageUV.x * 12.0) * 0.31, blockT + 17.0));
+    if (blockSeed > 0.94 - u_glitchAmount * 0.12) {
+      uv.x += (rand(vec2(blockSeed, 0.5)) - 0.5) * u_glitchStrength * 0.35;
+    }
+  } else if (u_glitchForm < 1.5) {
+    // Wide: thick slabs — few rows, large shift, image wraps (repeats)
+    float wideT = floor(u_time * 3.0);
+    float wideRow = floor(v_imageUV.y * 10.0);
+    float wideSeed = rand(vec2(wideRow, wideT));
+    if (wideSeed > (1.0 - u_glitchAmount * 0.75)) {
       inGlitch = true;
-      uv.x += (rand(vec2(glitchSeed, glitchT + 1.0)) * 2.0 - 1.0) * u_glitchStrength * 0.12;
+      wrapUV = true;
+      uv.x += (rand(vec2(wideSeed, 1.1)) * 2.0 - 1.0) * u_glitchStrength * 0.55;
     }
-  }
-  // Fine secondary layer: micro-tears, also partial-width
-  float fineT = floor(u_time * 18.0);
-  float fineSeed = rand(vec2(floor(v_imageUV.y * 256.0) + 33.0, fineT));
-  if (fineSeed > (1.0 - u_glitchAmount * 0.3)) {
-    float fStart = rand(vec2(fineSeed, fineT + 5.0));
-    float fWidth = 0.04 + rand(vec2(fineSeed, fineT + 6.0)) * 0.3;
-    if (v_imageUV.x >= fStart && v_imageUV.x <= fStart + fWidth) {
-      uv.x += (rand(vec2(fineSeed, fineT + 2.0)) - 0.5) * u_glitchStrength * 0.04;
+    float fineT2 = floor(u_time * 14.0);
+    float fineSeed2 = rand(vec2(floor(v_imageUV.y * 140.0) + 7.0, fineT2));
+    if (fineSeed2 > (1.0 - u_glitchAmount * 0.4)) {
+      uv.x += (rand(vec2(fineSeed2, 5.5)) * 2.0 - 1.0) * u_glitchStrength * 0.1;
     }
-  }
-  // Block artifacts: codec-style rectangular corruption
-  float blockT = floor(u_time * 3.0);
-  float blockSeed = rand(vec2(floor(v_imageUV.y * 18.0) + floor(v_imageUV.x * 12.0) * 0.31, blockT + 17.0));
-  if (blockSeed > 0.97) {
-    uv.x += (rand(vec2(blockSeed, 0.5)) - 0.5) * u_glitchStrength * 0.18;
+  } else if (u_glitchForm < 2.5) {
+    // Mosaic: small independent square blocks displaced in x and y
+    float mosaicT = floor(u_time * 10.0);
+    float bx = floor(v_imageUV.x * 30.0);
+    float by = floor(v_imageUV.y * 30.0);
+    float mosaicSeed = rand(vec2(bx * 0.1 + by * 0.371, mosaicT));
+    if (mosaicSeed > (1.0 - u_glitchAmount * 0.7)) {
+      inGlitch = true;
+      uv.x += (rand(vec2(mosaicSeed, 2.2)) * 2.0 - 1.0) * u_glitchStrength * 0.28;
+      uv.y += (rand(vec2(mosaicSeed, 3.3)) * 2.0 - 1.0) * u_glitchStrength * 0.18;
+    }
+    // Fine mosaic layer
+    float bx2 = floor(v_imageUV.x * 80.0);
+    float by2 = floor(v_imageUV.y * 80.0);
+    float fineMosaic = rand(vec2(bx2 * 0.07 + by2 * 0.23, mosaicT + 3.0));
+    if (fineMosaic > (1.0 - u_glitchAmount * 0.4)) {
+      uv.x += (rand(vec2(fineMosaic, 6.6)) - 0.5) * u_glitchStrength * 0.1;
+      uv.y += (rand(vec2(fineMosaic, 7.7)) - 0.5) * u_glitchStrength * 0.06;
+    }
+  } else {
+    // Compress: JPEG-style — bands repeat/fold, heavy horizontal shift
+    float compT = floor(u_time * 5.0);
+    float compRow = floor(v_imageUV.y * 16.0);
+    float compSeed = rand(vec2(compRow, compT + 99.0));
+    if (compSeed > (1.0 - u_glitchAmount * 0.7)) {
+      inGlitch = true;
+      wrapUV = true;
+      float period = 0.04 + rand(vec2(compSeed, 7.7)) * 0.14;
+      uv.y = floor(v_imageUV.y / period) * period + rand(vec2(compSeed, 8.8)) * period * 0.6;
+      uv.x += (rand(vec2(compSeed, 9.9)) * 2.0 - 1.0) * u_glitchStrength * 0.35;
+    }
+    float cbT = floor(u_time * 7.0);
+    float cbx = floor(v_imageUV.x * 14.0);
+    float cby = floor(v_imageUV.y * 14.0);
+    float cbSeed = rand(vec2(cbx * 0.13 + cby * 0.47, cbT + 5.0));
+    if (cbSeed > 0.88 - u_glitchAmount * 0.15) {
+      uv.x += (rand(vec2(cbSeed, 4.4)) - 0.5) * u_glitchStrength * 0.18;
+    }
   }
 
-  vec2 shiftDir = vec2(cos(u_angle), sin(u_angle));
-  float shiftAmt = u_rgbShift * 0.03;
-  vec2 uvR = clamp(uv + shiftDir * shiftAmt, 0.0, 1.0);
-  vec2 uvG = clamp(uv, 0.0, 1.0);
-  vec2 uvB = clamp(uv - shiftDir * shiftAmt, 0.0, 1.0);
-  float r_ch = texture(u_image, uvR).r;
-  float g_ch = texture(u_image, uvG).g;
-  float b_ch = texture(u_image, uvB).b;
-  float a_ch = texture(u_image, uvG).a;
-  vec3 color = vec3(r_ch, g_ch, b_ch);
+  vec2 uvG = wrapUV ? fract(uv) : clamp(uv, 0.0, 1.0);
+  vec4 tex = texture(u_image, uvG);
+  float a_ch = tex.a;
+  vec3 color = tex.rgb;
 
   // Glitch mode: color effect applied within active bands
   if (inGlitch && u_glitchMode > 0.5) {
@@ -529,7 +591,7 @@ void main() {
 
   // CRT: RGB phosphor square dots + vignette
   if (u_crtScale > 0.001) {
-    float scanFreq = 40.0 + u_scanlineScale * 60.0;
+    float scanFreq = 40.0 + u_scanlineScale * 460.0;
     float spIdx = mod(floor(v_imageUV.x * scanFreq * 3.0), 3.0);
     vec3 rgbMask;
     rgbMask.r = spIdx < 0.5 ? 1.0 : 0.08;
@@ -548,29 +610,24 @@ void main() {
 
   // VHS: color-space effects
   if (u_vhsDistortion > 0.5) {
-    // Chroma bleed: color channels lag horizontally (low-bandwidth chroma signal)
-    vec3 bleed;
-    bleed.r = texture(u_image, clamp(uvG + vec2(0.018, 0.0), 0.0, 1.0)).r;
-    bleed.g = texture(u_image, clamp(uvG + vec2(0.009, 0.0), 0.0, 1.0)).g;
-    bleed.b = color.b;
-    color = mix(color, bleed, 0.4);
-    // Luma noise: static in random horizontal bands
-    float bandT = floor(u_time * 4.0);
-    float bandSeed = rand(vec2(floor(v_imageUV.y * 60.0 + bandT * 0.5), 7.7 + bandT * 0.1));
-    if (bandSeed > 0.82) {
-      float noiseVal = rand(vec2(v_imageUV.x * 150.0 + u_time * 8.0, v_imageUV.y * 80.0));
-      color = mix(color, vec3(noiseVal), 0.28);
-    }
-    // Signal distortion: chromatic aberration bursts
+    // Black gradient bands — drifting vertically, height controlled
+    float bandFreq = 1.0 + u_vhsBandHeight * 19.0;
+    float bandPhase = v_imageUV.y * bandFreq - u_time * 1.2;
+    float bandGrad = fract(bandPhase);
+    bandGrad = smoothstep(0.0, 0.45, bandGrad) * smoothstep(1.0, 0.55, bandGrad);
+    color = mix(color, vec3(0.0), bandGrad * u_vhsBandOpacity);
+    // Signal distortion: white fringe bursts
     float sigSeed = rand(vec2(floor(v_imageUV.y * 10.0 + u_time * 0.25), 3.3));
     if (sigSeed > 0.55) {
-      float caAmt = (rand(vec2(sigSeed, 0.7)) - 0.5) * 0.011;
-      color.r = texture(u_image, clamp(uvG + vec2(caAmt, 0.0), 0.0, 1.0)).r;
-      color.b = texture(u_image, clamp(uvG - vec2(caAmt, 0.0), 0.0, 1.0)).b;
+      float caAmt = abs(rand(vec2(sigSeed, 0.7)) - 0.5) * 0.014;
+      float fringeR = texture(u_image, clamp(uvG + vec2(caAmt, 0.0), 0.0, 1.0)).r;
+      float fringeG = texture(u_image, clamp(uvG + vec2(caAmt * 0.5, 0.0), 0.0, 1.0)).g;
+      float fringeB = texture(u_image, clamp(uvG, 0.0, 1.0)).b;
+      color = mix(color, vec3(fringeR, fringeG, fringeB), 0.5);
     }
-    // Warm color cast: tape tends toward warm/slightly desaturated in shadows
-    float luma = dot(color, vec3(0.299, 0.587, 0.114));
-    color = mix(color, vec3(luma) * vec3(1.05, 1.0, 0.88), 0.1 * (1.0 - luma));
+    // Film grain noise
+    float grain = rand(vec2(v_imageUV.x * 1000.0 + u_time * 13.7, v_imageUV.y * 800.0 + u_time * 9.3)) * 2.0 - 1.0;
+    color = clamp(color + grain * u_vhsNoiseLevel, 0.0, 1.0);
   }
 
   fragColor = vec4(color, a_ch) * inBounds;
