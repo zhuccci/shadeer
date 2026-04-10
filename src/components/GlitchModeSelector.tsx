@@ -12,11 +12,12 @@ const modes: { id: GlitchMode; label: string }[] = [
 ];
 
 interface GlitchModeSelectorProps {
+  label?: string;
   value: GlitchMode;
   onChange: (value: GlitchMode) => void;
 }
 
-export function GlitchModeSelector({ value, onChange }: GlitchModeSelectorProps) {
+export function GlitchModeSelector({ label, value, onChange }: GlitchModeSelectorProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
   const selected = modes.find((m) => m.id === value) ?? modes[0];
@@ -31,29 +32,32 @@ export function GlitchModeSelector({ value, onChange }: GlitchModeSelectorProps)
   }, [open]);
 
   return (
-    <div ref={ref} className={`selector${open ? ' open' : ''}`}>
-      <button type="button" className="selector-trigger" onClick={() => setOpen((o) => !o)}>
-        <span className="selector-left">
-          <span className="option-text">{selected.label}</span>
-        </span>
-        <img
-          src={`${import.meta.env.BASE_URL}icons/chevron-down.svg`}
-          className="chevron"
-          alt=""
-          style={{ filter: 'brightness(0) invert(78%)' }}
-        />
-      </button>
-      <div className="dropdown">
-        {modes.map((mode) => (
-          <button
-            key={mode.id}
-            type="button"
-            className={`dropdown-item${mode.id === value ? ' active' : ''}`}
-            onClick={() => { onChange(mode.id); setOpen(false); }}
-          >
-            <span className="dropdown-item-text">{mode.label}</span>
-          </button>
-        ))}
+    <div ref={ref} className="selector-group">
+      {label && <span className="selector-group-label">{label}</span>}
+      <div className={`selector${open ? ' open' : ''}`}>
+        <button type="button" className="selector-trigger" onClick={() => setOpen((o) => !o)}>
+          <span className="selector-left">
+            <span className="option-text">{selected.label}</span>
+          </span>
+          <img
+            src={`${import.meta.env.BASE_URL}icons/chevron-down.svg`}
+            className="chevron"
+            alt=""
+            style={{ filter: 'brightness(0) invert(78%)' }}
+          />
+        </button>
+        <div className="dropdown">
+          {modes.map((mode) => (
+            <button
+              key={mode.id}
+              type="button"
+              className={`dropdown-item${mode.id === value ? ' active' : ''}`}
+              onClick={() => { onChange(mode.id); setOpen(false); }}
+            >
+              <span className="dropdown-item-text">{mode.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

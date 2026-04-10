@@ -47,8 +47,7 @@ export function KnobControl({ labels, value, onChange }: KnobControlProps) {
     const visualDeg = wrapAngle(value) * 2;
     for (let degree = 0; degree < 360; degree += 15) {
       const radians = (degree - 90) * Math.PI / 180;
-      const isCardinal = degree % 90 === 0;
-      const size = isCardinal ? 2.5 : 2.434;
+      const size = 2.5;
       items.push({
         key: degree,
         size,

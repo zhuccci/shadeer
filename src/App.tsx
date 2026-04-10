@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { ActionBar } from './components/ActionBar';
+import { CopyToast } from './components/CopyToast';
 import { EditorPanels } from './components/EditorPanels';
 import { FilterStrip } from './components/FilterStrip';
 import { PreviewStage } from './components/PreviewStage';
@@ -21,10 +22,13 @@ const baseUrl = import.meta.env.BASE_URL;
 export default function App() {
   const [editorState, setEditorState] = useState<EditorState>(defaultEditorState);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [copyToastVisible, setCopyToastVisible] = useState(false);
+  const [screenFlash, setScreenFlash] = useState(false);
   const previewRef = useRef<HTMLDivElement | null>(null);
   const shaderMountRef = useRef<ShaderMount | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const downloadLinkRef = useRef<HTMLAnchorElement | null>(null);
+  const copyToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const updateState = useCallback((updater: (state: EditorState) => EditorState) => {
     setEditorState((current) => updater(current));
@@ -120,6 +124,13 @@ export default function App() {
     event.preventDefault();
     const blobPromise = renderShaderToBlob(previewRef.current, shaderMountRef.current, editorState).then((blob) => blob ?? new Blob());
     void navigator.clipboard.write([new ClipboardItem({ 'image/png': blobPromise })]);
+
+    setCopyToastVisible(true);
+    if (copyToastTimerRef.current) clearTimeout(copyToastTimerRef.current);
+    copyToastTimerRef.current = setTimeout(() => setCopyToastVisible(false), 2000);
+
+    setScreenFlash(true);
+    setTimeout(() => setScreenFlash(false), 600);
   }, [editorState]);
 
   const handleUploadClick = useCallback(() => {
@@ -156,26 +167,30 @@ export default function App() {
         <TextureLayer className="app-grain" />
       </div>
 
-      <PreviewStage
-        state={editorState}
-        isDragging={imageDrag.isDragging}
-        previewRef={previewRef}
-        onUpload={handleUploadClick}
-        onDropFile={(file) => void handleImageFile(file)}
-        onFitModeChange={(fitMode) =>
-          updateState((current) => ({
-            ...current,
-            fitMode,
-            offsetX: 0,
-            offsetY: 0,
-          }))
-        }
-        onPointerDown={imageDrag.onPointerDown}
-        onPointerMove={imageDrag.onPointerMove}
-        onPointerUp={imageDrag.onPointerUp}
-        onPointerCancel={imageDrag.onPointerCancel}
-        onLostPointerCapture={imageDrag.onLostPointerCapture}
-      />
+      <div className="preview-wrap">
+        <PreviewStage
+          state={editorState}
+          isDragging={imageDrag.isDragging}
+          previewRef={previewRef}
+          onUpload={handleUploadClick}
+          onDropFile={(file) => void handleImageFile(file)}
+          onFitModeChange={(fitMode) =>
+            updateState((current) => ({
+              ...current,
+              fitMode,
+              offsetX: 0,
+              offsetY: 0,
+            }))
+          }
+          onPointerDown={imageDrag.onPointerDown}
+          onPointerMove={imageDrag.onPointerMove}
+          onPointerUp={imageDrag.onPointerUp}
+          onPointerCancel={imageDrag.onPointerCancel}
+          onLostPointerCapture={imageDrag.onLostPointerCapture}
+        />
+        <div className={`screen-flash${screenFlash ? ' active' : ''}`} />
+        <CopyToast visible={copyToastVisible} />
+      </div>
     </div>
   );
 }

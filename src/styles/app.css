@@ -45,6 +45,32 @@ button {
   padding: 24px;
 }
 
+.preview-wrap {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+.screen-flash {
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  border-radius: 24px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 200;
+}
+
+.screen-flash.active {
+  animation: screen-flash 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes screen-flash {
+  0%   { opacity: 0.92; }
+  20%  { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+
 .sidebar {
   width: 600px;
   flex-shrink: 0;

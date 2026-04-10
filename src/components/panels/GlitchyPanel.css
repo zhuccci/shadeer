@@ -12,6 +12,8 @@
   gap: 24px;
   scrollbar-width: thin;
   scrollbar-color: #373737 transparent;
+  margin-right: -20px;
+  padding-right: 20px;
 }
 
 .glitchy-scroll-area::-webkit-scrollbar {
@@ -65,7 +67,7 @@
 }
 
 .glitchy-section-label {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   color: var(--text);
 }
@@ -77,19 +79,16 @@
 }
 
 .glitchy-form-label {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--text-muted);
 }
 
-.glitchy-form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.glitchy-play-footer {
+  flex-shrink: 0;
 }
 
 .glitchy-play-btn {
   width: 100%;
-  flex-shrink: 0;
 }
 
 /* Collapsible sliders */

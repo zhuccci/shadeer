@@ -52,10 +52,7 @@ export function GlitchyPanel({
           </div>
           <div className="glitchy-col-divider" />
           <div className="glitchy-right">
-            <div className="glitchy-form-group">
-              <span className="glitchy-form-label">Glitch Form</span>
-              <GlitchModeSelector value={state.glitchy.glitchMode} onChange={onGlitchModeChange} />
-            </div>
+            <GlitchModeSelector label="Glitch Form" value={state.glitchy.glitchMode} onChange={onGlitchModeChange} />
             <SliderControl label="Glitch Strength" value={state.glitchy.glitchStrength} onChange={onGlitchStrengthChange} />
             <SliderControl label="Glitch Amount" value={state.glitchy.glitchAmount} onChange={onGlitchAmountChange} />
           </div>

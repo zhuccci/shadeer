@@ -25,18 +25,9 @@ export function GlassPanel({
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="glassPanel">
       <TextureLayer className="panel-grain" />
       <div className="controls-left">
-        <div className="widget-group">
-          <div className="input-row">
-            <span className="widget-label">Shape</span>
-            <ShapeSelector value={state.glass.shape} onChange={onShapeChange} />
-          </div>
-        </div>
-        <div className="widget-group">
-          <SliderControl label="Size" value={state.glass.size} onChange={onSizeChange} />
-        </div>
-        <div className="widget-group">
-          <SliderControl label="Grain" value={state.glass.grain} onChange={onGrainChange} />
-        </div>
+        <ShapeSelector label="Shape" value={state.glass.shape} onChange={onShapeChange} />
+        <SliderControl label="Size" value={state.glass.size} onChange={onSizeChange} />
+        <SliderControl label="Grain" value={state.glass.grain} onChange={onGrainChange} />
       </div>
       <div className="panel-divider" />
       <KnobControl
