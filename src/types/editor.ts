@@ -1,4 +1,4 @@
-export type ActiveFilter = 'glass' | 'dithering' | 'liquid' | 'glitchy';
+export type ActiveFilter = 'glass' | 'dithering' | 'liquid' | 'glitchy' | 'halftone';
 
 export type FitMode = 'fill' | 'fit';
 
@@ -54,6 +54,17 @@ export interface GlitchySettings {
   playing: boolean;
 }
 
+export interface HalftoneSettings {
+  scale: number;
+  blackAndWhite: boolean;
+  backgroundColor: string;
+  color1: string;
+  color2: string;
+  color3: string;
+  color4: string;
+  grainOverlay: number;
+}
+
 export interface EditorImageState {
   image: HTMLImageElement | null;
   src: string | null;
@@ -71,6 +82,7 @@ export interface EditorState {
   dithering: DitheringSettings;
   liquid: LiquidSettings;
   glitchy: GlitchySettings;
+  halftone: HalftoneSettings;
   image: EditorImageState;
 }
 
@@ -117,5 +129,16 @@ export const defaultGlitchySettings: GlitchySettings = {
   vhsNoiseLevel: 30,
   vhsBandHeight: 30,
   playing: true,
+};
+
+export const defaultHalftoneSettings: HalftoneSettings = {
+  scale: 20,
+  blackAndWhite: true,
+  backgroundColor: '#FFFFFF',
+  color1: '#FFE082',
+  color2: '#FF7043',
+  color3: '#7B1FA2',
+  color4: '#1A1A2E',
+  grainOverlay: 0,
 };
 

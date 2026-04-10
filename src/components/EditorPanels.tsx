@@ -4,6 +4,7 @@ import type { EditorState } from '../types/editor';
 import { DitheringPanel } from './panels/DitheringPanel';
 import { GlassPanel } from './panels/GlassPanel';
 import { GlitchyPanel } from './panels/GlitchyPanel';
+import { HalftonePanel } from './panels/HalftonePanel';
 import { LiquidPanel } from './panels/LiquidPanel';
 
 interface EditorPanelsProps {
@@ -136,6 +137,19 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         onVhsNoiseLevelChange={(vhsNoiseLevel) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, vhsNoiseLevel } }))}
         onVhsBandHeightChange={(vhsBandHeight) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, vhsBandHeight } }))}
         onTogglePlaying={() => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, playing: !current.glitchy.playing } }))}
+      />
+
+      <HalftonePanel
+        state={state}
+        isActive={state.activeFilter === 'halftone'}
+        onScaleChange={(scale) => updateState((current) => ({ ...current, halftone: { ...current.halftone, scale } }))}
+        onBlackAndWhiteChange={(blackAndWhite) => updateState((current) => ({ ...current, halftone: { ...current.halftone, blackAndWhite } }))}
+        onBackgroundColorChange={(backgroundColor) => updateState((current) => ({ ...current, halftone: { ...current.halftone, backgroundColor: sanitizeHex(backgroundColor, current.halftone.backgroundColor) } }))}
+        onColor1Change={(color1) => updateState((current) => ({ ...current, halftone: { ...current.halftone, color1: sanitizeHex(color1, current.halftone.color1) } }))}
+        onColor2Change={(color2) => updateState((current) => ({ ...current, halftone: { ...current.halftone, color2: sanitizeHex(color2, current.halftone.color2) } }))}
+        onColor3Change={(color3) => updateState((current) => ({ ...current, halftone: { ...current.halftone, color3: sanitizeHex(color3, current.halftone.color3) } }))}
+        onColor4Change={(color4) => updateState((current) => ({ ...current, halftone: { ...current.halftone, color4: sanitizeHex(color4, current.halftone.color4) } }))}
+        onGrainOverlayChange={(grainOverlay) => updateState((current) => ({ ...current, halftone: { ...current.halftone, grainOverlay } }))}
       />
     </div>
   );

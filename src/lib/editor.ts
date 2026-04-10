@@ -4,12 +4,14 @@ import type {
   FitMode,
   GlassSettings,
   GlitchySettings,
+  HalftoneSettings,
   LiquidSettings,
 } from '../types/editor';
 import {
   defaultDitheringSettings,
   defaultGlassSettings,
   defaultGlitchySettings,
+  defaultHalftoneSettings,
   defaultLiquidSettings,
 } from '../types/editor';
 import {
@@ -19,6 +21,7 @@ import {
   type UniformMap,
   flutedGlassFragmentShader,
   glitchyFragmentShader,
+  halftoneFragmentShader,
   imageDitheringFragmentShader,
   waterFragmentShader,
 } from './shaders';
@@ -32,6 +35,7 @@ export const defaultEditorState: EditorState = {
   dithering: defaultDitheringSettings,
   liquid: defaultLiquidSettings,
   glitchy: defaultGlitchySettings,
+  halftone: defaultHalftoneSettings,
   image: {
     image: null,
     src: null,
@@ -156,6 +160,33 @@ export function buildLiquidUniforms(
   };
 }
 
+export function buildHalftoneUniforms(
+  halftone: HalftoneSettings,
+  fitMode: FitMode,
+  offsetX: number,
+  offsetY: number,
+) {
+  return {
+    u_fit: fitMode === 'fill' ? 2 : 1,
+    u_scale: 1,
+    u_rotation: 0,
+    u_originX: 0.5,
+    u_originY: 0.5,
+    u_worldWidth: 0,
+    u_worldHeight: 0,
+    u_offsetX: offsetX,
+    u_offsetY: offsetY,
+    u_dotScale: halftone.scale,
+    u_bw: halftone.blackAndWhite ? 1 : 0,
+    u_colorBack: hexToVec4(halftone.backgroundColor),
+    u_color1: hexToVec4(halftone.color1),
+    u_color2: hexToVec4(halftone.color2),
+    u_color3: hexToVec4(halftone.color3),
+    u_color4: hexToVec4(halftone.color4),
+    u_grainOverlay: halftone.grainOverlay / 100,
+  };
+}
+
 export function buildGlitchyUniforms(
   glitchy: GlitchySettings,
   fitMode: FitMode,
@@ -218,6 +249,17 @@ export function getShaderConfig(state: EditorState, image: HTMLImageElement) {
         ...buildGlitchyUniforms(state.glitchy, state.fitMode, state.offsetX, state.offsetY),
       },
       speed: state.glitchy.playing ? 1 : 0,
+    };
+  }
+
+  if (state.activeFilter === 'halftone') {
+    return {
+      fragmentShader: halftoneFragmentShader,
+      uniforms: {
+        u_image: image,
+        ...buildHalftoneUniforms(state.halftone, state.fitMode, state.offsetX, state.offsetY),
+      },
+      speed: 0,
     };
   }
 

@@ -1,0 +1,23 @@
+#halftonePanel {
+  align-items: flex-start;
+}
+
+.halftone-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.halftone-colors {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  transition: opacity 0.2s ease;
+}
+
+.halftone-colors--disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}

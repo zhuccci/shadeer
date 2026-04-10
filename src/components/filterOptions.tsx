@@ -3,7 +3,7 @@ import type { ActiveFilter } from '../types/editor';
 const baseUrl = import.meta.env.BASE_URL;
 
 export interface FilterOption {
-  id: ActiveFilter | 'halftone';
+  id: ActiveFilter;
   label: string;
   thumbnail: string;
   hoverThumbnail?: string;
@@ -42,11 +42,12 @@ export const filterOptions: FilterOption[] = [
   {
     id: 'halftone',
     label: 'Halftone',
-    thumbnail: `${baseUrl}placeholder.png`,
-    implemented: false,
+    thumbnail: `${baseUrl}placeholders/halftone.png`,
+    hoverThumbnail: `${baseUrl}placeholders/halftone_hover.png`,
+    implemented: true,
   },
 ];
 
 export function isActiveFilter(filterId: FilterOption['id']): filterId is ActiveFilter {
-  return filterId === 'glass' || filterId === 'dithering' || filterId === 'liquid' || filterId === 'glitchy';
+  return filterId === 'glass' || filterId === 'dithering' || filterId === 'liquid' || filterId === 'glitchy' || filterId === 'halftone';
 }

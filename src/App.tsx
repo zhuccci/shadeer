@@ -132,9 +132,33 @@ export default function App() {
       setFlashKey((k) => k + 1);
     };
 
+    const handlePaste = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.code !== 'KeyV') return;
+      event.preventDefault();
+      void (async () => {
+        let items: ClipboardItems;
+        try {
+          items = await navigator.clipboard.read();
+        } catch {
+          return;
+        }
+        for (const item of items) {
+          const imageType = item.types.find((t) => t.startsWith('image/'));
+          if (!imageType) continue;
+          const blob = await item.getType(imageType);
+          void handleImageFile(new File([blob], 'pasted', { type: imageType }));
+          break;
+        }
+      })();
+    };
+
     window.addEventListener('keydown', handleCopy);
-    return () => window.removeEventListener('keydown', handleCopy);
-  }, [editorState]);
+    window.addEventListener('keydown', handlePaste);
+    return () => {
+      window.removeEventListener('keydown', handleCopy);
+      window.removeEventListener('keydown', handlePaste);
+    };
+  }, [editorState, handleImageFile]);
 
   const handleUploadClick = useCallback(() => {
     fileInputRef.current?.click();

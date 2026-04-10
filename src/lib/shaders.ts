@@ -754,6 +754,66 @@ void main() {
   fragColor = vec4(color, opacity) * image.a * frame;
 }`;
 
+export const halftoneFragmentShader = `#version 300 es
+precision mediump float;
+uniform sampler2D u_image;
+uniform vec2 u_resolution;
+uniform float u_time;
+uniform float u_dotScale;
+uniform float u_bw;
+uniform vec4 u_colorBack;
+uniform vec4 u_color1;
+uniform vec4 u_color2;
+uniform vec4 u_color3;
+uniform vec4 u_color4;
+uniform float u_grainOverlay;
+in vec2 v_imageUV;
+out vec4 fragColor;
+float hash21(vec2 p) {
+  p = fract(p * vec2(0.3183099, 0.3678794)) + 0.1;
+  p += dot(p, p + 19.19);
+  return fract(p.x * p.y);
+}
+void main() {
+  float inBounds = float(v_imageUV.x >= 0.0 && v_imageUV.x <= 1.0 &&
+                         v_imageUV.y >= 0.0 && v_imageUV.y <= 1.0);
+  // Screen-space halftone grid — ensures perfectly circular dots
+  float cellPx = u_resolution.x / u_dotScale;
+  vec2 gridPos = gl_FragCoord.xy / cellPx;
+  vec2 localPx = (fract(gridPos) - 0.5) * cellPx;
+  // Extrapolate v_imageUV to the cell center via partial derivatives
+  vec2 cellImageUV = v_imageUV - dFdx(v_imageUV) * localPx.x - dFdy(v_imageUV) * localPx.y;
+  bool cellInBounds = cellImageUV.x >= 0.0 && cellImageUV.x <= 1.0 &&
+                      cellImageUV.y >= 0.0 && cellImageUV.y <= 1.0;
+  vec4 tex = texture(u_image, clamp(cellImageUV, 0.0, 1.0));
+  float a_ch = cellInBounds ? tex.a : 0.0;
+  float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
+  // Dot radius: larger for darker areas (sqrt for perceptual coverage)
+  float dotRadius = sqrt(1.0 - lum) * cellPx * 0.5;
+  float insideDot = step(length(localPx), dotRadius);
+  // Color selection
+  vec4 bgColor = u_bw > 0.5 ? vec4(1.0, 1.0, 1.0, 1.0) : u_colorBack;
+  vec4 dotColor;
+  if (u_bw > 0.5) {
+    dotColor = vec4(0.0, 0.0, 0.0, 1.0);
+  } else {
+    if      (lum >= 0.75) dotColor = u_color1;
+    else if (lum >= 0.50) dotColor = u_color2;
+    else if (lum >= 0.25) dotColor = u_color3;
+    else                  dotColor = u_color4;
+  }
+  // Premultiplied blend
+  vec3 color = mix(bgColor.rgb * bgColor.a, dotColor.rgb * dotColor.a, insideDot);
+  float opacity = mix(bgColor.a, dotColor.a, insideDot);
+  // Grain overlay
+  if (u_grainOverlay > 0.001) {
+    float grain = hash21(v_imageUV * u_resolution) * 2.0 - 1.0;
+    color = clamp(color + grain * u_grainOverlay * 0.3, 0.0, 1.0);
+  }
+  // Preserve image transparency
+  fragColor = vec4(color * a_ch, opacity * a_ch) * inBounds;
+}`;
+
 function createShader(gl: WebGL2RenderingContext, type: number, source: string) {
   const shader = gl.createShader(type);
   if (!shader) return null;
