@@ -761,6 +761,9 @@ uniform vec2 u_resolution;
 uniform float u_time;
 uniform float u_dotScale;
 uniform float u_bw;
+uniform float u_pattern;
+uniform float u_contrast;
+uniform float u_brightness;
 uniform vec4 u_colorBack;
 uniform vec4 u_color1;
 uniform vec4 u_color2;
@@ -777,20 +780,101 @@ float hash21(vec2 p) {
 void main() {
   float inBounds = float(v_imageUV.x >= 0.0 && v_imageUV.x <= 1.0 &&
                          v_imageUV.y >= 0.0 && v_imageUV.y <= 1.0);
-  // Screen-space halftone grid — ensures perfectly circular dots
+  int iPattern = int(u_pattern);
   float cellPx = u_resolution.x / u_dotScale;
-  vec2 gridPos = gl_FragCoord.xy / cellPx;
-  vec2 localPx = (fract(gridPos) - 0.5) * cellPx;
-  // Extrapolate v_imageUV to the cell center via partial derivatives
+  const float C45 = 0.70711;
+
+  // localPx  — offset from cell center in screen space (used for UV extrapolation)
+  // localShape — offset in pattern space (used for the shape test)
+  vec2 localPx;
+  vec2 localShape;
+
+  if (iPattern == 1) {
+    // Print: 45°-rotated square grid → classic press halftone / rosette
+    vec2 rc = vec2( C45 * gl_FragCoord.x + C45 * gl_FragCoord.y,
+                   -C45 * gl_FragCoord.x + C45 * gl_FragCoord.y);
+    vec2 lr = (fract(rc / cellPx) - 0.5) * cellPx;
+    localShape = lr;
+    localPx = vec2(C45 * lr.x - C45 * lr.y,   // unrotate to screen space
+                   C45 * lr.x + C45 * lr.y);
+  } else if (iPattern == 2) {
+    // Lines: rotate 45°, snap only perpendicular to the line direction.
+    // This gives continuous diagonal lines — each pixel along a line
+    // samples its true image position; only cross-line is snapped to row center.
+    vec2 rc = vec2( C45 * gl_FragCoord.x + C45 * gl_FragCoord.y,
+                   -C45 * gl_FragCoord.x + C45 * gl_FragCoord.y);
+    float localRY = (fract(rc.y / cellPx) - 0.5) * cellPx;
+    localPx    = vec2(-C45 * localRY, C45 * localRY); // unrotate (rx=0 since not snapped)
+    localShape = vec2(0.0, localRY);
+  } else {
+    // Dots, Diamond, Cross, Dirty, Grunge: standard square grid
+    localPx    = (fract(gl_FragCoord.xy / cellPx) - 0.5) * cellPx;
+    localShape = localPx;
+  }
+
+  // Sample image at the cell center
   vec2 cellImageUV = v_imageUV - dFdx(v_imageUV) * localPx.x - dFdy(v_imageUV) * localPx.y;
   bool cellInBounds = cellImageUV.x >= 0.0 && cellImageUV.x <= 1.0 &&
                       cellImageUV.y >= 0.0 && cellImageUV.y <= 1.0;
   vec4 tex = texture(u_image, clamp(cellImageUV, 0.0, 1.0));
   float a_ch = cellInBounds ? tex.a : 0.0;
   float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
-  // Dot radius: larger for darker areas (sqrt for perceptual coverage)
-  float dotRadius = sqrt(1.0 - lum) * cellPx * 0.5;
-  float insideDot = step(length(localPx), dotRadius);
+  lum = clamp(lum + u_brightness, 0.0, 1.0);
+  lum = clamp((lum - 0.5) * u_contrast + 0.5, 0.0, 1.0);
+
+  // Cell index for per-cell randomness
+  vec2 cellIdx = floor(gl_FragCoord.xy / cellPx);
+
+  // Shape test
+  float dotRadius = sqrt(1.0 - lum) * cellPx * 0.5; // perceptual coverage for round shapes
+  float insideDot;
+  if (iPattern == 0 || iPattern == 1) {
+    // Dots / Print — circular dot
+    insideDot = step(length(localShape), dotRadius);
+  } else if (iPattern == 2) {
+    // Lines — perpendicular thickness, linear (not sqrt) for clean line feel
+    float lineH = (1.0 - lum) * cellPx * 0.5;
+    insideDot = step(abs(localShape.y), lineH);
+  } else if (iPattern == 3) {
+    // Cross — two perpendicular arms growing with darkness
+    float arm = (1.0 - lum) * cellPx * 0.35;
+    insideDot = max(step(abs(localShape.x), arm), step(abs(localShape.y), arm));
+  } else if (iPattern == 4) {
+    // Dirty — jittered multi-cell circles: each dot displaced randomly, overlapping neighbors cluster
+    insideDot = 0.0;
+    vec2 currentCellCenter = (cellIdx + 0.5) * cellPx;
+    for (int dx = -1; dx <= 1; dx++) {
+      for (int dy = -1; dy <= 1; dy++) {
+        vec2 nIdx = cellIdx + vec2(float(dx), float(dy));
+        float nr1 = hash21(nIdx + 1.1);
+        float nr2 = hash21(nIdx + 5.3);
+        // Jitter: displace dot center up to 65% of cell size in any direction
+        vec2 nCenter = (nIdx + 0.5 + vec2(nr1 - 0.5, nr2 - 0.5) * 1.3) * cellPx;
+        // Sample image at the displaced center to get correct luminance
+        vec2 nOffset = nCenter - currentCellCenter;
+        vec2 nUV = clamp(cellImageUV + dFdx(v_imageUV) * nOffset.x + dFdy(v_imageUV) * nOffset.y, 0.0, 1.0);
+        vec4 nTex = texture(u_image, nUV);
+        float nLum = dot(nTex.rgb, vec3(0.299, 0.587, 0.114));
+        nLum = clamp(nLum + u_brightness, 0.0, 1.0);
+        nLum = clamp((nLum - 0.5) * u_contrast + 0.5, 0.0, 1.0);
+        float dr = sqrt(1.0 - nLum) * cellPx * 0.5;
+        insideDot = max(insideDot, step(length(gl_FragCoord.xy - nCenter), dr));
+      }
+    }
+  } else if (iPattern == 5) {
+    // Grunge — noisy, malformed dots: warped center + angular boundary noise
+    float r1 = hash21(cellIdx + 1.1);
+    float r2 = hash21(cellIdx + 5.3);
+    // Domain warp: shift the dot center randomly within ~45% of cell
+    vec2 warpedShape = localShape - vec2((r1 - 0.5), (r2 - 0.5)) * cellPx * 0.45;
+    float angle = atan(warpedShape.y, warpedShape.x);
+    float bumps = 5.0 + floor(r1 * 3.0); // 5, 6, or 7 lobes per dot
+    // Roughen the boundary with angular oscillation (stronger on darker cells)
+    float roughness = sin(angle * bumps + r1 * 6.2832) * cellPx * 0.13 * (1.0 - lum);
+    float gr = sqrt(1.0 - lum) * cellPx * 0.5 + roughness;
+    insideDot = step(length(warpedShape), max(gr, 0.0));
+  }
+
   // Color selection
   vec4 bgColor = u_bw > 0.5 ? vec4(1.0, 1.0, 1.0, 1.0) : u_colorBack;
   vec4 dotColor;
@@ -810,7 +894,6 @@ void main() {
     float grain = hash21(v_imageUV * u_resolution) * 2.0 - 1.0;
     color = clamp(color + grain * u_grainOverlay * 0.3, 0.0, 1.0);
   }
-  // Preserve image transparency
   fragColor = vec4(color * a_ch, opacity * a_ch) * inBounds;
 }`;
 
