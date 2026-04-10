@@ -22,7 +22,7 @@ export default function App() {
   const [editorState, setEditorState] = useState<EditorState>(defaultEditorState);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [copyToastVisible, setCopyToastVisible] = useState(false);
-  const [screenFlash, setScreenFlash] = useState(false);
+  const [flashKey, setFlashKey] = useState(0);
   const previewRef = useRef<HTMLDivElement | null>(null);
   const shaderMountRef = useRef<ShaderMount | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -118,7 +118,7 @@ export default function App() {
 
   useEffect(() => {
     const handleCopy = (event: KeyboardEvent) => {
-      if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'c') return;
+      if (!(event.metaKey || event.ctrlKey) || event.code !== 'KeyC') return;
       if (!shaderMountRef.current || !previewRef.current) return;
 
       event.preventDefault();
@@ -129,8 +129,7 @@ export default function App() {
       if (copyToastTimerRef.current) clearTimeout(copyToastTimerRef.current);
       copyToastTimerRef.current = setTimeout(() => setCopyToastVisible(false), 2000);
 
-      setScreenFlash(true);
-      setTimeout(() => setScreenFlash(false), 600);
+      setFlashKey((k) => k + 1);
     };
 
     window.addEventListener('keydown', handleCopy);
@@ -200,7 +199,7 @@ export default function App() {
           onPointerCancel={imageDrag.onPointerCancel}
           onLostPointerCapture={imageDrag.onLostPointerCapture}
         />
-        <div className={`screen-flash${screenFlash ? ' active' : ''}`} />
+        {flashKey > 0 && <div key={flashKey} className="screen-flash active" />}
         <CopyToast visible={copyToastVisible} />
       </div>
     </div>

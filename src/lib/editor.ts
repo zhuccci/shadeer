@@ -64,7 +64,7 @@ export function buildGlassUniforms(
   return {
     u_image: image,
     u_fit: fitMode === 'fill' ? 2 : 1,
-    u_angle: ((glass.angle % 360) + 360) % 360 / 2,
+    u_angle: ((glass.angle % 360) + 360) % 360,
     u_size: glass.size / 100,
     u_grainMixer: glass.grain / 100,
     u_grainOverlay: 0,

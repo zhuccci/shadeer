@@ -31,7 +31,7 @@ export function GlassPanel({
       </div>
       <div className="panel-divider" />
       <KnobControl
-        labels={{ top: '0°', left: '135°', right: '45°', bottom: '90°' }}
+        labels={{ top: '0°', left: '270°', right: '90°', bottom: '180°' }}
         value={state.glass.angle}
         onChange={onAngleChange}
       />

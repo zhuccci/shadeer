@@ -330,7 +330,7 @@ void main() {
   float grainOverlayStrength = pow(u_grainOverlay * abs(grainOverlayV), .8) * mask;
   color = mix(color, vec3(step(0., grainOverlayV)), .35 * grainOverlayStrength);
   opacity = clamp(opacity + .5 * grainOverlayStrength, 0., 1.);
-  fragColor = vec4(color, opacity);
+  fragColor = vec4(color, opacity) * image.a * frame;
 }`;
 
 export const GlassGridShapes = {
@@ -416,7 +416,7 @@ void main() {
   color += hightlight * (.5 + .5 * wavesNoise);
   opacity += hightlight * (.5 + .5 * wavesNoise);
   opacity = clamp(opacity, 0., 1.);
-  fragColor = vec4(color, opacity);
+  fragColor = vec4(color, opacity) * image.a * frame;
 }`;
 
 export const glitchyFragmentShader = `#version 300 es
@@ -576,14 +576,15 @@ void main() {
   if (u_glow > 0.001) {
     float s = 0.004 + u_glow * 0.01;
     vec3 bloom = vec3(0.0);
-    bloom += texture(u_image, clamp(uvG + vec2( s,  0.0), 0.0, 1.0)).rgb;
-    bloom += texture(u_image, clamp(uvG + vec2(-s,  0.0), 0.0, 1.0)).rgb;
-    bloom += texture(u_image, clamp(uvG + vec2( 0.0,  s), 0.0, 1.0)).rgb;
-    bloom += texture(u_image, clamp(uvG + vec2( 0.0, -s), 0.0, 1.0)).rgb;
-    bloom += texture(u_image, clamp(uvG + vec2( s,  s), 0.0, 1.0)).rgb;
-    bloom += texture(u_image, clamp(uvG + vec2(-s,  s), 0.0, 1.0)).rgb;
-    bloom += texture(u_image, clamp(uvG + vec2( s, -s), 0.0, 1.0)).rgb;
-    bloom += texture(u_image, clamp(uvG + vec2(-s, -s), 0.0, 1.0)).rgb;
+    vec4 gs;
+    gs = texture(u_image, clamp(uvG + vec2( s,  0.0), 0.0, 1.0)); bloom += gs.rgb * gs.a;
+    gs = texture(u_image, clamp(uvG + vec2(-s,  0.0), 0.0, 1.0)); bloom += gs.rgb * gs.a;
+    gs = texture(u_image, clamp(uvG + vec2( 0.0,  s), 0.0, 1.0)); bloom += gs.rgb * gs.a;
+    gs = texture(u_image, clamp(uvG + vec2( 0.0, -s), 0.0, 1.0)); bloom += gs.rgb * gs.a;
+    gs = texture(u_image, clamp(uvG + vec2( s,  s), 0.0, 1.0)); bloom += gs.rgb * gs.a;
+    gs = texture(u_image, clamp(uvG + vec2(-s,  s), 0.0, 1.0)); bloom += gs.rgb * gs.a;
+    gs = texture(u_image, clamp(uvG + vec2( s, -s), 0.0, 1.0)); bloom += gs.rgb * gs.a;
+    gs = texture(u_image, clamp(uvG + vec2(-s, -s), 0.0, 1.0)); bloom += gs.rgb * gs.a;
     bloom /= 8.0;
     bloom = max(vec3(0.0), bloom - 0.3) * (1.0 / 0.7);
     color = clamp(color + bloom * u_glow * 2.0, 0.0, 1.0);
@@ -630,7 +631,7 @@ void main() {
     color = clamp(color + grain * u_vhsNoiseLevel, 0.0, 1.0);
   }
 
-  fragColor = vec4(color, a_ch) * inBounds;
+  fragColor = vec4(color * a_ch, a_ch) * inBounds;
 }`;
 
 export const DitheringTypes = {
@@ -750,7 +751,7 @@ void main() {
     color   = fgColor * quantLum + bgColor * (1.0 - fgOpacity * quantLum);
     opacity = fgOpacity * quantLum + bgOpacity * (1.0 - fgOpacity * quantLum);
   }
-  fragColor = vec4(color, opacity);
+  fragColor = vec4(color, opacity) * image.a * frame;
 }`;
 
 function createShader(gl: WebGL2RenderingContext, type: number, source: string) {

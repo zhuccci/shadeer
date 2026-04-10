@@ -13,7 +13,7 @@ interface KnobControlProps {
   onChange: (value: number) => void;
 }
 
-const wrapAngle = (angle: number) => ((angle % 180) + 180) % 180;
+const wrapAngle = (angle: number) => ((angle % 360) + 360) % 360;
 
 export function KnobControl({ labels, value, onChange }: KnobControlProps) {
   const knobRef = useRef<HTMLDivElement | null>(null);
@@ -44,7 +44,7 @@ export function KnobControl({ labels, value, onChange }: KnobControlProps) {
 
   const ticks = useMemo(() => {
     const items: Array<{ left: number; top: number; isActive: boolean; size: number; key: number }> = [];
-    const visualDeg = wrapAngle(value) * 2;
+    const visualDeg = wrapAngle(value);
     for (let degree = 0; degree < 360; degree += 15) {
       const radians = (degree - 90) * Math.PI / 180;
       const size = 2.5;
@@ -60,7 +60,7 @@ export function KnobControl({ labels, value, onChange }: KnobControlProps) {
   }, [value]);
 
   const indicatorStyle = useMemo(() => {
-    const radians = (wrapAngle(value) * 2 - 90) * Math.PI / 180;
+    const radians = (wrapAngle(value) - 90) * Math.PI / 180;
     return {
       left: `${50 + Math.cos(radians) * 33.75 - 3.75}px`,
       top: `${50 + Math.sin(radians) * 33.75 - 3.75}px`,
@@ -159,7 +159,7 @@ export function KnobControl({ labels, value, onChange }: KnobControlProps) {
     if (delta > 180) delta -= 360;
     if (delta < -180) delta += 360;
 
-    const nextValue = wrapAngle(dragState.startValue + delta * 0.5);
+    const nextValue = wrapAngle(dragState.startValue + delta);
     const now = performance.now();
     const elapsed = now - dragState.previousTime;
 
