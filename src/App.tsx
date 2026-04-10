@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { ActionBar } from './components/ActionBar';
 import { CopyToast } from './components/CopyToast';
 import { EditorPanels } from './components/EditorPanels';
@@ -117,20 +116,25 @@ export default function App() {
     setDownloadUrl(URL.createObjectURL(blob));
   }, [editorState]);
 
-  const handleCopy = useCallback((event: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'c') return;
-    if (!shaderMountRef.current || !previewRef.current) return;
+  useEffect(() => {
+    const handleCopy = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'c') return;
+      if (!shaderMountRef.current || !previewRef.current) return;
 
-    event.preventDefault();
-    const blobPromise = renderShaderToBlob(previewRef.current, shaderMountRef.current, editorState).then((blob) => blob ?? new Blob());
-    void navigator.clipboard.write([new ClipboardItem({ 'image/png': blobPromise })]);
+      event.preventDefault();
+      const blobPromise = renderShaderToBlob(previewRef.current, shaderMountRef.current, editorState).then((blob) => blob ?? new Blob());
+      void navigator.clipboard.write([new ClipboardItem({ 'image/png': blobPromise })]);
 
-    setCopyToastVisible(true);
-    if (copyToastTimerRef.current) clearTimeout(copyToastTimerRef.current);
-    copyToastTimerRef.current = setTimeout(() => setCopyToastVisible(false), 2000);
+      setCopyToastVisible(true);
+      if (copyToastTimerRef.current) clearTimeout(copyToastTimerRef.current);
+      copyToastTimerRef.current = setTimeout(() => setCopyToastVisible(false), 2000);
 
-    setScreenFlash(true);
-    setTimeout(() => setScreenFlash(false), 600);
+      setScreenFlash(true);
+      setTimeout(() => setScreenFlash(false), 600);
+    };
+
+    window.addEventListener('keydown', handleCopy);
+    return () => window.removeEventListener('keydown', handleCopy);
   }, [editorState]);
 
   const handleUploadClick = useCallback(() => {
@@ -138,7 +142,15 @@ export default function App() {
   }, []);
 
   return (
-    <div className="app" onKeyDownCapture={handleCopy}>
+    <div className="app">
+      {editorState.image.src && (
+        <img
+          className="app-bg-blur"
+          src={editorState.image.src}
+          alt=""
+          aria-hidden="true"
+        />
+      )}
       <input
         ref={fileInputRef}
         type="file"
