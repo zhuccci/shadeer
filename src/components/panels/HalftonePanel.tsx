@@ -47,7 +47,7 @@ export function HalftonePanel({
       <div className="panel-divider" />
       <div className="halftone-right">
         <CheckboxControl label="Black & White" checked={bw} onChange={onBlackAndWhiteChange} />
-        <SliderControl label="Scale" min={5} max={100} value={state.halftone.scale} onChange={onScaleChange} />
+        <SliderControl label="Scale" min={0} max={100} value={state.halftone.scale} onChange={onScaleChange} />
         <SliderControl label="Grain" value={state.halftone.grainOverlay} onChange={onGrainOverlayChange} />
       </div>
     </div>

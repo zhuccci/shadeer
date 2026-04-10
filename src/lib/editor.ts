@@ -176,7 +176,7 @@ export function buildHalftoneUniforms(
     u_worldHeight: 0,
     u_offsetX: offsetX,
     u_offsetY: offsetY,
-    u_dotScale: halftone.scale,
+    u_dotScale: halftone.scale <= 5 ? 290 - 29 * halftone.scale : 150 - halftone.scale,
     u_bw: halftone.blackAndWhite ? 1 : 0,
     u_colorBack: hexToVec4(halftone.backgroundColor),
     u_color1: hexToVec4(halftone.color1),
