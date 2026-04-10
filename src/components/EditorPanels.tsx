@@ -147,6 +147,8 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         onContrastChange={(contrast) => updateState((current) => ({ ...current, halftone: { ...current.halftone, contrast } }))}
         onBrightnessChange={(brightness) => updateState((current) => ({ ...current, halftone: { ...current.halftone, brightness } }))}
         onBlackAndWhiteChange={(blackAndWhite) => updateState((current) => ({ ...current, halftone: { ...current.halftone, blackAndWhite } }))}
+        onOriginalColorsChange={(originalColors) => updateState((current) => ({ ...current, halftone: { ...current.halftone, originalColors } }))}
+        onInvertChange={(invert) => updateState((current) => ({ ...current, halftone: { ...current.halftone, invert } }))}
         onBackgroundColorChange={(backgroundColor) => updateState((current) => ({ ...current, halftone: { ...current.halftone, backgroundColor: sanitizeHex(backgroundColor, current.halftone.backgroundColor) } }))}
         onColor1Change={(color1) => updateState((current) => ({ ...current, halftone: { ...current.halftone, color1: sanitizeHex(color1, current.halftone.color1) } }))}
         onColor2Change={(color2) => updateState((current) => ({ ...current, halftone: { ...current.halftone, color2: sanitizeHex(color2, current.halftone.color2) } }))}

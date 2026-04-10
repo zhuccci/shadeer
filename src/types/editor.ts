@@ -9,7 +9,7 @@ export type GlitchFormMode = 'bands' | 'wide' | 'mosaic' | 'compress';
 
 export type DitherType = '2x2' | '4x4' | '8x8';
 
-export type HalftonePattern = 'dots' | 'print' | 'lines' | 'cross' | 'dirty' | 'grunge';
+export type HalftonePattern = 'dots' | 'print' | 'lines' | 'cross' | 'grunge';
 
 export interface GlassSettings {
   size: number;
@@ -62,6 +62,8 @@ export interface HalftoneSettings {
   contrast: number;
   brightness: number;
   blackAndWhite: boolean;
+  originalColors: boolean;
+  invert: boolean;
   backgroundColor: string;
   color1: string;
   color2: string;
@@ -142,6 +144,8 @@ export const defaultHalftoneSettings: HalftoneSettings = {
   contrast: 50,
   brightness: 50,
   blackAndWhite: true,
+  originalColors: false,
+  invert: false,
   backgroundColor: '#FFFFFF',
   color1: '#FFE082',
   color2: '#FF7043',

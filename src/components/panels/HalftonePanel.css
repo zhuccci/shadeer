@@ -1,7 +1,3 @@
-#halftonePanel {
-  align-items: flex-start;
-}
-
 .halftone-right {
   display: flex;
   flex-direction: column;

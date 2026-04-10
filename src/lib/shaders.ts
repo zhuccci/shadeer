@@ -761,6 +761,8 @@ uniform vec2 u_resolution;
 uniform float u_time;
 uniform float u_dotScale;
 uniform float u_bw;
+uniform float u_originalColors;
+uniform float u_inverted;
 uniform float u_pattern;
 uniform float u_contrast;
 uniform float u_brightness;
@@ -819,6 +821,7 @@ void main() {
   vec4 tex = texture(u_image, clamp(cellImageUV, 0.0, 1.0));
   float a_ch = cellInBounds ? tex.a : 0.0;
   float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
+  lum = u_inverted > 0.5 ? 1.0 - lum : lum;
   lum = clamp(lum + u_brightness, 0.0, 1.0);
   lum = clamp((lum - 0.5) * u_contrast + 0.5, 0.0, 1.0);
 
@@ -840,28 +843,6 @@ void main() {
     float arm = (1.0 - lum) * cellPx * 0.35;
     insideDot = max(step(abs(localShape.x), arm), step(abs(localShape.y), arm));
   } else if (iPattern == 4) {
-    // Dirty — jittered multi-cell circles: each dot displaced randomly, overlapping neighbors cluster
-    insideDot = 0.0;
-    vec2 currentCellCenter = (cellIdx + 0.5) * cellPx;
-    for (int dx = -1; dx <= 1; dx++) {
-      for (int dy = -1; dy <= 1; dy++) {
-        vec2 nIdx = cellIdx + vec2(float(dx), float(dy));
-        float nr1 = hash21(nIdx + 1.1);
-        float nr2 = hash21(nIdx + 5.3);
-        // Jitter: displace dot center up to 65% of cell size in any direction
-        vec2 nCenter = (nIdx + 0.5 + vec2(nr1 - 0.5, nr2 - 0.5) * 1.3) * cellPx;
-        // Sample image at the displaced center to get correct luminance
-        vec2 nOffset = nCenter - currentCellCenter;
-        vec2 nUV = clamp(cellImageUV + dFdx(v_imageUV) * nOffset.x + dFdy(v_imageUV) * nOffset.y, 0.0, 1.0);
-        vec4 nTex = texture(u_image, nUV);
-        float nLum = dot(nTex.rgb, vec3(0.299, 0.587, 0.114));
-        nLum = clamp(nLum + u_brightness, 0.0, 1.0);
-        nLum = clamp((nLum - 0.5) * u_contrast + 0.5, 0.0, 1.0);
-        float dr = sqrt(1.0 - nLum) * cellPx * 0.5;
-        insideDot = max(insideDot, step(length(gl_FragCoord.xy - nCenter), dr));
-      }
-    }
-  } else if (iPattern == 5) {
     // Grunge — noisy, malformed dots: warped center + angular boundary noise
     float r1 = hash21(cellIdx + 1.1);
     float r2 = hash21(cellIdx + 5.3);
@@ -878,7 +859,9 @@ void main() {
   // Color selection
   vec4 bgColor = u_bw > 0.5 ? vec4(1.0, 1.0, 1.0, 1.0) : u_colorBack;
   vec4 dotColor;
-  if (u_bw > 0.5) {
+  if (u_originalColors > 0.5) {
+    dotColor = vec4(tex.rgb, 1.0);
+  } else if (u_bw > 0.5) {
     dotColor = vec4(0.0, 0.0, 0.0, 1.0);
   } else {
     if      (lum >= 0.75) dotColor = u_color1;

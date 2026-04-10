@@ -14,6 +14,8 @@ interface HalftonePanelProps {
   onContrastChange: (value: number) => void;
   onBrightnessChange: (value: number) => void;
   onBlackAndWhiteChange: (value: boolean) => void;
+  onOriginalColorsChange: (value: boolean) => void;
+  onInvertChange: (value: boolean) => void;
   onBackgroundColorChange: (value: string) => void;
   onColor1Change: (value: string) => void;
   onColor2Change: (value: string) => void;
@@ -30,6 +32,8 @@ export function HalftonePanel({
   onContrastChange,
   onBrightnessChange,
   onBlackAndWhiteChange,
+  onOriginalColorsChange,
+  onInvertChange,
   onBackgroundColorChange,
   onColor1Change,
   onColor2Change,
@@ -50,11 +54,13 @@ export function HalftonePanel({
           <ColorSelectorControl label="Mid-Dark" value={state.halftone.color3} onChange={onColor3Change} />
           <ColorSelectorControl label="Dark" value={state.halftone.color4} onChange={onColor4Change} />
         </div>
+        <CheckboxControl label="Black & White" checked={bw} onChange={onBlackAndWhiteChange} />
+        <CheckboxControl label="Original Colors" checked={state.halftone.originalColors} onChange={onOriginalColorsChange} />
+        <CheckboxControl label="Invert" checked={state.halftone.invert} onChange={onInvertChange} />
       </div>
       <div className="panel-divider" />
       <div className="halftone-right">
         <HalftonePatternSelector label="Pattern" value={state.halftone.pattern} onChange={onPatternChange} />
-        <CheckboxControl label="Black & White" checked={bw} onChange={onBlackAndWhiteChange} />
         <SliderControl label="Scale" min={0} max={100} value={state.halftone.scale} onChange={onScaleChange} />
         <SliderControl label="Contrast" min={0} max={100} value={state.halftone.contrast} onChange={onContrastChange} />
         <SliderControl label="Brightness" min={0} max={100} value={state.halftone.brightness} onChange={onBrightnessChange} />

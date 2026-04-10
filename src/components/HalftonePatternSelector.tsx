@@ -7,7 +7,6 @@ const patterns: { id: HalftonePattern; label: string }[] = [
   { id: 'print',  label: 'Print' },
   { id: 'lines',  label: 'Lines' },
   { id: 'cross',  label: 'Cross' },
-  { id: 'dirty',  label: 'Dirty' },
   { id: 'grunge', label: 'Grunge' },
 ];
 

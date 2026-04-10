@@ -29,7 +29,7 @@
   height: 40px;
   border-radius: 8px;
   flex-shrink: 0;
-  border: 0.5px solid #262626;
+  box-shadow: inset 0 0 0 0.5px #262626;
   padding: 0;
   cursor: pointer;
 }
@@ -38,7 +38,8 @@
   width: 95px;
   height: 40px;
   background: #141414;
-  border: 0.5px solid #262626;
+  box-shadow: inset 0 0 0 0.5px #262626;
+  border: none;
   border-radius: 8px;
   color: #c7c7c7;
   font-size: 16px;
@@ -46,15 +47,15 @@
   font-family: 'Geist', 'Inter', system-ui, sans-serif;
   padding: 8px 12px;
   outline: none;
-  transition: border-color 0.2s ease-out, background 0.2s ease-out;
+  transition: box-shadow 0.2s ease-out, background 0.2s ease-out;
 }
 
 .color-hex:hover {
-  border-color: #484848;
+  box-shadow: inset 0 0 0 0.5px #484848;
   background: #1c1c1c;
 }
 
 .color-hex:focus {
-  border-color: #686868;
+  box-shadow: inset 0 0 0 0.5px #686868;
   background: #1e1e1e;
 }

@@ -70,7 +70,8 @@
 
 .value-display {
   background: #141414;
-  border: 0.5px solid #262626;
+  box-shadow: inset 0 0 0 0.5px #262626;
+  border: none;
   border-radius: 8px;
   padding: 8px 16px;
   color: #c7c7c7;
@@ -83,17 +84,17 @@
   font-family: inherit;
   flex-shrink: 0;
   cursor: ew-resize;
-  transition: border-color 0.2s ease-out, box-shadow 0.2s ease-out, transform 0.2s ease-out, background 0.2s ease-out;
+  transition: box-shadow 0.2s ease-out, transform 0.2s ease-out, background 0.2s ease-out;
   isolation: isolate;
 }
 
 .value-display:hover {
-  border-color: #484848;
+  box-shadow: inset 0 0 0 0.5px #484848;
   background: #1c1c1c;
 }
 
 .value-display:focus {
-  border-color: #686868;
+  box-shadow: inset 0 0 0 0.5px #686868;
   background: #1e1e1e;
   transform: scale(1.02);
   cursor: text;

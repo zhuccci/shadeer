@@ -146,7 +146,8 @@
 .knob-value-display {
   margin-top: 8px;
   background: #141414;
-  border: 0.5px solid #262626;
+  box-shadow: inset 0 0 0 0.5px #262626;
+  border: none;
   border-radius: 8px;
   padding: 8px 10px 8px 14px;
   color: #c7c7c7;
