@@ -2,15 +2,18 @@
   position: relative;
   margin-left: -24px;
   margin-right: -24px;
-  margin-top: -3px;
+  margin-top: -9px;
+  margin-bottom: -20px;
 }
 
 .filter-buttons-scroll {
   overflow-x: auto;
   scrollbar-width: none;
   padding-left: 24px;
-  mask-image: linear-gradient(to right, transparent 0, black 16px);
-  -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px);
+  padding-top: 6px;
+  padding-bottom: 20px;
+  mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 24px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 24px), transparent 100%);
 }
 
 .filter-buttons-scroll::-webkit-scrollbar {
@@ -20,7 +23,7 @@
 .filter-buttons {
   display: flex;
   gap: 16px;
-  padding: 3px 0 16px 0;
+  padding: 3px 0 3px 0;
 }
 
 .filter-strip-end {
@@ -33,44 +36,45 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  flex: 1;
+  width: 120px;
   flex-shrink: 0;
-  min-width: 120px;
-  padding: 0 0 12px;
   border-radius: 16px;
-  border: 0.5px solid #606060;
-  background:
-    linear-gradient(244deg, rgba(0, 0, 0, 0.2) 10.02%, rgba(102, 102, 102, 0.2) 89.98%),
-    linear-gradient(180deg, rgb(80, 80, 80) 0.418%, rgb(67, 67, 67) 99.871%);
-  box-shadow: 0 8px 8px rgba(0, 0, 0, 0.2);
+  border: 0.5px solid #515151;
+  background: transparent;
+  box-shadow:
+    0 65px 18px rgba(0, 0, 0, 0),
+    0 41px 17px rgba(0, 0, 0, 0.01),
+    0 23px 14px rgba(0, 0, 0, 0.05),
+    0 10px 10px rgba(0, 0, 0, 0.08),
+    0 3px 6px rgba(0, 0, 0, 0.09);
   cursor: pointer;
   transition:
-    background 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
     transform 0.35s cubic-bezier(0.34, 1.4, 0.64, 1);
   overflow: hidden;
 }
 
 .filter-btn:hover {
-  background: linear-gradient(249.98deg, rgb(95, 95, 95) 24.531%, rgb(83, 83, 83) 100%);
-  box-shadow: 0 12px 8px rgba(0, 0, 0, 0.2);
+  border-color: #949494;
+  box-shadow:
+    0 65px 18px rgba(0, 0, 0, 0),
+    0 41px 17px rgba(0, 0, 0, 0.01),
+    0 23px 14px rgba(0, 0, 0, 0.05),
+    0 10px 10px rgba(0, 0, 0, 0.08),
+    0 3px 6px rgba(0, 0, 0, 0.09),
+    inset 0 4px 4px rgba(0, 0, 0, 0.25);
   transform: translateY(-3px);
 }
 
 .filter-btn.selected {
-  background: #1b1b1b;
   border-color: #fef579;
   box-shadow:
-    0 3px 8px rgba(0, 0, 0, 0.2),
-    inset 0 0 18px 5px rgba(0, 0, 0, 0.6);
+    0 2px 5px rgba(0, 0, 0, 0.2),
+    inset 0 4px 4px rgba(0, 0, 0, 0.25);
 }
 
 .filter-btn.selected:hover {
-  background: #1b1b1b;
-  box-shadow:
-    0 12px 8px rgba(0, 0, 0, 0.2),
-    inset 0 0 18px 5px rgba(0, 0, 0, 0.6);
   transform: translateY(-3px);
 }
 
@@ -80,10 +84,13 @@
 }
 
 .filter-btn.is-disabled:hover {
-  background:
-    linear-gradient(244deg, rgba(0, 0, 0, 0.2) 10.02%, rgba(102, 102, 102, 0.2) 89.98%),
-    linear-gradient(180deg, rgb(80, 80, 80) 0.418%, rgb(67, 67, 67) 99.871%);
-  box-shadow: 0 8px 8px rgba(0, 0, 0, 0.2);
+  border-color: #515151;
+  box-shadow:
+    0 65px 18px rgba(0, 0, 0, 0),
+    0 41px 17px rgba(0, 0, 0, 0.01),
+    0 23px 14px rgba(0, 0, 0, 0.05),
+    0 10px 10px rgba(0, 0, 0, 0.08),
+    0 3px 6px rgba(0, 0, 0, 0.09);
   transform: none;
 }
 
@@ -134,8 +141,21 @@
   justify-content: center;
   gap: 4px;
   width: 100%;
+  padding: 12px 0;
   position: relative;
   z-index: 1;
+  background: radial-gradient(191px 191px at 100% -125px, rgb(40, 40, 40) 0%, rgb(51, 51, 51) 100%);
+  box-shadow: inset -2px -4px 43px rgba(0, 0, 0, 0.25);
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.filter-btn:hover .btn-bottom {
+  background: radial-gradient(191px 191px at 100% -125px, rgb(115, 115, 115) 0%, rgb(84, 84, 84) 50%, rgb(53, 53, 53) 100%);
+}
+
+.filter-btn.selected .btn-bottom {
+  background: #171717;
+  box-shadow: inset 0 0 23px rgba(0, 0, 0, 0.4);
 }
 
 .filter-icon {
@@ -172,5 +192,6 @@
 }
 
 .filter-btn.selected .filter-label {
-  text-shadow: 0 0 15px rgba(255, 246, 121, 0.5);
+  text-shadow: 0 0 4px rgba(255, 246, 121, 0.25);
 }
+

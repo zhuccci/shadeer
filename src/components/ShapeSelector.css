@@ -1,3 +1,15 @@
+.selector-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+}
+
+.selector-group-label {
+  color: #d6d6d6;
+  font-size: 16px;
+}
+
 .selector {
   position: relative;
 }
@@ -14,6 +26,12 @@
   color: #c7c7c7;
   border: 0.5px solid #262626;
   cursor: pointer;
+  transition: border-color 0.2s ease-out, background 0.2s ease-out;
+}
+
+.selector-group:hover .selector-trigger {
+  border-color: #484848;
+  background: #1c1c1c;
 }
 
 .selector-left {
