@@ -9,7 +9,7 @@ export type GlitchFormMode = 'bands' | 'wide' | 'mosaic' | 'compress';
 
 export type DitherType = '2x2' | '4x4' | '8x8';
 
-export type HalftonePattern = 'dots' | 'print' | 'lines' | 'cross' | 'grunge';
+export type HalftonePattern = 'dots' | 'print' | 'lines' | 'cross' | 'grunge' | 'blob';
 
 export interface GlassSettings {
   size: number;
@@ -58,6 +58,7 @@ export interface GlitchySettings {
 
 export interface HalftoneSettings {
   pattern: HalftonePattern;
+  angle: number;
   scale: number;
   contrast: number;
   brightness: number;
@@ -70,6 +71,7 @@ export interface HalftoneSettings {
   color3: string;
   color4: string;
   grainOverlay: number;
+  blobThreshold: number;
 }
 
 export interface EditorImageState {
@@ -140,6 +142,7 @@ export const defaultGlitchySettings: GlitchySettings = {
 
 export const defaultHalftoneSettings: HalftoneSettings = {
   pattern: 'dots',
+  angle: 0,
   scale: 20,
   contrast: 50,
   brightness: 50,
@@ -152,5 +155,6 @@ export const defaultHalftoneSettings: HalftoneSettings = {
   color3: '#7B1FA2',
   color4: '#1A1A2E',
   grainOverlay: 0,
+  blobThreshold: 50,
 };
 

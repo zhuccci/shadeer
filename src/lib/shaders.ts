@@ -771,6 +771,8 @@ uniform vec4 u_color1;
 uniform vec4 u_color2;
 uniform vec4 u_color3;
 uniform vec4 u_color4;
+uniform float u_angle;
+uniform float u_blobThreshold;
 uniform float u_grainOverlay;
 in vec2 v_imageUV;
 out vec4 fragColor;
@@ -786,32 +788,41 @@ void main() {
   float cellPx = u_resolution.x / u_dotScale;
   const float C45 = 0.70711;
 
+  // Grid rotation — rotate fragment coords by u_angle before snapping to grid.
+  // cosA/sinA unrotate standard-grid localShape back to screen space for UV sampling.
+  // cosT/sinT unrotate the combined (45° + u_angle) space used by print/lines.
+  float cosA = cos(u_angle);
+  float sinA = sin(u_angle);
+  vec2 rotCoord = vec2(cosA * gl_FragCoord.x - sinA * gl_FragCoord.y,
+                       sinA * gl_FragCoord.x + cosA * gl_FragCoord.y);
+  float cosT = cos(0.7853982 - u_angle);
+  float sinT = sin(0.7853982 - u_angle);
+
   // localPx  — offset from cell center in screen space (used for UV extrapolation)
   // localShape — offset in pattern space (used for the shape test)
   vec2 localPx;
   vec2 localShape;
 
   if (iPattern == 1) {
-    // Print: 45°-rotated square grid → classic press halftone / rosette
-    vec2 rc = vec2( C45 * gl_FragCoord.x + C45 * gl_FragCoord.y,
-                   -C45 * gl_FragCoord.x + C45 * gl_FragCoord.y);
+    // Print: 45°-rotated grid on top of u_angle rotation
+    vec2 rc = vec2( C45 * rotCoord.x + C45 * rotCoord.y,
+                   -C45 * rotCoord.x + C45 * rotCoord.y);
     vec2 lr = (fract(rc / cellPx) - 0.5) * cellPx;
     localShape = lr;
-    localPx = vec2(C45 * lr.x - C45 * lr.y,   // unrotate to screen space
-                   C45 * lr.x + C45 * lr.y);
+    localPx = vec2(cosT * lr.x - sinT * lr.y,   // unrotate by R(45° − u_angle)
+                   sinT * lr.x + cosT * lr.y);
   } else if (iPattern == 2) {
-    // Lines: rotate 45°, snap only perpendicular to the line direction.
-    // This gives continuous diagonal lines — each pixel along a line
-    // samples its true image position; only cross-line is snapped to row center.
-    vec2 rc = vec2( C45 * gl_FragCoord.x + C45 * gl_FragCoord.y,
-                   -C45 * gl_FragCoord.x + C45 * gl_FragCoord.y);
+    // Lines: 45°-rotated, snap only perpendicular to line direction
+    vec2 rc = vec2( C45 * rotCoord.x + C45 * rotCoord.y,
+                   -C45 * rotCoord.x + C45 * rotCoord.y);
     float localRY = (fract(rc.y / cellPx) - 0.5) * cellPx;
-    localPx    = vec2(-C45 * localRY, C45 * localRY); // unrotate (rx=0 since not snapped)
     localShape = vec2(0.0, localRY);
+    localPx    = vec2(-sinT * localRY, cosT * localRY); // unrotate (rx=0)
   } else {
-    // Dots, Diamond, Cross, Dirty, Grunge: standard square grid
-    localPx    = (fract(gl_FragCoord.xy / cellPx) - 0.5) * cellPx;
-    localShape = localPx;
+    // Dots, Cross, Grunge, Blob: rotated square grid
+    localShape = (fract(rotCoord / cellPx) - 0.5) * cellPx;
+    localPx    = vec2( cosA * localShape.x + sinA * localShape.y,
+                      -sinA * localShape.x + cosA * localShape.y);
   }
 
   // Sample image at the cell center
@@ -825,8 +836,8 @@ void main() {
   lum = clamp(lum + u_brightness, 0.0, 1.0);
   lum = clamp((lum - 0.5) * u_contrast + 0.5, 0.0, 1.0);
 
-  // Cell index for per-cell randomness
-  vec2 cellIdx = floor(gl_FragCoord.xy / cellPx);
+  // Cell index for per-cell randomness (in rotated grid space)
+  vec2 cellIdx = floor(rotCoord / cellPx);
 
   // Shape test
   float dotRadius = sqrt(1.0 - lum) * cellPx * 0.5; // perceptual coverage for round shapes
@@ -848,12 +859,45 @@ void main() {
     float r2 = hash21(cellIdx + 5.3);
     // Domain warp: shift the dot center randomly within ~45% of cell
     vec2 warpedShape = localShape - vec2((r1 - 0.5), (r2 - 0.5)) * cellPx * 0.45;
-    float angle = atan(warpedShape.y, warpedShape.x);
+    float grungeAngle = atan(warpedShape.y, warpedShape.x);
     float bumps = 5.0 + floor(r1 * 3.0); // 5, 6, or 7 lobes per dot
     // Roughen the boundary with angular oscillation (stronger on darker cells)
-    float roughness = sin(angle * bumps + r1 * 6.2832) * cellPx * 0.13 * (1.0 - lum);
+    float roughness = sin(grungeAngle * bumps + r1 * 6.2832) * cellPx * 0.13 * (1.0 - lum);
     float gr = sqrt(1.0 - lum) * cellPx * 0.5 + roughness;
     insideDot = step(length(warpedShape), max(gr, 0.0));
+  } else if (iPattern == 5) {
+    // Blob — metaball dots: nearby dots merge into organic blob shapes.
+    // Each dot radiates an influence field (r²/d²); where the summed field
+    // exceeds u_blobThreshold the pixel is "inside" the blob.
+    vec2 blobCellCenter = (cellIdx + 0.5) * cellPx;
+    float metaSum = 0.0;
+    float dominantLum = lum;
+    float maxContrib = 0.0;
+    for (int dx = -2; dx <= 2; dx++) {
+      for (int dy = -2; dy <= 2; dy++) {
+        vec2 nIdx = cellIdx + vec2(float(dx), float(dy));
+        vec2 nCenter = (nIdx + 0.5) * cellPx;
+        // nOffset is in rotated grid space — unrotate to screen space for UV sampling
+        vec2 nOffset = nCenter - blobCellCenter;
+        vec2 nOffsetScreen = vec2( cosA * nOffset.x + sinA * nOffset.y,
+                                  -sinA * nOffset.x + cosA * nOffset.y);
+        vec2 nUV = clamp(cellImageUV + dFdx(v_imageUV) * nOffsetScreen.x + dFdy(v_imageUV) * nOffsetScreen.y, 0.0, 1.0);
+        vec4 nTex = texture(u_image, nUV);
+        float nLum = dot(nTex.rgb, vec3(0.299, 0.587, 0.114));
+        nLum = clamp(nLum + u_brightness, 0.0, 1.0);
+        nLum = clamp((nLum - 0.5) * u_contrast + 0.5, 0.0, 1.0);
+        float nr = sqrt(1.0 - nLum) * cellPx * 0.5;
+        float dist = max(length(rotCoord - nCenter), 0.001);
+        float contrib = (nr * nr) / (dist * dist);
+        metaSum += contrib;
+        if (contrib > maxContrib) {
+          maxContrib = contrib;
+          dominantLum = nLum;
+        }
+      }
+    }
+    insideDot = step(u_blobThreshold, metaSum);
+    lum = dominantLum; // color follows the nearest/darkest contributing dot
   }
 
   // Color selection

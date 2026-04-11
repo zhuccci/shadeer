@@ -143,6 +143,7 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         state={state}
         isActive={state.activeFilter === 'halftone'}
         onPatternChange={(pattern) => updateState((current) => ({ ...current, halftone: { ...current.halftone, pattern } }))}
+        onAngleChange={(angle) => updateState((current) => ({ ...current, halftone: { ...current.halftone, angle } }))}
         onScaleChange={(scale) => updateState((current) => ({ ...current, halftone: { ...current.halftone, scale } }))}
         onContrastChange={(contrast) => updateState((current) => ({ ...current, halftone: { ...current.halftone, contrast } }))}
         onBrightnessChange={(brightness) => updateState((current) => ({ ...current, halftone: { ...current.halftone, brightness } }))}
@@ -155,6 +156,7 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         onColor3Change={(color3) => updateState((current) => ({ ...current, halftone: { ...current.halftone, color3: sanitizeHex(color3, current.halftone.color3) } }))}
         onColor4Change={(color4) => updateState((current) => ({ ...current, halftone: { ...current.halftone, color4: sanitizeHex(color4, current.halftone.color4) } }))}
         onGrainOverlayChange={(grainOverlay) => updateState((current) => ({ ...current, halftone: { ...current.halftone, grainOverlay } }))}
+        onBlobThresholdChange={(blobThreshold) => updateState((current) => ({ ...current, halftone: { ...current.halftone, blobThreshold } }))}
       />
     </div>
   );

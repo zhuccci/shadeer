@@ -1,6 +1,7 @@
 import { CheckboxControl } from '../CheckboxControl';
 import { ColorSelectorControl } from '../ColorSelectorControl';
 import { HalftonePatternSelector } from '../HalftonePatternSelector';
+import { KnobControl } from '../KnobControl';
 import { SliderControl } from '../SliderControl';
 import { TextureLayer } from '../TextureLayer';
 import type { EditorState, HalftonePattern } from '../../types/editor';
@@ -10,6 +11,7 @@ interface HalftonePanelProps {
   state: EditorState;
   isActive: boolean;
   onPatternChange: (value: HalftonePattern) => void;
+  onAngleChange: (value: number) => void;
   onScaleChange: (value: number) => void;
   onContrastChange: (value: number) => void;
   onBrightnessChange: (value: number) => void;
@@ -22,12 +24,14 @@ interface HalftonePanelProps {
   onColor3Change: (value: string) => void;
   onColor4Change: (value: string) => void;
   onGrainOverlayChange: (value: number) => void;
+  onBlobThresholdChange: (value: number) => void;
 }
 
 export function HalftonePanel({
   state,
   isActive,
   onPatternChange,
+  onAngleChange,
   onScaleChange,
   onContrastChange,
   onBrightnessChange,
@@ -40,6 +44,7 @@ export function HalftonePanel({
   onColor3Change,
   onColor4Change,
   onGrainOverlayChange,
+  onBlobThresholdChange,
 }: HalftonePanelProps) {
   const bw = state.halftone.blackAndWhite;
 
@@ -60,6 +65,14 @@ export function HalftonePanel({
       </div>
       <div className="panel-divider" />
       <div className="halftone-right">
+        {state.halftone.pattern === 'blob' && (
+          <SliderControl label="Threshold" min={0} max={100} value={state.halftone.blobThreshold} onChange={onBlobThresholdChange} />
+        )}
+        <KnobControl
+          labels={{ top: '0°', left: '270°', right: '90°', bottom: '180°' }}
+          value={state.halftone.angle}
+          onChange={onAngleChange}
+        />
         <HalftonePatternSelector label="Pattern" value={state.halftone.pattern} onChange={onPatternChange} />
         <SliderControl label="Scale" min={0} max={100} value={state.halftone.scale} onChange={onScaleChange} />
         <SliderControl label="Contrast" min={0} max={100} value={state.halftone.contrast} onChange={onContrastChange} />
