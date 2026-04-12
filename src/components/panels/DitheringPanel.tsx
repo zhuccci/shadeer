@@ -34,19 +34,19 @@ export function DitheringPanel({
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="ditheringPanel">
       <TextureLayer className="panel-grain" />
       <div className="controls-left">
-        <ColorSelectorControl label="Background Color" value={state.dithering.backgroundColor} onChange={onBackgroundColorChange} />
-        <ColorSelectorControl label="Front Color" value={state.dithering.frontColor} onChange={onFrontColorChange} />
-        <ColorSelectorControl label="Highlight" value={state.dithering.highlightColor} onChange={onHighlightColorChange} />
-        <CheckboxControl label="Original Colors" checked={state.dithering.originalColors} onChange={onOriginalColorsChange} />
-        <CheckboxControl label="Invert" checked={state.dithering.invert} onChange={onInvertChange} />
-      </div>
-      <div className="panel-divider" />
-      <div className="dither-right">
         <DitherTypeSelector value={state.dithering.type} onChange={onTypeChange} />
         <div className="dither-slider-section">
           <SliderControl label="Size" value={state.dithering.size} onChange={onSizeChange} />
           <SliderControl label="Color Steps" min={1} max={7} value={state.dithering.colorSteps} onChange={onColorStepsChange} />
         </div>
+      </div>
+      <div className="panel-divider" />
+      <div className="dither-right">
+        <ColorSelectorControl label="Background Color" value={state.dithering.backgroundColor} onChange={onBackgroundColorChange} />
+        <ColorSelectorControl label="Front Color" value={state.dithering.frontColor} onChange={onFrontColorChange} />
+        <ColorSelectorControl label="Highlight" value={state.dithering.highlightColor} onChange={onHighlightColorChange} />
+        <CheckboxControl label="Original Colors" checked={state.dithering.originalColors} onChange={onOriginalColorsChange} />
+        <CheckboxControl label="Invert" checked={state.dithering.invert} onChange={onInvertChange} />
       </div>
     </div>
   );

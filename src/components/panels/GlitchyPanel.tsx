@@ -44,22 +44,22 @@ export function GlitchyPanel({
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="glitchyPanel">
       <TextureLayer className="panel-grain" />
 
-      <div className="glitchy-scroll-area">
-        <div className="glitchy-top">
-          <div className="glitchy-left">
-            <span className="glitchy-section-label">Glitch Mode</span>
-            <GlitchFormSelector value={state.glitchy.glitchForm} onChange={onGlitchFormChange} />
-          </div>
-          <div className="glitchy-col-divider" />
-          <div className="glitchy-right">
-            <GlitchModeSelector label="Glitch Form" value={state.glitchy.glitchMode} onChange={onGlitchModeChange} />
-            <SliderControl label="Glitch Strength" value={state.glitchy.glitchStrength} onChange={onGlitchStrengthChange} />
-            <SliderControl label="Glitch Amount" value={state.glitchy.glitchAmount} onChange={onGlitchAmountChange} />
-          </div>
+      <div className="glitchy-top">
+        <div className="glitchy-left">
+          <span className="glitchy-section-label">Glitch Mode</span>
+          <GlitchFormSelector value={state.glitchy.glitchForm} onChange={onGlitchFormChange} />
         </div>
+        <div className="glitchy-col-divider" />
+        <div className="glitchy-right">
+          <GlitchModeSelector label="Glitch Form" value={state.glitchy.glitchMode} onChange={onGlitchModeChange} />
+          <SliderControl label="Glitch Strength" value={state.glitchy.glitchStrength} onChange={onGlitchStrengthChange} />
+          <SliderControl label="Glitch Amount" value={state.glitchy.glitchAmount} onChange={onGlitchAmountChange} />
+        </div>
+      </div>
 
-        <div className="glitchy-row-divider" />
+      <div className="glitchy-row-divider" />
 
+      <div className="glitchy-scroll-area">
         <div className="glitchy-section">
           <CheckboxControl label="CRT" checked={state.glitchy.crt} onChange={onCrtChange} />
           <div className={`glitchy-collapsible${state.glitchy.crt ? ' expanded' : ''}`}>

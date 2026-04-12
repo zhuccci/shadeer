@@ -1,6 +1,5 @@
 #glitchyPanel {
   flex-direction: column;
-  overflow: hidden;
 }
 
 .glitchy-scroll-area {

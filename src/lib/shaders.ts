@@ -901,12 +901,12 @@ void main() {
   }
 
   // Color selection
-  vec4 bgColor = u_bw > 0.5 ? vec4(1.0, 1.0, 1.0, 1.0) : u_colorBack;
+  vec4 bgColor = u_colorBack;
   vec4 dotColor;
   if (u_originalColors > 0.5) {
     dotColor = vec4(tex.rgb, 1.0);
   } else if (u_bw > 0.5) {
-    dotColor = vec4(0.0, 0.0, 0.0, 1.0);
+    dotColor = u_color1;
   } else {
     if      (lum >= 0.75) dotColor = u_color1;
     else if (lum >= 0.50) dotColor = u_color2;

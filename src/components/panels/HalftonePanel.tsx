@@ -52,32 +52,55 @@ export function HalftonePanel({
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="halftonePanel">
       <TextureLayer className="panel-grain" />
       <div className="controls-left">
-        <ColorSelectorControl label="Background" value={state.halftone.backgroundColor} onChange={onBackgroundColorChange} />
-        <div className={`halftone-colors${bw ? ' halftone-colors--disabled' : ''}`}>
-          <ColorSelectorControl label="Light" value={state.halftone.color1} onChange={onColor1Change} />
-          <ColorSelectorControl label="Mid-Light" value={state.halftone.color2} onChange={onColor2Change} />
-          <ColorSelectorControl label="Mid-Dark" value={state.halftone.color3} onChange={onColor3Change} />
-          <ColorSelectorControl label="Dark" value={state.halftone.color4} onChange={onColor4Change} />
-        </div>
-        <CheckboxControl label="Black & White" checked={bw} onChange={onBlackAndWhiteChange} />
-        <CheckboxControl label="Original Colors" checked={state.halftone.originalColors} onChange={onOriginalColorsChange} />
-        <CheckboxControl label="Invert" checked={state.halftone.invert} onChange={onInvertChange} />
-      </div>
-      <div className="panel-divider" />
-      <div className="halftone-right">
+        <HalftonePatternSelector label="Pattern" value={state.halftone.pattern} onChange={onPatternChange} />
         {state.halftone.pattern === 'blob' && (
           <SliderControl label="Threshold" min={0} max={100} value={state.halftone.blobThreshold} onChange={onBlobThresholdChange} />
         )}
+        <SliderControl label="Scale" min={0} max={100} value={state.halftone.scale} onChange={onScaleChange} />
+        <SliderControl label="Contrast" min={0} max={100} value={state.halftone.contrast} onChange={onContrastChange} />
+        <SliderControl label="Brightness" min={0} max={100} value={state.halftone.brightness} onChange={onBrightnessChange} />
+        <SliderControl label="Grain" value={state.halftone.grainOverlay} onChange={onGrainOverlayChange} />
+      </div>
+      <div className="panel-divider" />
+      <div className="halftone-right">
         <KnobControl
           labels={{ top: '0°', left: '270°', right: '90°', bottom: '180°' }}
           value={state.halftone.angle}
           onChange={onAngleChange}
         />
-        <HalftonePatternSelector label="Pattern" value={state.halftone.pattern} onChange={onPatternChange} />
-        <SliderControl label="Scale" min={0} max={100} value={state.halftone.scale} onChange={onScaleChange} />
-        <SliderControl label="Contrast" min={0} max={100} value={state.halftone.contrast} onChange={onContrastChange} />
-        <SliderControl label="Brightness" min={0} max={100} value={state.halftone.brightness} onChange={onBrightnessChange} />
-        <SliderControl label="Grain" value={state.halftone.grainOverlay} onChange={onGrainOverlayChange} />
+        <CheckboxControl label="Original Colors" checked={state.halftone.originalColors} onChange={onOriginalColorsChange} />
+
+        <div className={`ht-section${state.halftone.originalColors ? ' ht-hidden' : ''}`}>
+          <div className="ht-section-inner">
+            <div className="halftone-segment">
+              <button
+                type="button"
+                className={`halftone-seg-btn${bw ? ' selected' : ''}`}
+                onClick={() => onBlackAndWhiteChange(true)}
+              >
+                2 Colors
+              </button>
+              <button
+                type="button"
+                className={`halftone-seg-btn${!bw ? ' selected' : ''}`}
+                onClick={() => onBlackAndWhiteChange(false)}
+              >
+                4 Colors
+              </button>
+            </div>
+            <ColorSelectorControl label="Background" value={state.halftone.backgroundColor} onChange={onBackgroundColorChange} />
+            <ColorSelectorControl label={bw ? 'Color' : 'Light'} value={state.halftone.color1} onChange={onColor1Change} />
+            <div className={`ht-extra${bw ? ' ht-hidden' : ''}`}>
+              <div className="ht-extra-inner">
+                <ColorSelectorControl label="Mid-Light" value={state.halftone.color2} onChange={onColor2Change} />
+                <ColorSelectorControl label="Mid-Dark" value={state.halftone.color3} onChange={onColor3Change} />
+                <ColorSelectorControl label="Dark" value={state.halftone.color4} onChange={onColor4Change} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <CheckboxControl label="Invert" checked={state.halftone.invert} onChange={onInvertChange} />
       </div>
     </div>
   );

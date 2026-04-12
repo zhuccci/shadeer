@@ -32,24 +32,24 @@ export function LiquidPanel({
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="liquidPanel">
       <TextureLayer className="panel-grain" />
-      <div className="controls-left">
-        <ColorSelectorControl label="Front Color" value={state.liquid.frontColor} onChange={onFrontColorChange} />
-        <ColorSelectorControl label="Highlight" value={state.liquid.highlightColor} onChange={onHighlightColorChange} />
-        <button type="button" className="btn btn-tertiary liq-play-pause-btn" onClick={onTogglePlaying}>
-          {state.liquid.playing ? <PauseIcon /> : <PlayIcon />}
-          {state.liquid.playing ? 'Pause Effect' : 'Play Effect'}
-        </button>
-      </div>
-      <div className="panel-divider" />
-      <div className="dither-right">
-        <div className="dither-slider-section">
+      <div className="liquid-main">
+        <div className="controls-left">
           <SliderControl label="Highlights amount" value={state.liquid.highlights} onChange={onHighlightsChange} />
           <SliderControl label="Waves" value={state.liquid.waves} onChange={onWavesChange} />
           <SliderControl label="Distortion" value={state.liquid.distortion} onChange={onDistortionChange} />
           <SliderControl label="Size" value={state.liquid.size} onChange={onSizeChange} />
           <SliderControl label="Scale" value={state.liquid.scale} onChange={onScaleChange} />
         </div>
+        <div className="panel-divider" />
+        <div className="dither-right">
+          <ColorSelectorControl label="Front Color" value={state.liquid.frontColor} onChange={onFrontColorChange} />
+          <ColorSelectorControl label="Highlight" value={state.liquid.highlightColor} onChange={onHighlightColorChange} />
+        </div>
       </div>
+      <button type="button" className="btn btn-tertiary liq-play-pause-btn" onClick={onTogglePlaying}>
+        {state.liquid.playing ? <PauseIcon /> : <PlayIcon />}
+        {state.liquid.playing ? 'Pause Effect' : 'Play Effect'}
+      </button>
     </div>
   );
 }

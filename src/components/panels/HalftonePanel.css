@@ -3,18 +3,118 @@
   flex-direction: column;
   gap: 16px;
   flex: 1;
+  min-height: 0;
   min-width: 0;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #373737 transparent;
+  margin-right: -20px;
+  padding-right: 20px;
 }
 
-.halftone-colors {
+.halftone-right::-webkit-scrollbar {
+  width: 4px;
+}
+
+.halftone-right::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.halftone-right::-webkit-scrollbar-thumb {
+  background: #373737;
+  border-radius: 2px;
+}
+
+#halftonePanel .controls-right {
+  align-self: center;
+}
+
+.halftone-segment {
+  display: flex;
+  background: #141414;
+  border-radius: 8px;
+  padding: 4px;
+  width: 100%;
+}
+
+.halftone-seg-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 16px;
+  color: #6a6a6a;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 100ms ease-out;
+  white-space: nowrap;
+}
+
+.halftone-seg-btn:active {
+  transform: scale(0.97);
+}
+
+.halftone-seg-btn.selected {
+  background: #262626;
+  color: var(--accent);
+  text-shadow: 0 0 18.75px rgba(255, 246, 121, 0.2);
+}
+
+.ht-section {
+  display: grid;
+  grid-template-rows: 1fr;
+  margin-top: 0;
+  transition:
+    grid-template-rows 0.3s cubic-bezier(0.23, 1, 0.32, 1),
+    margin-top 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.ht-section.ht-hidden {
+  grid-template-rows: 0fr;
+  margin-top: -16px;
+  pointer-events: none;
+  transition:
+    grid-template-rows 0.18s cubic-bezier(0.23, 1, 0.32, 1),
+    margin-top 0.18s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.ht-section-inner {
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 16px;
   transition: opacity 0.2s ease;
 }
 
-.halftone-colors--disabled {
-  opacity: 0.3;
+.ht-section.ht-hidden .ht-section-inner {
+  opacity: 0;
+}
+
+.ht-extra {
+  display: grid;
+  grid-template-rows: 1fr;
+  margin-top: 0;
+  transition:
+    grid-template-rows 0.28s cubic-bezier(0.23, 1, 0.32, 1),
+    margin-top 0.28s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.ht-extra.ht-hidden {
+  grid-template-rows: 0fr;
+  margin-top: -16px;
   pointer-events: none;
+  transition:
+    grid-template-rows 0.16s cubic-bezier(0.23, 1, 0.32, 1),
+    margin-top 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.ht-extra-inner {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: opacity 0.2s ease;
+}
+
+.ht-extra.ht-hidden .ht-extra-inner {
+  opacity: 0;
 }
