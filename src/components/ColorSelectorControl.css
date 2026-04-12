@@ -46,6 +46,7 @@
   font-weight: 400;
   font-family: 'Geist', 'Inter', system-ui, sans-serif;
   padding: 8px 12px;
+  text-align: center;
   outline: none;
   transition: box-shadow 0.2s ease-out, background 0.2s ease-out;
 }

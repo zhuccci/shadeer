@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { CheckboxControl } from '../CheckboxControl';
 import { ColorSelectorControl } from '../ColorSelectorControl';
 import { HalftonePatternSelector } from '../HalftonePatternSelector';
@@ -47,6 +48,14 @@ export function HalftonePanel({
   onBlobThresholdChange,
 }: HalftonePanelProps) {
   const bw = state.halftone.blackAndWhite;
+  const segRef = useRef<HTMLDivElement>(null);
+  const segDragging = useRef(false);
+
+  function pickFromX(clientX: number) {
+    if (!segRef.current) return;
+    const { left, width } = segRef.current.getBoundingClientRect();
+    onBlackAndWhiteChange(clientX - left < width / 2);
+  }
 
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="halftonePanel">
@@ -72,19 +81,18 @@ export function HalftonePanel({
 
         <div className={`ht-section${state.halftone.originalColors ? ' ht-hidden' : ''}`}>
           <div className="ht-section-inner">
-            <div className="halftone-segment">
-              <button
-                type="button"
-                className={`halftone-seg-btn${bw ? ' selected' : ''}`}
-                onClick={() => onBlackAndWhiteChange(true)}
-              >
+            <div
+              ref={segRef}
+              className="halftone-segment"
+              style={{ cursor: 'ew-resize' }}
+              onPointerDown={(e) => { segRef.current?.setPointerCapture(e.pointerId); segDragging.current = true; pickFromX(e.clientX); }}
+              onPointerMove={(e) => { if (segDragging.current) pickFromX(e.clientX); }}
+              onPointerUp={() => { segDragging.current = false; }}
+            >
+              <button type="button" className={`halftone-seg-btn${bw ? ' selected' : ''}`}>
                 2 Colors
               </button>
-              <button
-                type="button"
-                className={`halftone-seg-btn${!bw ? ' selected' : ''}`}
-                onClick={() => onBlackAndWhiteChange(false)}
-              >
+              <button type="button" className={`halftone-seg-btn${!bw ? ' selected' : ''}`}>
                 4 Colors
               </button>
             </div>
