@@ -198,7 +198,7 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  max-height: 38vh;
+  height: 38vh;
   padding: 16px;
 }
 
@@ -260,4 +260,30 @@
 .mobile-play-btn {
   width: 100%;
   justify-content: center;
+}
+
+/* ── Glass Angle tab — centered, oversized knob, no label/input ── */
+.mobile-angle-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+}
+
+.mobile-angle-tab .knob-label {
+  display: none;
+}
+
+.mobile-angle-tab .knob-value-display {
+  display: none;
+}
+
+.mobile-angle-tab .dial-wrap {
+  margin-top: 0;
+}
+
+.mobile-angle-tab .controls-right {
+  transform: scale(1.4);
+  margin: 28px 32px;
+  width: auto;
 }
