@@ -327,6 +327,13 @@ function HalftonePanelContent({ state, updateState, tab }: PanelContentProps) {
   if (tab === 'sliders') {
     return (
       <div className="mobile-panel-section">
+        <div className="mobile-angle-tab mobile-knob-top">
+          <KnobControl
+            labels={{ top: '0°', left: '270°', right: '90°', bottom: '180°' }}
+            value={state.halftone.angle}
+            onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, angle: v } }))}
+          />
+        </div>
         <HalftonePatternSelector
           label="Pattern"
           value={state.halftone.pattern}
@@ -366,11 +373,6 @@ function HalftonePanelContent({ state, updateState, tab }: PanelContentProps) {
           label="Grain"
           value={state.halftone.grainOverlay}
           onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, grainOverlay: v } }))}
-        />
-        <KnobControl
-          labels={{ top: '0°', left: '270°', right: '90°', bottom: '180°' }}
-          value={state.halftone.angle}
-          onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, angle: v } }))}
         />
       </div>
     );

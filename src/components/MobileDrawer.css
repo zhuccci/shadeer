@@ -359,6 +359,12 @@
   min-height: 180px;
 }
 
+/* Knob at top of a list — same visual, but no height: 100% stretch */
+.mobile-knob-top {
+  height: auto;
+  min-height: 140px;
+}
+
 .mobile-angle-tab .knob-label {
   display: none;
 }
