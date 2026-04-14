@@ -360,9 +360,11 @@
 }
 
 /* Knob at top of a list — same visual, but no height: 100% stretch */
+/* Extra padding-top absorbs the upward visual overflow from scale(1.4) */
 .mobile-knob-top {
   height: auto;
   min-height: 140px;
+  padding-top: 24px;
 }
 
 .mobile-angle-tab .knob-label {
