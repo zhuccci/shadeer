@@ -22,6 +22,7 @@
   overflow: hidden;
   cursor: crosshair;
   flex-shrink: 0;
+  touch-action: none;
 }
 
 .picker-canvas {
@@ -144,6 +145,7 @@
   border-radius: 24px;
   cursor: pointer;
   overflow: hidden;      /* clip thumb corners at track edges */
+  touch-action: none;
 }
 
 .hue-track {
@@ -178,4 +180,10 @@
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.2);
   pointer-events: none;
   /* left is set via inline style: calc(ratio * (100% - 40px)) */
+}
+
+@media (max-width: 768px) {
+  .picker-eyedropper-btn {
+    display: none;
+  }
 }

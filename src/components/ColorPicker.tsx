@@ -110,18 +110,18 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
   useEffect(() => {
     let ready = false;
     const raf = requestAnimationFrame(() => { ready = true; });
-    function onMouseDown(e: MouseEvent) {
+    function onPointerDown(e: PointerEvent) {
       if (!ready) return;
       if (popupRef.current && !popupRef.current.contains(e.target as Node)) onClose();
     }
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();
     }
-    document.addEventListener('mousedown', onMouseDown);
+    document.addEventListener('pointerdown', onPointerDown);
     document.addEventListener('keydown', onKeyDown);
     return () => {
       cancelAnimationFrame(raf);
-      document.removeEventListener('mousedown', onMouseDown);
+      document.removeEventListener('pointerdown', onPointerDown);
       document.removeEventListener('keydown', onKeyDown);
     };
   }, [onClose]);
