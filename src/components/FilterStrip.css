@@ -12,8 +12,8 @@
   padding-left: 24px;
   padding-top: 6px;
   padding-bottom: 20px;
-  mask-image: linear-gradient(to right, transparent 0, black 16px, black 100%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black 100%);
+  mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 40px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 40px), transparent 100%);
 }
 
 .filter-buttons-scroll::-webkit-scrollbar {

@@ -166,14 +166,6 @@ export default function App() {
 
   return (
     <div className="app">
-      {editorState.image.src && (
-        <img
-          className="app-bg-blur"
-          src={editorState.image.src}
-          alt=""
-          aria-hidden="true"
-        />
-      )}
       <input
         ref={fileInputRef}
         type="file"
@@ -195,14 +187,17 @@ export default function App() {
       </a>
 
       <div className="sidebar">
-        <div className="app-shadow-overlay" />
-        <FilterStrip activeFilter={editorState.activeFilter} onSelect={handleFilterSelect} />
+<FilterStrip activeFilter={editorState.activeFilter} onSelect={handleFilterSelect} />
         <EditorPanels state={editorState} updateState={updateState} />
         <ActionBar visible={editorState.image.hasUserImage} onUpload={handleUploadClick} onSave={() => void handleSave()} />
         <TextureLayer className="app-grain" />
       </div>
 
       <div className="preview-wrap">
+        <div
+          className="preview-glow"
+          style={{ backgroundImage: editorState.image.src ? `url(${editorState.image.src})` : 'none' }}
+        />
         <PreviewStage
           state={editorState}
           isDragging={imageDrag.isDragging}

@@ -77,6 +77,7 @@ export function HalftonePanel({
           value={state.halftone.angle}
           onChange={onAngleChange}
         />
+        <ColorSelectorControl label="Background" value={state.halftone.backgroundColor} onChange={onBackgroundColorChange} />
         <CheckboxControl label="Original Colors" checked={state.halftone.originalColors} onChange={onOriginalColorsChange} />
 
         <div className={`ht-section${state.halftone.originalColors ? ' ht-hidden' : ''}`}>
@@ -96,7 +97,6 @@ export function HalftonePanel({
                 4 Colors
               </button>
             </div>
-            <ColorSelectorControl label="Background" value={state.halftone.backgroundColor} onChange={onBackgroundColorChange} />
             <ColorSelectorControl label={bw ? 'Color' : 'Light'} value={state.halftone.color1} onChange={onColor1Change} />
             <div className={`ht-extra${bw ? ' ht-hidden' : ''}`}>
               <div className="ht-extra-inner">

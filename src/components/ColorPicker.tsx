@@ -215,15 +215,20 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
   const paletteValPct = 1 - color.v;
   const hueRatio      = color.h / 360;
 
-  // Clamp popup to viewport width
-  const popupWidth = 332;
-  const popupLeft  = Math.max(8, Math.min(anchorRect.left, window.innerWidth - popupWidth - 8));
+  // Clamp popup to viewport width; flip above anchor if not enough space below
+  const popupWidth  = 332;
+  const popupHeight = 375; // approx: 16 + 231 + 16 + 40 + 16 + 40 + 16
+  const popupLeft   = Math.max(8, Math.min(anchorRect.left, window.innerWidth - popupWidth - 8));
+  const spaceBelow  = window.innerHeight - anchorRect.bottom - 8;
+  const popupTop    = spaceBelow >= popupHeight
+    ? anchorRect.bottom + 8
+    : Math.max(8, anchorRect.top - popupHeight - 8);
 
   return createPortal(
     <div
       className="color-picker-popup"
       ref={popupRef}
-      style={{ position: 'fixed', top: anchorRect.bottom + 8, left: popupLeft }}
+      style={{ position: 'fixed', top: popupTop, left: popupLeft }}
     >
       {/* ── SV Palette ── */}
       <div

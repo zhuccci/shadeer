@@ -1,6 +1,6 @@
 :root {
   --accent: #fff679;
-  --bg: #0e0e0e;
+  --bg: #1a1a1a;
   --panel-dark: #141414;
   --panel-mid: #202020;
   --panel-light: #373737;
@@ -37,19 +37,6 @@ button {
   border: 0;
 }
 
-.app-bg-blur {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: blur(20px) saturate(0.6);
-  transform: scale(1.1);
-  opacity: 0.3;
-  pointer-events: none;
-  z-index: 0;
-}
-
 .app {
   width: 100%;
   height: 100%;
@@ -62,6 +49,19 @@ button {
   flex: 1;
   min-width: 0;
   position: relative;
+  z-index: 1;
+}
+
+.preview-glow {
+  position: absolute;
+  inset: -24px;
+  background-size: cover;
+  background-position: center;
+  filter: blur(64px) saturate(1.4);
+  opacity: 0.28;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 50%;
 }
 
 .screen-flash {
@@ -109,14 +109,6 @@ button {
   z-index: 1;
 }
 
-.app-shadow-overlay {
-  position: absolute;
-  inset: -0.5px;
-  border-radius: 32px;
-  pointer-events: none;
-  box-shadow: inset 0px 0px 24px 8px rgba(0, 0, 0, 0.6);
-  z-index: 10;
-}
 
 @media (max-width: 1200px) {
   .app {

@@ -812,12 +812,10 @@ void main() {
     localPx = vec2(cosT * lr.x - sinT * lr.y,   // unrotate by R(45° − u_angle)
                    sinT * lr.x + cosT * lr.y);
   } else if (iPattern == 2) {
-    // Lines: 45°-rotated, snap only perpendicular to line direction
-    vec2 rc = vec2( C45 * rotCoord.x + C45 * rotCoord.y,
-                   -C45 * rotCoord.x + C45 * rotCoord.y);
-    float localRY = (fract(rc.y / cellPx) - 0.5) * cellPx;
-    localShape = vec2(0.0, localRY);
-    localPx    = vec2(-sinT * localRY, cosT * localRY); // unrotate (rx=0)
+    // Lines: vertical at 0°, horizontal at 90°
+    float localRX = (fract(rotCoord.x / cellPx) - 0.5) * cellPx;
+    localShape = vec2(0.0, localRX);
+    localPx    = vec2(cosA * localRX, -sinA * localRX);
   } else {
     // Dots, Cross, Grunge, Blob: rotated square grid
     localShape = (fract(rotCoord / cellPx) - 0.5) * cellPx;
