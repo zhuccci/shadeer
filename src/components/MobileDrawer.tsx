@@ -508,6 +508,9 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
           </button>
         </div>
 
+        {/* Single body wrapper so only one 8px gap from the header to content */}
+        <div className="mobile-drawer-body">
+
         {/* Filter strip + action bar — always mounted, collapses via CSS when settings open */}
         <div className="mobile-filter-area">
           <div className="mobile-filter-area-inner">
@@ -597,6 +600,8 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
             </div>
           </div>
         </div>
+
+        </div>{/* end mobile-drawer-body */}
 
       </div>
     </div>

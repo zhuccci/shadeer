@@ -26,7 +26,13 @@
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
+}
+
+/* Wraps filter-area + settings-area so there's only one gap from the header */
+.mobile-drawer-body {
+  display: flex;
+  flex-direction: column;
 }
 
 /* ── Filter header bar ── */
@@ -189,7 +195,7 @@
   top: 0;
   z-index: 2;
   background: #141414;
-  padding: 16px 16px 0;
+  padding: 12px 12px 0;
 }
 
 .mobile-segmented-control {
@@ -252,7 +258,7 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   height: 38vh;
-  padding: 16px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
 }
