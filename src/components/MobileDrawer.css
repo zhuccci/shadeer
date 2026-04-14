@@ -79,21 +79,37 @@
   }
 }
 
+/* ── Filter area — collapses when settings open ── */
+.mobile-filter-area {
+  display: grid;
+  grid-template-rows: 1fr;
+  /* closing: faster collapse */
+  transition: grid-template-rows 240ms var(--ease-out-strong);
+}
+
+.settings-open .mobile-filter-area {
+  grid-template-rows: 0fr;
+  /* opening: height leaves faster so settings has room */
+  transition: grid-template-rows 220ms var(--ease-out-strong);
+  pointer-events: none;
+}
+
+.mobile-filter-area-inner {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  opacity: 1;
+  transition: opacity 200ms var(--ease-out-strong);
+}
+
+.settings-open .mobile-filter-area-inner {
+  opacity: 0;
+  transition: opacity 120ms var(--ease-out-strong);
+}
+
 /* ── Mobile filter strip ── */
 /* Escape the 16px drawer padding on both sides for edge-to-edge fades */
-.mobile-filter-strip {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 180ms var(--ease-out-strong), transform 180ms var(--ease-out-strong);
-}
-
-@starting-style {
-  .mobile-filter-strip {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-}
-
 .mobile-filter-strip .filter-buttons-wrap {
   margin-left: -16px;
   margin-right: -16px;
@@ -127,23 +143,44 @@
   display: none;
 }
 
-/* ── Settings panel ── */
+/* ── Settings area — expands when settings open ── */
+.mobile-settings-area {
+  display: grid;
+  grid-template-rows: 0fr;
+  pointer-events: none;
+  /* closing: faster collapse */
+  transition: grid-template-rows 240ms var(--ease-out-strong);
+}
+
+.settings-open .mobile-settings-area {
+  grid-template-rows: 1fr;
+  pointer-events: auto;
+  /* opening: slightly slower expand */
+  transition: grid-template-rows 280ms var(--ease-out-strong);
+}
+
+.mobile-settings-area-inner {
+  overflow: hidden;
+}
+
+/* ── Settings panel — fades in/out with the area ── */
 .mobile-settings-panel {
   display: flex;
   flex-direction: column;
   background: #141414;
   border-radius: 16px;
   overflow: hidden;
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 220ms var(--ease-out-strong), transform 220ms var(--ease-out-strong);
+  opacity: 0;
+  transform: translateY(6px);
+  /* closing: fast fade */
+  transition: opacity 140ms var(--ease-out-strong), transform 140ms var(--ease-out-strong);
 }
 
-@starting-style {
-  .mobile-settings-panel {
-    opacity: 0;
-    transform: translateY(10px);
-  }
+.settings-open .mobile-settings-panel {
+  opacity: 1;
+  transform: translateY(0);
+  /* opening: delayed so height has started expanding first */
+  transition: opacity 220ms 60ms var(--ease-out-strong), transform 220ms 60ms var(--ease-out-strong);
 }
 
 /* Segmented control — sticky inside the panel */
@@ -156,12 +193,28 @@
 }
 
 .mobile-segmented-control {
+  position: relative;
   display: flex;
   align-items: center;
   background: #101010;
   border-radius: 8px;
   padding: 4px;
   gap: 0;
+}
+
+/* Sliding pill indicator */
+.mobile-seg-pill {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  bottom: 4px;
+  width: calc(50% - 4px);
+  background: #20201f;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 0;
+  transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
+  will-change: transform;
 }
 
 .mobile-seg-btn {
@@ -176,10 +229,11 @@
   font-family: inherit;
   cursor: pointer;
   line-height: 1;
+  position: relative;
+  z-index: 1;
   transition:
-    background 150ms var(--ease-out-strong),
-    color 120ms ease-out,
-    text-shadow 120ms ease-out,
+    color 150ms ease-out,
+    text-shadow 150ms ease-out,
     transform 100ms ease-out;
 }
 
@@ -188,7 +242,6 @@
 }
 
 .mobile-seg-btn.active {
-  background: #20201f;
   color: #fff679;
   text-shadow: 0 0 10px rgba(255, 246, 121, 0.6);
 }
@@ -209,19 +262,33 @@
 }
 
 /* Tab content — animates in on every tab switch (key forces remount) */
+/* Direction class set by React controls which side content enters from */
 .mobile-tab-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   opacity: 1;
-  transform: translateY(0);
-  transition: opacity 160ms var(--ease-out-strong), transform 160ms var(--ease-out-strong);
+  transform: translateX(0);
+  transition: opacity 180ms var(--ease-out-strong), transform 200ms var(--ease-out-strong);
 }
 
+/* Forward (Sliders → second tab): enter from right */
 @starting-style {
   .mobile-tab-content {
     opacity: 0;
-    transform: translateY(5px);
+    transform: translateX(24px);
+  }
+}
+
+/* Back (second tab → Sliders): enter from left */
+.mobile-tab-content.slide-back {
+  /* resting state is same, @starting-style overrides entry */
+}
+
+@starting-style {
+  .mobile-tab-content.slide-back {
+    opacity: 0;
+    transform: translateX(-24px);
   }
 }
 

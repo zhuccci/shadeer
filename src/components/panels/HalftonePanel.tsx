@@ -90,6 +90,10 @@ export function HalftonePanel({
               onPointerMove={(e) => { if (segDragging.current) pickFromX(e.clientX); }}
               onPointerUp={() => { segDragging.current = false; }}
             >
+              <span
+                className="halftone-seg-pill"
+                style={{ transform: bw ? 'translateX(0)' : 'translateX(100%)' }}
+              />
               <button type="button" className={`halftone-seg-btn${bw ? ' selected' : ''}`}>
                 2 Colors
               </button>

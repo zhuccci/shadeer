@@ -64,7 +64,7 @@ function GlassPanelContent({ state, updateState, tab }: PanelContentProps) {
   // Sliders: Shape, Size, Grain — Angle tab: Knob only
   if (tab === 'colors') {
     return (
-      <div className="mobile-panel-section">
+      <div className="mobile-panel-section mobile-angle-tab">
         <KnobControl
           labels={{ top: '0°', left: '270°', right: '90°', bottom: '180°' }}
           value={state.glass.angle}
@@ -476,12 +476,20 @@ function HalftonePanelContent({ state, updateState, tab }: PanelContentProps) {
 export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSelect }: MobileDrawerProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<MobileTab>('sliders');
+  const [slideDir, setSlideDir] = useState<'forward' | 'back'>('forward');
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
 
   const filterLabel = filterOptions.find((f) => f.id === state.activeFilter)?.label ?? '';
   const secondTabLabel = getSecondTabLabel(state.activeFilter);
 
+  function switchTab(tab: MobileTab) {
+    const order: MobileTab[] = ['sliders', 'colors'];
+    setSlideDir(order.indexOf(tab) > order.indexOf(activeTab) ? 'forward' : 'back');
+    setActiveTab(tab);
+  }
+
   return (
-    <div className="mobile-drawer">
+    <div className={`mobile-drawer${settingsOpen ? ' settings-open' : ''}`}>
       <div className="mobile-drawer-inner">
 
         {/* Filter header bar */}
@@ -500,70 +508,95 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
           </button>
         </div>
 
-        {/* Filter buttons strip — hidden when settings open */}
-        {!settingsOpen && (
-          <div className="mobile-filter-strip">
-            <FilterStrip activeFilter={state.activeFilter} onSelect={onFilterSelect} />
-          </div>
-        )}
-
-        {/* Settings panel */}
-        {settingsOpen && (
-          <div className="mobile-settings-panel">
-            <div className="mobile-segmented-sticky">
-              <div className="mobile-segmented-control">
-                <button
-                  type="button"
-                  className={`mobile-seg-btn${activeTab === 'sliders' ? ' active' : ''}`}
-                  onClick={() => setActiveTab('sliders')}
-                >
-                  Sliders
+        {/* Filter strip + action bar — always mounted, collapses via CSS when settings open */}
+        <div className="mobile-filter-area">
+          <div className="mobile-filter-area-inner">
+            <div className="mobile-filter-strip">
+              <FilterStrip activeFilter={state.activeFilter} onSelect={onFilterSelect} />
+            </div>
+            {state.image.hasUserImage && (
+              <div className="mobile-action-bar">
+                <button className="btn btn-secondary mobile-action-btn" onClick={onUpload}>
+                  <UploadIcon />
+                  Upload New
                 </button>
-                <button
-                  type="button"
-                  className={`mobile-seg-btn${activeTab === 'colors' ? ' active' : ''}`}
-                  onClick={() => setActiveTab('colors')}
-                >
-                  {secondTabLabel}
+                <button className="btn btn-primary mobile-action-btn" onClick={onSave}>
+                  <SaveIcon />
+                  Save
                 </button>
               </div>
-            </div>
-            <div className="mobile-settings-scroll">
-              {/* key on wrapper forces remount → @starting-style fires on every tab switch */}
-              <div key={`${state.activeFilter}-${activeTab}`} className="mobile-tab-content">
-                {state.activeFilter === 'glass' && (
-                  <GlassPanelContent state={state} updateState={updateState} tab={activeTab} />
-                )}
-                {state.activeFilter === 'dithering' && (
-                  <DitheringPanelContent state={state} updateState={updateState} tab={activeTab} />
-                )}
-                {state.activeFilter === 'liquid' && (
-                  <LiquidPanelContent state={state} updateState={updateState} tab={activeTab} />
-                )}
-                {state.activeFilter === 'glitchy' && (
-                  <GlitchyPanelContent state={state} updateState={updateState} tab={activeTab} />
-                )}
-                {state.activeFilter === 'halftone' && (
-                  <HalftonePanelContent state={state} updateState={updateState} tab={activeTab} />
-                )}
+            )}
+          </div>
+        </div>
+
+        {/* Settings panel — always mounted, expands via CSS when settings open */}
+        <div className="mobile-settings-area">
+          <div className="mobile-settings-area-inner">
+            <div className="mobile-settings-panel">
+              <div className="mobile-segmented-sticky">
+                <div className="mobile-segmented-control">
+                  {/* Sliding pill indicator */}
+                  <span
+                    className="mobile-seg-pill"
+                    style={{ transform: activeTab === 'colors' ? 'translateX(100%)' : 'translateX(0)' }}
+                  />
+                  <button
+                    type="button"
+                    className={`mobile-seg-btn${activeTab === 'sliders' ? ' active' : ''}`}
+                    onClick={() => switchTab('sliders')}
+                  >
+                    Sliders
+                  </button>
+                  <button
+                    type="button"
+                    className={`mobile-seg-btn${activeTab === 'colors' ? ' active' : ''}`}
+                    onClick={() => switchTab('colors')}
+                  >
+                    {secondTabLabel}
+                  </button>
+                </div>
+              </div>
+              <div
+                className="mobile-settings-scroll"
+                onTouchStart={(e) => {
+                  swipeStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }}
+                onTouchEnd={(e) => {
+                  if (!swipeStart.current) return;
+                  const dx = e.changedTouches[0].clientX - swipeStart.current.x;
+                  const dy = e.changedTouches[0].clientY - swipeStart.current.y;
+                  swipeStart.current = null;
+                  // Only fire if clearly horizontal (not a vertical scroll)
+                  if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
+                  if (dx < 0 && activeTab === 'sliders') switchTab('colors');
+                  if (dx > 0 && activeTab === 'colors') switchTab('sliders');
+                }}
+              >
+                {/* key forces remount → @starting-style fires on every tab switch */}
+                <div
+                  key={`${state.activeFilter}-${activeTab}`}
+                  className={`mobile-tab-content${slideDir === 'back' ? ' slide-back' : ''}`}
+                >
+                  {state.activeFilter === 'glass' && (
+                    <GlassPanelContent state={state} updateState={updateState} tab={activeTab} />
+                  )}
+                  {state.activeFilter === 'dithering' && (
+                    <DitheringPanelContent state={state} updateState={updateState} tab={activeTab} />
+                  )}
+                  {state.activeFilter === 'liquid' && (
+                    <LiquidPanelContent state={state} updateState={updateState} tab={activeTab} />
+                  )}
+                  {state.activeFilter === 'glitchy' && (
+                    <GlitchyPanelContent state={state} updateState={updateState} tab={activeTab} />
+                  )}
+                  {state.activeFilter === 'halftone' && (
+                    <HalftonePanelContent state={state} updateState={updateState} tab={activeTab} />
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        )}
-
-        {/* Upload New + Save — only when image loaded and settings closed */}
-        {state.image.hasUserImage && !settingsOpen && (
-          <div className="mobile-action-bar">
-            <button className="btn btn-secondary mobile-action-btn" onClick={onUpload}>
-              <UploadIcon />
-              Upload New
-            </button>
-            <button className="btn btn-primary mobile-action-btn" onClick={onSave}>
-              <SaveIcon />
-              Save
-            </button>
-          </div>
-        )}
+        </div>
 
       </div>
     </div>
