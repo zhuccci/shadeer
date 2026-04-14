@@ -158,6 +158,10 @@ button {
     border-radius: 20px;
   }
 
+  .preview-panel::after {
+    border-radius: 20px;
+  }
+
   .mobile-drawer {
     display: block;
   }
