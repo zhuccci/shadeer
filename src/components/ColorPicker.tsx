@@ -76,6 +76,9 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const popupRef  = useRef<HTMLDivElement>(null);
+  // Track active drags explicitly — e.buttons is unreliable on iOS touch
+  const paletteActive = useRef(false);
+  const hueActive = useRef(false);
 
   // ── Draw SV palette canvas ──────────────────────────────────────────────────
   useEffect(() => {
@@ -135,6 +138,7 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
   const handlePaletteDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
+    paletteActive.current = true;
     const rect = e.currentTarget.getBoundingClientRect();
     const s = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     const v = Math.max(0, Math.min(1, 1 - (e.clientY - rect.top) / rect.height));
@@ -144,7 +148,7 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
   }, [emitColor]);
 
   const handlePaletteMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!(e.buttons & 1)) return;
+    if (!paletteActive.current) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const s = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     const v = Math.max(0, Math.min(1, 1 - (e.clientY - rect.top) / rect.height));
@@ -153,10 +157,15 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
     emitColor(h, s, v);
   }, [emitColor]);
 
+  const handlePaletteUp = useCallback(() => {
+    paletteActive.current = false;
+  }, []);
+
   // ── Hue slider pointer ────────────────────────────────────────────────────────
   const handleHueDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
+    hueActive.current = true;
     const rect = e.currentTarget.getBoundingClientRect();
     const h = Math.max(0, Math.min(359.99, ((e.clientX - rect.left) / rect.width) * 360));
     const { s, v } = colorRef.current;
@@ -165,13 +174,17 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
   }, [emitColor]);
 
   const handleHueMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!(e.buttons & 1)) return;
+    if (!hueActive.current) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const h = Math.max(0, Math.min(359.99, ((e.clientX - rect.left) / rect.width) * 360));
     const { s, v } = colorRef.current;
     setColor({ h, s, v });
     emitColor(h, s, v);
   }, [emitColor]);
+
+  const handleHueUp = useCallback(() => {
+    hueActive.current = false;
+  }, []);
 
   // ── Hex input ─────────────────────────────────────────────────────────────────
   const handleHexInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -235,6 +248,8 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
         className="picker-palette-wrapper"
         onPointerDown={handlePaletteDown}
         onPointerMove={handlePaletteMove}
+        onPointerUp={handlePaletteUp}
+        onPointerCancel={handlePaletteUp}
       >
         <canvas ref={canvasRef} className="picker-canvas" />
         <div
@@ -282,6 +297,8 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
           className="picker-slider-track hue-track"
           onPointerDown={handleHueDown}
           onPointerMove={handleHueMove}
+          onPointerUp={handleHueUp}
+          onPointerCancel={handleHueUp}
         >
           <div
             className="picker-slider-thumb"

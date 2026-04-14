@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './MobileDrawer.css';
 import { CheckboxControl } from './CheckboxControl';
 import { ColorSelectorControl } from './ColorSelectorControl';
@@ -484,6 +484,7 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
   const [activeTab, setActiveTab] = useState<MobileTab>('sliders');
   const [slideDir, setSlideDir] = useState<'forward' | 'back'>('forward');
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
 
   const filterLabel = filterOptions.find((f) => f.id === state.activeFilter)?.label ?? '';
   const secondTabLabel = getSecondTabLabel(state.activeFilter);
@@ -494,8 +495,26 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
     setActiveTab(tab);
   }
 
+  // Close settings when tapping outside the drawer
+  useEffect(() => {
+    if (!settingsOpen) return;
+    function handleOutside(e: Event) {
+      if (drawerRef.current && !drawerRef.current.contains(e.target as Node)) {
+        setSettingsOpen(false);
+      }
+    }
+    // Small delay so the toggle click that opened settings doesn't immediately close it
+    const id = setTimeout(() => {
+      document.addEventListener('pointerdown', handleOutside);
+    }, 50);
+    return () => {
+      clearTimeout(id);
+      document.removeEventListener('pointerdown', handleOutside);
+    };
+  }, [settingsOpen]);
+
   return (
-    <div className={`mobile-drawer${settingsOpen ? ' settings-open' : ''}`}>
+    <div ref={drawerRef} className={`mobile-drawer${settingsOpen ? ' settings-open' : ''}`}>
       <div className="mobile-drawer-inner">
 
         {/* Filter header bar */}
@@ -575,8 +594,8 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
                   const dx = e.changedTouches[0].clientX - swipeStart.current.x;
                   const dy = e.changedTouches[0].clientY - swipeStart.current.y;
                   swipeStart.current = null;
-                  // Only fire if clearly horizontal (not a vertical scroll)
-                  if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
+                  // Require a long, clearly horizontal gesture so slider drags never trigger this
+                  if (Math.abs(dx) < 80 || Math.abs(dx) < Math.abs(dy) * 3) return;
                   if (dx < 0 && activeTab === 'sliders') switchTab('colors');
                   if (dx > 0 && activeTab === 'colors') switchTab('sliders');
                 }}
