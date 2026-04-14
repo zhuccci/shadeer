@@ -110,18 +110,20 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
   useEffect(() => {
     let ready = false;
     const raf = requestAnimationFrame(() => { ready = true; });
-    function onPointerDown(e: PointerEvent) {
+    function onOutside(e: Event) {
       if (!ready) return;
       if (popupRef.current && !popupRef.current.contains(e.target as Node)) onClose();
     }
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();
     }
-    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('pointerdown', onOutside);
+    document.addEventListener('touchstart', onOutside, { passive: true });
     document.addEventListener('keydown', onKeyDown);
     return () => {
       cancelAnimationFrame(raf);
-      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('pointerdown', onOutside);
+      document.removeEventListener('touchstart', onOutside);
       document.removeEventListener('keydown', onKeyDown);
     };
   }, [onClose]);
@@ -242,6 +244,8 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
       className="color-picker-popup"
       ref={popupRef}
       style={{ position: 'fixed', top: popupTop, left: popupLeft }}
+      onPointerDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
     >
       {/* ── SV Palette ── */}
       <div
