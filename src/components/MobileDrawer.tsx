@@ -34,19 +34,13 @@ interface MobileDrawerProps {
 
 function SettingsIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-      {/* Left fader: track split at y=13, handle centered there */}
-      <line x1="6" y1="3" x2="6" y2="11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="3" y1="13" x2="9" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <line x1="6" y1="15" x2="6" y2="21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      {/* Middle fader: track split at y=9 */}
-      <line x1="12" y1="3" x2="12" y2="7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="9" y1="9" x2="15" y2="9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <line x1="12" y1="11" x2="12" y2="21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      {/* Right fader: track split at y=16 */}
-      <line x1="18" y1="3" x2="18" y2="14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="15" y1="16" x2="21" y2="16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <line x1="18" y1="18" x2="18" y2="21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <svg width="24" height="24" viewBox="0 0 18.0039 18.0078" fill="none">
+      <path d="M4.75391 10.0049C5.16804 10.005 5.50391 10.3407 5.50391 10.7549C5.50368 11.1688 5.1679 11.5048 4.75391 11.5049H3.45508V17.2578C3.45462 17.6716 3.11901 18.0078 2.70508 18.0078C2.29115 18.0078 1.95554 17.6716 1.95508 17.2578V11.5049H0.75C0.335929 11.5049 0.000230806 11.1689 0 10.7549C0 10.3407 0.335786 10.0049 0.75 10.0049H4.75391Z" fill="currentColor"/>
+      <path d="M17.2539 12.0049C17.6681 12.0049 18.0039 12.3407 18.0039 12.7549C18.0039 13.1691 17.6681 13.5049 17.2539 13.5049H16.0527V17.2568C16.0525 17.6709 15.7168 18.0068 15.3027 18.0068C14.8886 18.0068 14.5529 17.6709 14.5527 17.2568V13.5049H13.2539C12.8397 13.5049 12.5039 13.1691 12.5039 12.7549C12.5039 12.3407 12.8397 12.0049 13.2539 12.0049H17.2539Z" fill="currentColor"/>
+      <path d="M9.00391 9.00391C9.41812 9.00391 9.75391 9.33969 9.75391 9.75391V17.0068C9.75364 17.4208 9.41796 17.7568 9.00391 17.7568C8.58986 17.7568 8.25417 17.4208 8.25391 17.0068V9.75391C8.25391 9.33969 8.58969 9.00391 9.00391 9.00391Z" fill="currentColor"/>
+      <path d="M15.3027 0C15.7169 0 16.0527 0.335786 16.0527 0.75V9.25391C16.0526 9.66804 15.7169 10.0039 15.3027 10.0039C14.8886 10.0039 14.5528 9.66804 14.5527 9.25391V0.75C14.5527 0.335786 14.8885 0 15.3027 0Z" fill="currentColor"/>
+      <path d="M2.70508 0C3.11929 0 3.45508 0.335786 3.45508 0.75V7.25293C3.45508 7.66714 3.11929 8.00293 2.70508 8.00293C2.29086 8.00293 1.95508 7.66714 1.95508 7.25293V0.75C1.95508 0.335786 2.29086 0 2.70508 0Z" fill="currentColor"/>
+      <path d="M9.00391 0.25C9.41812 0.25 9.75391 0.585786 9.75391 1V5.50195H11.0039C11.4181 5.50195 11.7539 5.83774 11.7539 6.25195C11.7539 6.66617 11.4181 7.00195 11.0039 7.00195H7.00391C6.58969 7.00195 6.25391 6.66617 6.25391 6.25195C6.25391 5.83774 6.58969 5.50195 7.00391 5.50195H8.25391V1C8.25391 0.585786 8.58969 0.25 9.00391 0.25Z" fill="currentColor"/>
     </svg>
   );
 }
