@@ -256,7 +256,8 @@
 .mobile-settings-scroll {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: #373737 transparent;
   height: clamp(200px, 28vh, 300px);
   padding: 12px;
   display: flex;
@@ -266,7 +267,16 @@
 }
 
 .mobile-settings-scroll::-webkit-scrollbar {
-  display: none;
+  width: 4px;
+}
+
+.mobile-settings-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mobile-settings-scroll::-webkit-scrollbar-thumb {
+  background: #373737;
+  border-radius: 2px;
 }
 
 /* Tab content — animates in on every tab switch (key forces remount) */
