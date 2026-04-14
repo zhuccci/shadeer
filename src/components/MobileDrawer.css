@@ -261,6 +261,8 @@
   padding: 12px;
   display: flex;
   flex-direction: column;
+  mask-image: linear-gradient(to bottom, transparent 0px, black 20px, black calc(100% - 20px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0px, black 20px, black calc(100% - 20px), transparent 100%);
 }
 
 .mobile-settings-scroll::-webkit-scrollbar {
