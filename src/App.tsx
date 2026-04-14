@@ -3,6 +3,7 @@ import { ActionBar } from './components/ActionBar';
 import { CopyToast } from './components/CopyToast';
 import { EditorPanels } from './components/EditorPanels';
 import { FilterStrip } from './components/FilterStrip';
+import { MobileDrawer } from './components/MobileDrawer';
 import { PreviewStage } from './components/PreviewStage';
 import { TextureLayer } from './components/TextureLayer';
 import {
@@ -221,6 +222,14 @@ export default function App() {
         {flashKey > 0 && <div key={flashKey} className="screen-flash active" />}
         <CopyToast visible={copyToastVisible} />
       </div>
+
+      <MobileDrawer
+        state={editorState}
+        updateState={updateState}
+        onUpload={handleUploadClick}
+        onSave={() => void handleSave()}
+        onFilterSelect={handleFilterSelect}
+      />
     </div>
   );
 }

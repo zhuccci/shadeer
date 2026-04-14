@@ -1,0 +1,263 @@
+/* ── Custom easing ── */
+:root {
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Hidden by default — shown via media query in app.css */
+.mobile-drawer {
+  display: none;
+  flex-shrink: 0;
+  background: linear-gradient(to bottom, #292929 0%, #202020 100%);
+  border: 0.5px solid #606060;
+  border-bottom: none;
+  border-radius: 24px 24px 0 0;
+  box-shadow:
+    0 -3px 6px rgba(0, 0, 0, 0.2),
+    0 -10px 10px rgba(0, 0, 0, 0.17),
+    0 -23px 14px rgba(0, 0, 0, 0.1),
+    0 -41px 16px rgba(0, 0, 0, 0.03),
+    0 -64px 18px rgba(0, 0, 0, 0);
+  position: relative;
+  z-index: 10;
+}
+
+.mobile-drawer-inner {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Filter header bar ── */
+.mobile-filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #373737;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.mobile-filter-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1;
+}
+
+.mobile-filter-header-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text);
+  flex-shrink: 0;
+  transition: transform 120ms var(--ease-out-strong);
+}
+
+.mobile-filter-header-btn:active {
+  transform: scale(0.88);
+}
+
+/* Icon swap: fade in on mount */
+.mobile-header-icon {
+  display: flex;
+  opacity: 1;
+  transition: opacity 120ms ease-out;
+}
+
+@starting-style {
+  .mobile-header-icon {
+    opacity: 0;
+  }
+}
+
+/* ── Mobile filter strip ── */
+/* Escape the 16px drawer padding on both sides for edge-to-edge fades */
+.mobile-filter-strip {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 180ms var(--ease-out-strong), transform 180ms var(--ease-out-strong);
+}
+
+@starting-style {
+  .mobile-filter-strip {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+.mobile-filter-strip .filter-buttons-wrap {
+  margin-left: -16px;
+  margin-right: -16px;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.mobile-filter-strip .filter-buttons-scroll {
+  padding-left: 16px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 40px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 40px), transparent 100%);
+}
+
+.mobile-filter-strip .filter-buttons {
+  gap: 8px;
+}
+
+/* Square 80×80 buttons, no label row */
+.mobile-filter-strip .filter-btn {
+  width: 80px;
+  border-radius: 12px;
+}
+
+.mobile-filter-strip .btn-thumbnail {
+  height: 80px;
+}
+
+.mobile-filter-strip .btn-bottom {
+  display: none;
+}
+
+/* ── Settings panel ── */
+.mobile-settings-panel {
+  display: flex;
+  flex-direction: column;
+  background: #141414;
+  border-radius: 16px;
+  overflow: hidden;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 220ms var(--ease-out-strong), transform 220ms var(--ease-out-strong);
+}
+
+@starting-style {
+  .mobile-settings-panel {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* Segmented control — sticky inside the panel */
+.mobile-segmented-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #141414;
+  padding: 16px 16px 0;
+}
+
+.mobile-segmented-control {
+  display: flex;
+  align-items: center;
+  background: #101010;
+  border-radius: 8px;
+  padding: 4px;
+  gap: 0;
+}
+
+.mobile-seg-btn {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 400;
+  font-family: inherit;
+  cursor: pointer;
+  line-height: 1;
+  transition:
+    background 150ms var(--ease-out-strong),
+    color 120ms ease-out,
+    text-shadow 120ms ease-out,
+    transform 100ms ease-out;
+}
+
+.mobile-seg-btn:active {
+  transform: scale(0.96);
+}
+
+.mobile-seg-btn.active {
+  background: #20201f;
+  color: #fff679;
+  text-shadow: 0 0 10px rgba(255, 246, 121, 0.6);
+}
+
+/* Scrollable content below the sticky segmented */
+.mobile-settings-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  max-height: 38vh;
+  padding: 16px;
+}
+
+.mobile-settings-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Tab content — animates in on every tab switch (key forces remount) */
+.mobile-tab-content {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 160ms var(--ease-out-strong), transform 160ms var(--ease-out-strong);
+}
+
+@starting-style {
+  .mobile-tab-content {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+}
+
+/* Panel section — vertical stack of controls */
+.mobile-panel-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.mobile-panel-empty {
+  color: #666;
+  font-size: 14px;
+  text-align: center;
+  padding: 8px 0;
+}
+
+/* ── Action bar (Upload New + Save) ── */
+.mobile-action-bar {
+  display: flex;
+  gap: 12px;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 180ms var(--ease-out-strong), transform 180ms var(--ease-out-strong);
+}
+
+@starting-style {
+  .mobile-action-bar {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.mobile-action-btn {
+  flex: 1;
+  height: 48px;
+  justify-content: center;
+}
+
+/* Play/Pause button full-width in mobile */
+.mobile-play-btn {
+  width: 100%;
+  justify-content: center;
+}
