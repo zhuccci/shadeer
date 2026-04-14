@@ -265,11 +265,12 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
           aria-label="Pick color from screen"
           type="button"
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path
-              d="M13.657 2.343a1.167 1.167 0 0 0-1.65 0L10.12 4.228 9.18 3.29 8.12 4.35l.94.94-5.1 5.1a1.167 1.167 0 0 0-.34.824V13h2.752c.31 0 .607-.123.825-.342l5.1-5.1.94.94 1.06-1.06-.94-.94 1.882-1.882a1.167 1.167 0 0 0 0-1.65l-.682-.623Z"
-              fill="currentColor"
+              d="M17 3a2.83 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z"
+              stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
             />
+            <line x1="14.5" y1="5.5" x2="18.5" y2="9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
         </button>
       </div>

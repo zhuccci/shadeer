@@ -35,12 +35,18 @@ interface MobileDrawerProps {
 function SettingsIcon() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="8" cy="6" r="2.5" fill="#373737" stroke="currentColor" strokeWidth="1.5" />
-      <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="16" cy="12" r="2.5" fill="#373737" stroke="currentColor" strokeWidth="1.5" />
-      <line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="10" cy="18" r="2.5" fill="#373737" stroke="currentColor" strokeWidth="1.5" />
+      {/* Left fader: track split at y=13, handle centered there */}
+      <line x1="6" y1="3" x2="6" y2="11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="3" y1="13" x2="9" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <line x1="6" y1="15" x2="6" y2="21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      {/* Middle fader: track split at y=9 */}
+      <line x1="12" y1="3" x2="12" y2="7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="9" y1="9" x2="15" y2="9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <line x1="12" y1="11" x2="12" y2="21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      {/* Right fader: track split at y=16 */}
+      <line x1="18" y1="3" x2="18" y2="14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="15" y1="16" x2="21" y2="16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <line x1="18" y1="18" x2="18" y2="21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }
