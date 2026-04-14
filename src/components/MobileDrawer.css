@@ -200,6 +200,8 @@
   scrollbar-width: none;
   height: 38vh;
   padding: 16px;
+  display: flex;
+  flex-direction: column;
 }
 
 .mobile-settings-scroll::-webkit-scrollbar {
@@ -208,6 +210,9 @@
 
 /* Tab content — animates in on every tab switch (key forces remount) */
 .mobile-tab-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   opacity: 1;
   transform: translateY(0);
   transition: opacity 160ms var(--ease-out-strong), transform 160ms var(--ease-out-strong);
@@ -267,6 +272,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 100%;
   min-height: 180px;
 }
 
@@ -283,7 +289,9 @@
 }
 
 .mobile-angle-tab .controls-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transform: scale(1.4);
-  margin: 28px 32px;
   width: auto;
 }
