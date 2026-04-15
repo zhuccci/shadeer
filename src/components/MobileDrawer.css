@@ -7,7 +7,7 @@
 .mobile-sheet {
   display: none;
   flex-shrink: 0;
-  padding: 0 16px 16px;
+  padding: 0 16px;
 }
 
 /* ── Floating card ── */
