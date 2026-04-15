@@ -230,7 +230,8 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
     <>
     <div
       className="color-picker-backdrop"
-      onPointerDown={onClose}
+      onPointerDown={(e) => { e.preventDefault(); onClose(); }}
+      onTouchStart={(e) => e.preventDefault()}
     />
     <div
       className="color-picker-popup"
