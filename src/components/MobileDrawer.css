@@ -43,9 +43,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  /* In collapsed state the card padding already gives left spacing.
-     In expanded state the name needs a nudge so it reads as 16px from edge. */
   padding-left: 8px;
+  transition: padding-left 300ms var(--ease-out-strong);
 }
 
 .mobile-sheet:not(.expanded) .sheet-header {
@@ -126,14 +125,15 @@
 
 .sheet-filter-strip .filter-buttons-scroll {
   padding-left: 16px;
+  padding-right: 16px;
   padding-top: 3px;
   padding-bottom: 0;
-  mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 40px), transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 40px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, black 16px, black 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black 100%);
 }
 
 .sheet-filter-strip .filter-strip-end {
-  min-width: 40px;
+  min-width: 0;
 }
 
 .sheet-filter-strip .filter-buttons {
