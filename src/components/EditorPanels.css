@@ -39,6 +39,7 @@
 .panel-active .controls-left > *,
 .panel-active .dither-right > *,
 .panel-active .halftone-right > *,
+.panel-active .se-right > *,
 .panel-active .glitchy-top,
 .panel-active #glitchyPanel > .glitchy-row-divider,
 .panel-active .glitchy-scroll-area > *,
@@ -55,26 +56,32 @@
 
 .panel-active .controls-left > *:nth-child(1),
 .panel-active .dither-right > *:nth-child(1),
-.panel-active .halftone-right > *:nth-child(1) { animation-delay: 20ms; }
+.panel-active .halftone-right > *:nth-child(1),
+.panel-active .se-right > *:nth-child(1) { animation-delay: 20ms; }
 
 .panel-active .controls-left > *:nth-child(2),
 .panel-active .dither-right > *:nth-child(2),
-.panel-active .halftone-right > *:nth-child(2) { animation-delay: 50ms; }
+.panel-active .halftone-right > *:nth-child(2),
+.panel-active .se-right > *:nth-child(2) { animation-delay: 50ms; }
 
 .panel-active .controls-left > *:nth-child(3),
 .panel-active .dither-right > *:nth-child(3),
-.panel-active .halftone-right > *:nth-child(3) { animation-delay: 80ms; }
+.panel-active .halftone-right > *:nth-child(3),
+.panel-active .se-right > *:nth-child(3) { animation-delay: 80ms; }
 
 .panel-active .controls-left > *:nth-child(4),
 .panel-active .dither-right > *:nth-child(4),
-.panel-active .halftone-right > *:nth-child(4) { animation-delay: 110ms; }
+.panel-active .halftone-right > *:nth-child(4),
+.panel-active .se-right > *:nth-child(4) { animation-delay: 110ms; }
 
 .panel-active .controls-left > *:nth-child(5),
 .panel-active .dither-right > *:nth-child(5),
-.panel-active .halftone-right > *:nth-child(5) { animation-delay: 140ms; }
+.panel-active .halftone-right > *:nth-child(5),
+.panel-active .se-right > *:nth-child(5) { animation-delay: 140ms; }
 
 .panel-active .controls-left > *:nth-child(6),
-.panel-active .dither-right > *:nth-child(6) { animation-delay: 170ms; }
+.panel-active .dither-right > *:nth-child(6),
+.panel-active .se-right > *:nth-child(6) { animation-delay: 170ms; }
 
 /* Glitchy panel stagger — top section is outside scroll area */
 .panel-active .glitchy-top { animation-delay: 20ms; }
@@ -175,7 +182,8 @@
 #ditheringPanel,
 #halftonePanel,
 #liquidPanel,
-#glassPanel {
+#glassPanel,
+#symbolEdgesPanel {
   gap: 24px;
 }
 

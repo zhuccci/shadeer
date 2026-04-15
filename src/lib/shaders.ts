@@ -3,7 +3,8 @@ type UniformValue =
   | boolean
   | number[]
   | number[][]
-  | HTMLImageElement;
+  | HTMLImageElement
+  | HTMLCanvasElement;
 
 export type UniformMap = Record<string, UniformValue>;
 
@@ -1002,6 +1003,93 @@ const defaultShaderStyle = `@layer paper-shaders {
   }
 }`;
 
+export const symbolEdgesFragmentShader = `#version 300 es
+precision mediump float;
+uniform sampler2D u_image;
+uniform sampler2D u_fontAtlas;
+uniform float u_cellSize;
+uniform float u_numSymbols;
+uniform float u_threshold;
+uniform vec4 u_symbolColor;
+uniform vec4 u_bgColor;
+uniform float u_mode;
+uniform vec3 u_targetColor;
+uniform float u_invert;
+uniform float u_hideImage;
+in vec2 v_imageUV;
+out vec4 fragColor;
+
+float lum(vec4 c) { return dot(c.rgb, vec3(0.299, 0.587, 0.114)); }
+
+float hash21(vec2 p) {
+  p = fract(p * vec2(0.3183099, 0.3678794)) + 0.1;
+  p += dot(p, p + 19.19);
+  return fract(p.x * p.y);
+}
+
+void main() {
+  bool outOfBounds = v_imageUV.x < 0.0 || v_imageUV.x > 1.0 ||
+                     v_imageUV.y < 0.0 || v_imageUV.y > 1.0;
+  vec2 uv = clamp(v_imageUV, 0.001, 0.999);
+  vec4 imgColor = texture(u_image, uv);
+
+  vec2 cell = floor(gl_FragCoord.xy / u_cellSize);
+  vec2 localUV = fract(gl_FragCoord.xy / u_cellSize);
+
+  // Image UV at cell center
+  vec2 cellCenter = (cell + 0.5) * u_cellSize;
+  vec2 dxUV = dFdx(v_imageUV);
+  vec2 dyUV = dFdy(v_imageUV);
+  vec2 cUV = clamp(uv + dxUV*(cellCenter.x - gl_FragCoord.x) + dyUV*(cellCenter.y - gl_FragCoord.y), 0.001, 0.999);
+
+  // Sobel using screen-space derivatives — works regardless of image resolution.
+  // Scale by 3 display pixels so edges span enough distance to register.
+  vec2 sx = dxUV * 3.0;
+  vec2 sy = dyUV * 3.0;
+  float s00 = lum(texture(u_image, clamp(cUV - sx - sy, 0.001, 0.999)));
+  float s10 = lum(texture(u_image, clamp(cUV      - sy, 0.001, 0.999)));
+  float s20 = lum(texture(u_image, clamp(cUV + sx - sy, 0.001, 0.999)));
+  float s01 = lum(texture(u_image, clamp(cUV - sx     , 0.001, 0.999)));
+  float s21 = lum(texture(u_image, clamp(cUV + sx     , 0.001, 0.999)));
+  float s02 = lum(texture(u_image, clamp(cUV - sx + sy, 0.001, 0.999)));
+  float s12 = lum(texture(u_image, clamp(cUV      + sy, 0.001, 0.999)));
+  float s22 = lum(texture(u_image, clamp(cUV + sx + sy, 0.001, 0.999)));
+
+  float cellOn = 0.0;
+  if (u_mode < 0.5) {
+    // Edges mode
+    float gx = -s00 - 2.0*s01 - s02 + s20 + 2.0*s21 + s22;
+    float gy = -s00 - 2.0*s10 - s20 + s02 + 2.0*s12 + s22;
+    float edge = clamp(length(vec2(gx,gy)) / 4.0, 0.0, 1.0);
+    float prob = smoothstep(1.0-u_threshold-0.15, 1.0-u_threshold+0.15, edge);
+    cellOn = step(hash21(cell), prob);
+  } else {
+    // Color mode — match selected color/shade only
+    vec3 pixelColor = texture(u_image, cUV).rgb;
+    float dist = length(pixelColor - u_targetColor) / 1.732;
+    float prob = 1.0 - smoothstep(u_threshold * 0.4, u_threshold * 0.6, dist);
+    cellOn = step(hash21(cell), prob);
+  }
+  if (u_invert > 0.5) cellOn = 1.0 - cellOn;
+
+  // Sample glyph from font atlas (white text on black, any Unicode)
+  // Flip X and Y: canvas coords (origin top-left) vs gl_FragCoord (origin bottom-left)
+  float charIdx = floor(mod(hash21(cell + vec2(13.7, 47.3)) * u_numSymbols, u_numSymbols));
+  vec2 atlasUV = vec2((charIdx + localUV.x) / u_numSymbols, 1.0 - localUV.y);
+  float glyph = texture(u_fontAtlas, atlasUV).r;
+
+  bool hiding = u_hideImage > 0.5;
+  vec4 base = hiding ? vec4(0.0) : imgColor;
+
+  if (outOfBounds) {
+    fragColor = hiding ? vec4(0.0) : u_bgColor;
+  } else if (cellOn < 0.5) {
+    fragColor = base;
+  } else {
+    fragColor = mix(base, u_symbolColor, glyph);
+  }
+}`;
+
 export class ShaderMount {
   parentElement: HTMLElement;
   canvasElement: HTMLCanvasElement;
@@ -1217,9 +1305,14 @@ export class ShaderMount {
     this.rafId = requestAnimationFrame(this.render);
   };
 
-  setTextureUniform = (name: string, image: HTMLImageElement) => {
-    if (!image.complete || image.naturalWidth === 0) {
-      throw new Error(`Image not loaded: ${name}`);
+  setTextureUniform = (name: string, source: HTMLImageElement | HTMLCanvasElement) => {
+    if (source instanceof HTMLImageElement && (!source.complete || source.naturalWidth === 0)) {
+      source.addEventListener('load', () => {
+        delete this.uniformCache[name];
+        this.setTextureUniform(name, source);
+        this.requestRender();
+      }, { once: true });
+      return;
     }
 
     const existing = this.textures.get(name);
@@ -1240,7 +1333,7 @@ export class ShaderMount {
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, source);
 
     if (this.gl.getError() !== this.gl.NO_ERROR) {
       console.error('WebGL texture error');
@@ -1251,9 +1344,11 @@ export class ShaderMount {
     const location = this.uniformLocations[name];
     if (location) {
       this.gl.uniform1i(location, unit);
-      const aspectLocation = this.uniformLocations[`${name}AspectRatio`];
-      if (aspectLocation) {
-        this.gl.uniform1f(aspectLocation, image.naturalWidth / image.naturalHeight);
+      if (source instanceof HTMLImageElement) {
+        const aspectLocation = this.uniformLocations[`${name}AspectRatio`];
+        if (aspectLocation) {
+          this.gl.uniform1f(aspectLocation, source.naturalWidth / source.naturalHeight);
+        }
       }
     }
   };
@@ -1274,7 +1369,9 @@ export class ShaderMount {
       const cacheValue =
         value instanceof HTMLImageElement
           ? `${value.src.slice(0, 200)}|${value.naturalWidth}x${value.naturalHeight}`
-          : value;
+          : value instanceof HTMLCanvasElement
+            ? value
+            : value;
 
       if (this.areEqual(this.uniformCache[key], cacheValue)) return;
       this.uniformCache[key] = cacheValue;
@@ -1285,7 +1382,7 @@ export class ShaderMount {
         return;
       }
 
-      if (value instanceof HTMLImageElement) {
+      if (value instanceof HTMLImageElement || value instanceof HTMLCanvasElement) {
         this.setTextureUniform(key, value);
         return;
       }

@@ -17,7 +17,11 @@ import type { ActiveFilter, EditorState } from '../types/editor';
 
 type MobileTab = 'sliders' | 'colors';
 
-// Second tab label changes per filter
+function getFirstTabLabel(filter: ActiveFilter): string {
+  if (filter === 'symbolEdges') return 'Symbol';
+  return 'Sliders';
+}
+
 function getSecondTabLabel(filter: ActiveFilter): string {
   if (filter === 'glass') return 'Angle';
   if (filter === 'glitchy') return 'Distortion';
@@ -475,6 +479,82 @@ function HalftonePanelContent({ state, updateState, tab }: PanelContentProps) {
   );
 }
 
+function SymbolEdgesPanelContent({ state, updateState, tab }: PanelContentProps) {
+  const se = state.symbolEdges;
+  if (tab === 'sliders') {
+    return (
+      <div className="mobile-panel-section">
+        <div className="mobile-symbols-row">
+          <span className="widget-label">Symbols</span>
+          <input
+            className="mobile-symbols-input"
+            type="text"
+            value={se.symbols}
+            onChange={(e) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, symbols: e.target.value } }))}
+            maxLength={32}
+            spellCheck={false}
+          />
+        </div>
+        <SliderControl
+          label="Size"
+          min={0}
+          max={100}
+          value={se.cellSize}
+          onChange={(v) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, cellSize: v } }))}
+        />
+        <SliderControl
+          label="Threshold"
+          min={0}
+          max={100}
+          value={se.threshold}
+          onChange={(v) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, threshold: v } }))}
+        />
+        <CheckboxControl
+          label="Hide image"
+          checked={se.hideImage}
+          onChange={(v) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, hideImage: v } }))}
+        />
+      </div>
+    );
+  }
+  return (
+    <div className="mobile-panel-section">
+      <ColorSelectorControl
+        label="Symbol Color"
+        value={se.symbolColor}
+        onChange={(v) =>
+          updateState((s) => ({
+            ...s,
+            symbolEdges: { ...s.symbolEdges, symbolColor: sanitizeHex(v, s.symbolEdges.symbolColor) },
+          }))
+        }
+      />
+      <CheckboxControl
+        label="Matching color"
+        checked={se.mode === 'color'}
+        onChange={(v) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, mode: v ? 'color' : 'edges' } }))}
+      />
+      {se.mode === 'color' && (
+        <ColorSelectorControl
+          label="Color to Match"
+          value={se.targetColor}
+          onChange={(v) =>
+            updateState((s) => ({
+              ...s,
+              symbolEdges: { ...s.symbolEdges, targetColor: sanitizeHex(v, s.symbolEdges.targetColor) },
+            }))
+          }
+        />
+      )}
+      <CheckboxControl
+        label="Invert"
+        checked={se.invert}
+        onChange={(v) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, invert: v } }))}
+      />
+    </div>
+  );
+}
+
 export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSelect }: MobileDrawerProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<MobileTab>('sliders');
@@ -483,6 +563,7 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
   const drawerRef = useRef<HTMLDivElement>(null);
 
   const filterLabel = filterOptions.find((f) => f.id === state.activeFilter)?.label ?? '';
+  const firstTabLabel = getFirstTabLabel(state.activeFilter);
   const secondTabLabel = getSecondTabLabel(state.activeFilter);
 
   function switchTab(tab: MobileTab) {
@@ -569,7 +650,7 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
                     className={`mobile-seg-btn${activeTab === 'sliders' ? ' active' : ''}`}
                     onClick={() => switchTab('sliders')}
                   >
-                    Sliders
+                    {firstTabLabel}
                   </button>
                   <button
                     type="button"
@@ -617,6 +698,9 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
                   )}
                   {state.activeFilter === 'halftone' && (
                     <HalftonePanelContent state={state} updateState={updateState} tab={activeTab} />
+                  )}
+                  {state.activeFilter === 'symbolEdges' && (
+                    <SymbolEdgesPanelContent state={state} updateState={updateState} tab={activeTab} />
                   )}
                 </div>
               </div>

@@ -6,6 +6,7 @@ import { GlassPanel } from './panels/GlassPanel';
 import { GlitchyPanel } from './panels/GlitchyPanel';
 import { HalftonePanel } from './panels/HalftonePanel';
 import { LiquidPanel } from './panels/LiquidPanel';
+import { SymbolEdgesPanel } from './panels/SymbolEdgesPanel';
 
 interface EditorPanelsProps {
   state: EditorState;
@@ -157,6 +158,19 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         onColor4Change={(color4) => updateState((current) => ({ ...current, halftone: { ...current.halftone, color4: sanitizeHex(color4, current.halftone.color4) } }))}
         onGrainOverlayChange={(grainOverlay) => updateState((current) => ({ ...current, halftone: { ...current.halftone, grainOverlay } }))}
         onBlobThresholdChange={(blobThreshold) => updateState((current) => ({ ...current, halftone: { ...current.halftone, blobThreshold } }))}
+      />
+
+      <SymbolEdgesPanel
+        state={state}
+        isActive={state.activeFilter === 'symbolEdges'}
+        onModeChange={(mode) => updateState((current) => ({ ...current, symbolEdges: { ...current.symbolEdges, mode } }))}
+        onSymbolsChange={(symbols) => updateState((current) => ({ ...current, symbolEdges: { ...current.symbolEdges, symbols } }))}
+        onSymbolColorChange={(symbolColor) => updateState((current) => ({ ...current, symbolEdges: { ...current.symbolEdges, symbolColor: sanitizeHex(symbolColor, current.symbolEdges.symbolColor) } }))}
+        onThresholdChange={(threshold) => updateState((current) => ({ ...current, symbolEdges: { ...current.symbolEdges, threshold } }))}
+        onCellSizeChange={(cellSize) => updateState((current) => ({ ...current, symbolEdges: { ...current.symbolEdges, cellSize } }))}
+        onTargetColorChange={(targetColor) => updateState((current) => ({ ...current, symbolEdges: { ...current.symbolEdges, targetColor: sanitizeHex(targetColor, current.symbolEdges.targetColor) } }))}
+        onInvertChange={(invert) => updateState((current) => ({ ...current, symbolEdges: { ...current.symbolEdges, invert } }))}
+        onHideImageChange={(hideImage) => updateState((current) => ({ ...current, symbolEdges: { ...current.symbolEdges, hideImage } }))}
       />
     </div>
   );

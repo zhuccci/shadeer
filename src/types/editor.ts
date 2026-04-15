@@ -1,4 +1,6 @@
-export type ActiveFilter = 'glass' | 'dithering' | 'liquid' | 'glitchy' | 'halftone';
+export type ActiveFilter = 'glass' | 'dithering' | 'liquid' | 'glitchy' | 'halftone' | 'symbolEdges';
+
+export type SymbolEdgesMode = 'edges' | 'color';
 
 export type FitMode = 'fill' | 'fit';
 
@@ -74,6 +76,18 @@ export interface HalftoneSettings {
   blobThreshold: number;
 }
 
+export interface SymbolEdgesSettings {
+  mode: SymbolEdgesMode;
+  symbols: string;
+  symbolColor: string;
+  backgroundColor: string;
+  threshold: number;
+  cellSize: number;
+  targetColor: string;
+  invert: boolean;
+  hideImage: boolean;
+}
+
 export interface EditorImageState {
   image: HTMLImageElement | null;
   src: string | null;
@@ -92,6 +106,7 @@ export interface EditorState {
   liquid: LiquidSettings;
   glitchy: GlitchySettings;
   halftone: HalftoneSettings;
+  symbolEdges: SymbolEdgesSettings;
   image: EditorImageState;
 }
 
@@ -138,6 +153,18 @@ export const defaultGlitchySettings: GlitchySettings = {
   vhsNoiseLevel: 30,
   vhsBandHeight: 30,
   playing: true,
+};
+
+export const defaultSymbolEdgesSettings: SymbolEdgesSettings = {
+  mode: 'edges',
+  symbols: '01',
+  symbolColor: '#FFFFFF',
+  backgroundColor: '#000000',
+  threshold: 60,
+  cellSize: 30,
+  targetColor: '#808080',
+  invert: false,
+  hideImage: false,
 };
 
 export const defaultHalftoneSettings: HalftoneSettings = {

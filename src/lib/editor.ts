@@ -6,6 +6,7 @@ import type {
   GlitchySettings,
   HalftoneSettings,
   LiquidSettings,
+  SymbolEdgesSettings,
 } from '../types/editor';
 import {
   defaultDitheringSettings,
@@ -13,6 +14,7 @@ import {
   defaultGlitchySettings,
   defaultHalftoneSettings,
   defaultLiquidSettings,
+  defaultSymbolEdgesSettings,
 } from '../types/editor';
 import {
   DitheringTypes,
@@ -23,6 +25,7 @@ import {
   glitchyFragmentShader,
   halftoneFragmentShader,
   imageDitheringFragmentShader,
+  symbolEdgesFragmentShader,
   waterFragmentShader,
 } from './shaders';
 
@@ -36,6 +39,7 @@ export const defaultEditorState: EditorState = {
   liquid: defaultLiquidSettings,
   glitchy: defaultGlitchySettings,
   halftone: defaultHalftoneSettings,
+  symbolEdges: defaultSymbolEdgesSettings,
   image: {
     image: null,
     src: null,
@@ -225,6 +229,70 @@ export function buildGlitchyUniforms(
   };
 }
 
+// ── Font atlas for symbol edges ───────────────────────────────────────────────
+const _fontAtlasCache = new Map<string, HTMLCanvasElement>();
+
+export function createFontAtlas(symbols: string, cellPx: number): HTMLCanvasElement {
+  const s = symbols.length > 0 ? symbols : ' ';
+  const key = `${s}|${cellPx}`;
+  const cached = _fontAtlasCache.get(key);
+  if (cached) return cached;
+
+  const n = s.length;
+  const canvas = document.createElement('canvas');
+  canvas.width = cellPx * n;
+  canvas.height = cellPx;
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#fff';
+  ctx.font = `bold ${Math.max(4, Math.floor(cellPx * 0.82))}px monospace`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (let i = 0; i < n; i++) {
+    ctx.fillText(s[i], i * cellPx + cellPx / 2, cellPx / 2);
+  }
+  _fontAtlasCache.set(key, canvas);
+  return canvas;
+}
+
+function hexToVec3(hex: string): [number, number, number] {
+  const v = hexToVec4(hex);
+  return [v[0], v[1], v[2]];
+}
+
+export function buildSymbolEdgesUniforms(
+  se: SymbolEdgesSettings,
+  fitMode: FitMode,
+  offsetX: number,
+  offsetY: number,
+) {
+  const cellPx = Math.round(6 + (se.cellSize / 100) * 42);
+  const symbols = se.symbols.length > 0 ? se.symbols : '0';
+  const fontAtlas = createFontAtlas(symbols, cellPx);
+  return {
+    u_fit: fitMode === 'fill' ? 2 : 1,
+    u_scale: 1,
+    u_rotation: 0,
+    u_originX: 0.5,
+    u_originY: 0.5,
+    u_worldWidth: 0,
+    u_worldHeight: 0,
+    u_offsetX: offsetX,
+    u_offsetY: offsetY,
+    u_fontAtlas: fontAtlas,
+    u_cellSize: cellPx,
+    u_numSymbols: symbols.length,
+    u_threshold: se.threshold / 100,
+    u_symbolColor: hexToVec4(se.symbolColor),
+    u_bgColor: hexToVec4(se.backgroundColor),
+    u_mode: se.mode === 'edges' ? 0 : 1,
+    u_targetColor: hexToVec3(se.targetColor),
+    u_invert: se.invert ? 1 : 0,
+    u_hideImage: se.hideImage ? 1 : 0,
+  };
+}
+
 export function getShaderConfig(state: EditorState, image: HTMLImageElement) {
   if (state.activeFilter === 'dithering') {
     return {
@@ -265,6 +333,17 @@ export function getShaderConfig(state: EditorState, image: HTMLImageElement) {
       uniforms: {
         u_image: image,
         ...buildHalftoneUniforms(state.halftone, state.fitMode, state.offsetX, state.offsetY),
+      },
+      speed: 0,
+    };
+  }
+
+  if (state.activeFilter === 'symbolEdges') {
+    return {
+      fragmentShader: symbolEdgesFragmentShader,
+      uniforms: {
+        u_image: image,
+        ...buildSymbolEdgesUniforms(state.symbolEdges, state.fitMode, state.offsetX, state.offsetY),
       },
       speed: 0,
     };

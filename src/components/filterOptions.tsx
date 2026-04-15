@@ -46,8 +46,15 @@ export const filterOptions: FilterOption[] = [
     hoverThumbnail: `${baseUrl}placeholders/halftone_hover.png`,
     implemented: true,
   },
+  {
+    id: 'symbolEdges',
+    label: 'Symbols',
+    thumbnail: `${baseUrl}placeholders/symbolEdges.png`,
+    hoverThumbnail: `${baseUrl}placeholders/symbolEdges_hover.png`,
+    implemented: true,
+  },
 ];
 
 export function isActiveFilter(filterId: FilterOption['id']): filterId is ActiveFilter {
-  return filterId === 'glass' || filterId === 'dithering' || filterId === 'liquid' || filterId === 'glitchy' || filterId === 'halftone';
+  return filterId === 'glass' || filterId === 'dithering' || filterId === 'liquid' || filterId === 'glitchy' || filterId === 'halftone' || filterId === 'symbolEdges';
 }
