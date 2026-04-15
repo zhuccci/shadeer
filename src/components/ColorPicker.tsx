@@ -106,26 +106,13 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
     ctx.fillRect(0, 0, PALETTE_W, PALETTE_H);
   }, [color.h]);
 
-  // ── Close on outside click or Escape ─────────────────────────────────────────
+  // ── Close on Escape ───────────────────────────────────────────────────────────
   useEffect(() => {
-    let ready = false;
-    const raf = requestAnimationFrame(() => { ready = true; });
-    function onOutside(e: Event) {
-      if (!ready) return;
-      if (popupRef.current && !popupRef.current.contains(e.target as Node)) onClose();
-    }
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();
     }
-    document.addEventListener('pointerdown', onOutside);
-    document.addEventListener('touchstart', onOutside, { passive: true });
     document.addEventListener('keydown', onKeyDown);
-    return () => {
-      cancelAnimationFrame(raf);
-      document.removeEventListener('pointerdown', onOutside);
-      document.removeEventListener('touchstart', onOutside);
-      document.removeEventListener('keydown', onKeyDown);
-    };
+    return () => document.removeEventListener('keydown', onKeyDown);
   }, [onClose]);
 
   // ── Emit hex ──────────────────────────────────────────────────────────────────
@@ -240,12 +227,16 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
     : Math.max(8, anchorRect.top - popupHeight - 8);
 
   return createPortal(
+    <>
+    <div
+      className="color-picker-backdrop"
+      onPointerDown={onClose}
+    />
     <div
       className="color-picker-popup"
       ref={popupRef}
       style={{ position: 'fixed', top: popupTop, left: popupLeft }}
       onPointerDown={(e) => e.stopPropagation()}
-      onTouchStart={(e) => e.stopPropagation()}
     >
       {/* ── SV Palette ── */}
       <div
@@ -310,7 +301,8 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
           />
         </div>
       </div>
-    </div>,
+    </div>
+    </>,
     document.body
   );
 }
