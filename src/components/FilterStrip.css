@@ -146,6 +146,7 @@
   z-index: 0;
   background-repeat: repeat;
   background-size: 41px 41px;
+  border-radius: 16px;
 }
 
 .btn-thumbnail {
@@ -188,6 +189,7 @@
   background: radial-gradient(191px 191px at 100% -125px, rgb(40, 40, 40) 0%, rgb(51, 51, 51) 100%);
   box-shadow: inset -2px -4px 43px rgba(0, 0, 0, 0.25);
   transition: background 0.25s ease, box-shadow 0.25s ease;
+  border-radius: 0 0 16px 16px;
 }
 
 
