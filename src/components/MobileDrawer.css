@@ -123,7 +123,7 @@
 .sheet-filter-strip .filter-buttons-scroll {
   padding-left: 16px;
   padding-top: 3px;
-  padding-bottom: 3px;
+  padding-bottom: 0;
   mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 40px), transparent 100%);
   -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 40px), transparent 100%);
 }
@@ -133,7 +133,7 @@
 }
 
 .sheet-filter-strip .filter-buttons {
-  gap: 8px;
+  gap: 16px;
 }
 
 /* Square 80×80 buttons, thumbnail only — no label row */
