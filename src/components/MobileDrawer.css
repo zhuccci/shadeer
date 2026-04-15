@@ -125,7 +125,6 @@
 
 .sheet-filter-strip .filter-buttons-scroll {
   padding-left: 16px;
-  padding-right: 16px;
   padding-top: 3px;
   padding-bottom: 0;
   mask-image: linear-gradient(to right, transparent 0, black 16px, black 100%);
@@ -133,7 +132,7 @@
 }
 
 .sheet-filter-strip .filter-strip-end {
-  min-width: 0;
+  min-width: 16px;
 }
 
 .sheet-filter-strip .filter-buttons {
