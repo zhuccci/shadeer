@@ -105,6 +105,9 @@
   gap: 16px;
   opacity: 1;
   transition: opacity 200ms var(--ease-out-strong);
+  /* Extend to full drawer width so the mask fades aren't clipped by overflow: hidden */
+  margin-left: -16px;
+  margin-right: -16px;
 }
 
 .settings-open .mobile-filter-area-inner {
@@ -113,10 +116,11 @@
 }
 
 /* ── Mobile filter strip ── */
-/* Escape the 16px drawer padding on both sides for edge-to-edge fades */
+/* .mobile-filter-area-inner carries the -16px horizontal margins so the strip
+   is already full-drawer-width — no need to break out further here */
 .mobile-filter-strip .filter-buttons-wrap {
-  margin-left: -16px;
-  margin-right: -16px;
+  margin-left: 0;
+  margin-right: 0;
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -124,9 +128,14 @@
 .mobile-filter-strip .filter-buttons-scroll {
   padding-left: 16px;
   padding-top: 3px;
-  padding-bottom: 3px;
+  padding-bottom: 16px; /* enough room for button drop-shadows */
   mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 40px), transparent 100%);
   -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 40px), transparent 100%);
+}
+
+/* Spacer must be at least as wide as the right fade so the last button isn't masked */
+.mobile-filter-strip .filter-strip-end {
+  min-width: 40px;
 }
 
 .mobile-filter-strip .filter-buttons {
@@ -326,6 +335,8 @@
 .mobile-action-bar {
   display: flex;
   gap: 12px;
+  padding-left: 16px;
+  padding-right: 16px;
   opacity: 1;
   transform: translateY(0);
   transition: opacity 180ms var(--ease-out-strong), transform 180ms var(--ease-out-strong);
