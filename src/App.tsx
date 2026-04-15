@@ -5,6 +5,7 @@ import { EditorPanels } from './components/EditorPanels';
 import { FilterStrip } from './components/FilterStrip';
 import { MobileDrawer } from './components/MobileDrawer';
 import { PreviewStage } from './components/PreviewStage';
+import { PullToRefresh } from './components/PullToRefresh';
 import { TextureLayer } from './components/TextureLayer';
 import {
   defaultEditorState,
@@ -230,6 +231,7 @@ export default function App() {
         onSave={() => void handleSave()}
         onFilterSelect={handleFilterSelect}
       />
+      <PullToRefresh />
     </div>
   );
 }
