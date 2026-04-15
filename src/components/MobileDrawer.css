@@ -31,7 +31,11 @@
 .mobile-sheet.expanded .sheet-card {
   background: linear-gradient(26.26deg, rgb(32, 32, 32) 16.37%, rgb(45, 45, 45) 100%);
   padding: 8px;
-  gap: 8px;
+  gap: 0;
+}
+
+.mobile-sheet.expanded .sheet-settings-area {
+  margin-top: 8px;
 }
 
 /* ── Header ── */
