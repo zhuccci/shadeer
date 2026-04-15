@@ -163,8 +163,8 @@ button {
     border-radius: 24px;
   }
 
-  .mobile-drawer {
-    display: block;
+  .mobile-sheet {
+    display: flex;
   }
 
   /* Make the upload button 48px tall on mobile */

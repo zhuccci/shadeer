@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import './MobileDrawer.css';
 import { CheckboxControl } from './CheckboxControl';
 import { ColorSelectorControl } from './ColorSelectorControl';
@@ -65,7 +65,6 @@ interface PanelContentProps {
 }
 
 function GlassPanelContent({ state, updateState, tab }: PanelContentProps) {
-  // Sliders: Shape, Size, Grain — Angle tab: Knob only
   if (tab === 'colors') {
     return (
       <div className="mobile-panel-section mobile-angle-tab">
@@ -234,8 +233,6 @@ function LiquidPanelContent({ state, updateState, tab }: PanelContentProps) {
 }
 
 function GlitchyPanelContent({ state, updateState, tab }: PanelContentProps) {
-  // Sliders: Glitch form/mode/strength/amount + play
-  // Distortion tab: CRT + VHS
   if (tab === 'colors') {
     return (
       <div className="mobile-panel-section">
@@ -556,11 +553,10 @@ function SymbolEdgesPanelContent({ state, updateState, tab }: PanelContentProps)
 }
 
 export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSelect }: MobileDrawerProps) {
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<MobileTab>('sliders');
   const [slideDir, setSlideDir] = useState<'forward' | 'back'>('forward');
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
-  const drawerRef = useRef<HTMLDivElement>(null);
 
   const filterLabel = filterOptions.find((f) => f.id === state.activeFilter)?.label ?? '';
   const firstTabLabel = getFirstTabLabel(state.activeFilter);
@@ -572,60 +568,38 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
     setActiveTab(tab);
   }
 
-  // Close settings when tapping outside the drawer
-  useEffect(() => {
-    if (!settingsOpen) return;
-    function handleOutside(e: Event) {
-      if (drawerRef.current && !drawerRef.current.contains(e.target as Node)) {
-        setSettingsOpen(false);
-      }
-    }
-    // Small delay so the toggle click that opened settings doesn't immediately close it
-    const id = setTimeout(() => {
-      document.addEventListener('pointerdown', handleOutside);
-    }, 50);
-    return () => {
-      clearTimeout(id);
-      document.removeEventListener('pointerdown', handleOutside);
-    };
-  }, [settingsOpen]);
-
   return (
-    <div ref={drawerRef} className={`mobile-drawer${settingsOpen ? ' settings-open' : ''}`}>
-      <div className="mobile-drawer-inner">
+    <div className={`mobile-sheet${expanded ? ' expanded' : ''}`}>
+      <div className="sheet-card">
 
-        {/* Filter header bar */}
-        <div className="mobile-filter-header">
-          <span className="mobile-filter-name">{filterLabel}</span>
+        {/* Header */}
+        <div className="sheet-header">
+          <span className="sheet-filter-name">{filterLabel}</span>
           <button
             type="button"
-            className="mobile-filter-header-btn"
-            onClick={() => setSettingsOpen((v) => !v)}
-            aria-label={settingsOpen ? 'Close settings' : 'Open settings'}
+            className="sheet-icon-btn"
+            onClick={() => setExpanded((v) => !v)}
+            aria-label={expanded ? 'Close settings' : 'Open settings'}
           >
-            {/* key forces re-mount so CSS @starting-style fires on icon swap */}
-            <span key={settingsOpen ? 'close' : 'settings'} className="mobile-header-icon">
-              {settingsOpen ? <CloseIcon /> : <SettingsIcon />}
+            <span key={expanded ? 'close' : 'settings'} className="sheet-header-icon">
+              {expanded ? <CloseIcon /> : <SettingsIcon />}
             </span>
           </button>
         </div>
 
-        {/* Single body wrapper so only one 8px gap from the header to content */}
-        <div className="mobile-drawer-body">
-
-        {/* Filter strip + action bar — always mounted, collapses via CSS when settings open */}
-        <div className="mobile-filter-area">
-          <div className="mobile-filter-area-inner">
-            <div className="mobile-filter-strip">
+        {/* Filter strip — collapses when expanded */}
+        <div className="sheet-filter-area">
+          <div className="sheet-filter-area-inner">
+            <div className="sheet-filter-strip">
               <FilterStrip activeFilter={state.activeFilter} onSelect={onFilterSelect} />
             </div>
             {state.image.hasUserImage && (
-              <div className="mobile-action-bar">
-                <button className="btn btn-secondary mobile-action-btn" onClick={onUpload}>
+              <div className="sheet-action-bar">
+                <button className="btn btn-secondary sheet-action-btn" onClick={onUpload}>
                   <UploadIcon />
                   Upload New
                 </button>
-                <button className="btn btn-primary mobile-action-btn" onClick={onSave}>
+                <button className="btn btn-primary sheet-action-btn" onClick={onSave}>
                   <SaveIcon />
                   Save
                 </button>
@@ -634,37 +608,38 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
           </div>
         </div>
 
-        {/* Settings panel — always mounted, expands via CSS when settings open */}
-        <div className="mobile-settings-area">
-          <div className="mobile-settings-area-inner">
-            <div className="mobile-settings-panel">
-              <div className="mobile-segmented-sticky">
-                <div className="mobile-segmented-control">
-                  {/* Sliding pill indicator */}
+        {/* Settings panel — expands when expanded */}
+        <div className="sheet-settings-area">
+          <div className="sheet-settings-area-inner">
+            <div className="sheet-panel">
+              {/* Segmented tabs */}
+              <div className="sheet-segmented-sticky">
+                <div className="sheet-segmented">
                   <span
-                    className="mobile-seg-pill"
+                    className="sheet-seg-pill"
                     style={{ transform: activeTab === 'colors' ? 'translateX(100%)' : 'translateX(0)' }}
                   />
                   <button
                     type="button"
-                    className={`mobile-seg-btn${activeTab === 'sliders' ? ' active' : ''}`}
+                    className={`sheet-seg-btn${activeTab === 'sliders' ? ' active' : ''}`}
                     onClick={() => switchTab('sliders')}
                   >
                     {firstTabLabel}
                   </button>
                   <button
                     type="button"
-                    className={`mobile-seg-btn${activeTab === 'colors' ? ' active' : ''}`}
+                    className={`sheet-seg-btn${activeTab === 'colors' ? ' active' : ''}`}
                     onClick={() => switchTab('colors')}
                   >
                     {secondTabLabel}
                   </button>
                 </div>
               </div>
+
+              {/* Scrollable content */}
               <div
-                className="mobile-settings-scroll"
+                className="sheet-scroll"
                 onTouchStart={(e) => {
-                  // If the touch starts on an interactive control, never start swipe tracking
                   const t = e.target as HTMLElement;
                   if (t.closest('.slider-track') || t.closest('.knob-area') || t.closest('.halftone-segment')) return;
                   swipeStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -679,10 +654,9 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
                   if (dx > 0 && activeTab === 'colors') switchTab('sliders');
                 }}
               >
-                {/* key forces remount → @starting-style fires on every tab switch */}
                 <div
                   key={`${state.activeFilter}-${activeTab}`}
-                  className={`mobile-tab-content${slideDir === 'back' ? ' slide-back' : ''}`}
+                  className={`sheet-tab-content${slideDir === 'back' ? ' slide-back' : ''}`}
                 >
                   {state.activeFilter === 'glass' && (
                     <GlassPanelContent state={state} updateState={updateState} tab={activeTab} />
@@ -707,8 +681,6 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
             </div>
           </div>
         </div>
-
-        </div>{/* end mobile-drawer-body */}
 
       </div>
     </div>

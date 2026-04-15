@@ -1,236 +1,252 @@
 /* ── Custom easing ── */
 :root {
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 /* Hidden by default — shown via media query in app.css */
-.mobile-drawer {
+.mobile-sheet {
   display: none;
   flex-shrink: 0;
-  background: linear-gradient(to bottom, #292929 0%, #202020 100%);
-  border: 0.5px solid #606060;
-  border-bottom: none;
-  border-radius: 24px 24px 0 0;
-  box-shadow:
-    0 -3px 6px rgba(0, 0, 0, 0.2),
-    0 -10px 10px rgba(0, 0, 0, 0.17),
-    0 -23px 14px rgba(0, 0, 0, 0.1),
-    0 -41px 16px rgba(0, 0, 0, 0.03),
-    0 -64px 18px rgba(0, 0, 0, 0);
-  position: relative;
-  z-index: 10;
+  padding: 0 16px 16px;
 }
 
-.mobile-drawer-inner {
-  padding: 16px;
+/* ── Floating card ── */
+.sheet-card {
+  border-radius: 32px;
+  border: 0.5px solid #606060;
+  background: linear-gradient(12.46deg, rgb(32, 32, 32) 16.37%, rgb(45, 45, 45) 100%);
+  box-shadow:
+    0 -2px 6px rgba(0, 0, 0, 0.12),
+    0 4px 24px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
+  padding: 16px;
+  gap: 16px;
+  transition:
+    background 300ms var(--ease-out-strong),
+    padding 300ms var(--ease-out-strong),
+    gap 300ms var(--ease-out-strong);
+}
+
+.mobile-sheet.expanded .sheet-card {
+  background: linear-gradient(26.26deg, rgb(32, 32, 32) 16.37%, rgb(45, 45, 45) 100%);
+  padding: 8px;
   gap: 8px;
 }
 
-/* Wraps filter-area + settings-area so there's only one gap from the header */
-.mobile-drawer-body {
-  display: flex;
-  flex-direction: column;
-}
-
-/* ── Filter header bar ── */
-.mobile-filter-header {
+/* ── Header ── */
+.sheet-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 8px 8px 16px;
-  background: #373737;
-  border-radius: 16px;
-  flex-shrink: 0;
+  /* In collapsed state the card padding already gives left spacing.
+     In expanded state the name needs a nudge so it reads as 16px from edge. */
+  padding-left: 8px;
 }
 
-.mobile-filter-name {
-  font-size: 14px;
+.mobile-sheet:not(.expanded) .sheet-header {
+  padding-left: 0;
+}
+
+.sheet-filter-name {
+  font-size: 18px;
   font-weight: 500;
   color: var(--text);
   line-height: 1;
 }
 
-.mobile-filter-header-btn {
+.sheet-icon-btn {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 8px;
   background: none;
   border: none;
-  padding: 8px;
   cursor: pointer;
   color: var(--text);
   flex-shrink: 0;
   transition: transform 120ms var(--ease-out-strong);
 }
 
-.mobile-filter-header-btn:active {
+.sheet-icon-btn:active {
   transform: scale(0.88);
 }
 
 /* Icon swap: fade in on mount */
-.mobile-header-icon {
+.sheet-header-icon {
   display: flex;
   opacity: 1;
   transition: opacity 120ms ease-out;
 }
 
 @starting-style {
-  .mobile-header-icon {
+  .sheet-header-icon {
     opacity: 0;
   }
 }
 
-/* ── Filter area — collapses when settings open ── */
-.mobile-filter-area {
+/* ── Filter strip area — collapses when expanded ── */
+.sheet-filter-area {
   display: grid;
   grid-template-rows: 1fr;
-  /* closing: faster collapse */
   transition: grid-template-rows 240ms var(--ease-out-strong);
 }
 
-.settings-open .mobile-filter-area {
+.mobile-sheet.expanded .sheet-filter-area {
   grid-template-rows: 0fr;
-  /* opening: height leaves faster so settings has room */
   transition: grid-template-rows 220ms var(--ease-out-strong);
   pointer-events: none;
 }
 
-.mobile-filter-area-inner {
+.sheet-filter-area-inner {
   overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 16px;
   opacity: 1;
   transition: opacity 200ms var(--ease-out-strong);
-  /* Extend to full drawer width so the mask fades aren't clipped by overflow: hidden */
+  /* Extend to full card width so filter strip mask fades aren't clipped */
   margin-left: -16px;
   margin-right: -16px;
 }
 
-.settings-open .mobile-filter-area-inner {
+.mobile-sheet.expanded .sheet-filter-area-inner {
   opacity: 0;
   transition: opacity 120ms var(--ease-out-strong);
 }
 
-/* ── Mobile filter strip ── */
-/* .mobile-filter-area-inner carries the -16px horizontal margins so the strip
-   is already full-drawer-width — no need to break out further here */
-.mobile-filter-strip .filter-buttons-wrap {
-  margin-left: 0;
-  margin-right: 0;
-  margin-top: 0;
-  margin-bottom: 0;
+/* ── Filter strip inside the sheet ── */
+.sheet-filter-strip .filter-buttons-wrap {
+  margin: 0;
 }
 
-.mobile-filter-strip .filter-buttons-scroll {
+.sheet-filter-strip .filter-buttons-scroll {
   padding-left: 16px;
   padding-top: 3px;
-  padding-bottom: 16px; /* enough room for button drop-shadows */
+  padding-bottom: 16px;
   mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 40px), transparent 100%);
   -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 40px), transparent 100%);
 }
 
-/* Spacer must be at least as wide as the right fade so the last button isn't masked */
-.mobile-filter-strip .filter-strip-end {
+.sheet-filter-strip .filter-strip-end {
   min-width: 40px;
 }
 
-.mobile-filter-strip .filter-buttons {
+.sheet-filter-strip .filter-buttons {
   gap: 8px;
 }
 
-/* Square 80×80 buttons, no label row */
-.mobile-filter-strip .filter-btn {
+/* Square 80×80 buttons, thumbnail only — no label row */
+.sheet-filter-strip .filter-btn {
   width: 80px;
   border-radius: 12px;
 }
 
-.mobile-filter-strip .btn-thumbnail {
+.sheet-filter-strip .btn-thumbnail {
   height: 80px;
 }
 
-.mobile-filter-strip .btn-bottom {
+.sheet-filter-strip .btn-bottom {
   display: none;
 }
 
-/* ── Settings area — expands when settings open ── */
-.mobile-settings-area {
+/* ── Action bar (Upload + Save) ── */
+.sheet-action-bar {
+  display: flex;
+  gap: 12px;
+  padding: 0 16px;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 180ms var(--ease-out-strong), transform 180ms var(--ease-out-strong);
+}
+
+@starting-style {
+  .sheet-action-bar {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.sheet-action-btn {
+  flex: 1;
+  height: 48px;
+  justify-content: center;
+}
+
+/* ── Settings area — expands when expanded ── */
+.sheet-settings-area {
   display: grid;
   grid-template-rows: 0fr;
   pointer-events: none;
-  /* closing: faster collapse */
   transition: grid-template-rows 240ms var(--ease-out-strong);
 }
 
-.settings-open .mobile-settings-area {
+.mobile-sheet.expanded .sheet-settings-area {
   grid-template-rows: 1fr;
   pointer-events: auto;
-  /* opening: slightly slower expand */
   transition: grid-template-rows 280ms var(--ease-out-strong);
 }
 
-.mobile-settings-area-inner {
+.sheet-settings-area-inner {
   overflow: hidden;
 }
 
-/* ── Settings panel — fades in/out with the area ── */
-.mobile-settings-panel {
+/* ── Dark inner panel ── */
+.sheet-panel {
   display: flex;
   flex-direction: column;
   background: #141414;
-  border-radius: 16px;
+  border-radius: 24px;
   overflow: hidden;
   opacity: 0;
   transform: translateY(6px);
-  /* closing: fast fade */
-  transition: opacity 140ms var(--ease-out-strong), transform 140ms var(--ease-out-strong);
+  transition:
+    opacity 140ms var(--ease-out-strong),
+    transform 140ms var(--ease-out-strong);
 }
 
-.settings-open .mobile-settings-panel {
+.mobile-sheet.expanded .sheet-panel {
   opacity: 1;
   transform: translateY(0);
-  /* opening: delayed so height has started expanding first */
-  transition: opacity 220ms 60ms var(--ease-out-strong), transform 220ms 60ms var(--ease-out-strong);
+  transition:
+    opacity 220ms 60ms var(--ease-out-strong),
+    transform 220ms 60ms var(--ease-out-strong);
 }
 
-/* Segmented control — sticky inside the panel */
-.mobile-segmented-sticky {
+/* ── Segmented control — sticky at top of panel ── */
+.sheet-segmented-sticky {
   position: sticky;
   top: 0;
   z-index: 2;
   background: #141414;
-  padding: 12px 12px 0;
+  padding: 8px 8px 0;
 }
 
-.mobile-segmented-control {
+.sheet-segmented {
   position: relative;
   display: flex;
   align-items: center;
   background: #101010;
-  border-radius: 8px;
+  border-radius: 16px;
   padding: 4px;
-  gap: 0;
 }
 
-/* Sliding pill indicator */
-.mobile-seg-pill {
+/* Sliding pill */
+.sheet-seg-pill {
   position: absolute;
   top: 4px;
   left: 4px;
   bottom: 4px;
   width: calc(50% - 4px);
   background: #20201f;
-  border-radius: 4px;
+  border-radius: 12px;
   pointer-events: none;
   z-index: 0;
   transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
   will-change: transform;
 }
 
-.mobile-seg-btn {
+.sheet-seg-btn {
   flex: 1;
   padding: 8px;
   border: none;
@@ -250,22 +266,22 @@
     transform 100ms ease-out;
 }
 
-.mobile-seg-btn:active {
+.sheet-seg-btn:active {
   transform: scale(0.96);
 }
 
-.mobile-seg-btn.active {
+.sheet-seg-btn.active {
   color: #fff679;
   text-shadow: 0 0 10px rgba(255, 246, 121, 0.6);
 }
 
-/* Scrollable content below the sticky segmented */
-.mobile-settings-scroll {
+/* ── Scrollable content ── */
+.sheet-scroll {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: #373737 transparent;
-  height: clamp(200px, 28vh, 300px);
+  height: clamp(200px, 30vh, 320px);
   padding: 12px;
   display: flex;
   flex-direction: column;
@@ -273,22 +289,21 @@
   -webkit-mask-image: linear-gradient(to bottom, transparent 0px, black 20px, black calc(100% - 20px), transparent 100%);
 }
 
-.mobile-settings-scroll::-webkit-scrollbar {
+.sheet-scroll::-webkit-scrollbar {
   width: 4px;
 }
 
-.mobile-settings-scroll::-webkit-scrollbar-track {
+.sheet-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.mobile-settings-scroll::-webkit-scrollbar-thumb {
+.sheet-scroll::-webkit-scrollbar-thumb {
   background: #373737;
   border-radius: 2px;
 }
 
-/* Tab content — animates in on every tab switch (key forces remount) */
-/* Direction class set by React controls which side content enters from */
-.mobile-tab-content {
+/* ── Tab content — animates on tab switch ── */
+.sheet-tab-content {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -297,62 +312,25 @@
   transition: opacity 180ms var(--ease-out-strong), transform 200ms var(--ease-out-strong);
 }
 
-/* Forward (Sliders → second tab): enter from right */
 @starting-style {
-  .mobile-tab-content {
+  .sheet-tab-content {
     opacity: 0;
     transform: translateX(24px);
   }
 }
 
-/* Back (second tab → Sliders): enter from left */
-.mobile-tab-content.slide-back {
-  /* resting state is same, @starting-style overrides entry */
-}
-
 @starting-style {
-  .mobile-tab-content.slide-back {
+  .sheet-tab-content.slide-back {
     opacity: 0;
     transform: translateX(-24px);
   }
 }
 
-/* Panel section — vertical stack of controls */
+/* ── Panel section — vertical stack of controls ── */
 .mobile-panel-section {
   display: flex;
   flex-direction: column;
   gap: 24px;
-}
-
-.mobile-panel-empty {
-  color: #666;
-  font-size: 14px;
-  text-align: center;
-  padding: 8px 0;
-}
-
-/* ── Action bar (Upload New + Save) ── */
-.mobile-action-bar {
-  display: flex;
-  gap: 12px;
-  padding-left: 16px;
-  padding-right: 16px;
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 180ms var(--ease-out-strong), transform 180ms var(--ease-out-strong);
-}
-
-@starting-style {
-  .mobile-action-bar {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-}
-
-.mobile-action-btn {
-  flex: 1;
-  height: 48px;
-  justify-content: center;
 }
 
 /* Play/Pause button full-width in mobile */
@@ -361,7 +339,7 @@
   justify-content: center;
 }
 
-/* ── Glass Angle tab — centered, oversized knob, no label/input ── */
+/* ── Glass Angle tab — centered knob ── */
 .mobile-angle-tab {
   display: flex;
   align-items: center;
@@ -370,8 +348,7 @@
   min-height: 180px;
 }
 
-/* Knob at top of a list — same visual, but no height: 100% stretch */
-/* Extra padding-top absorbs the upward visual overflow from scale(1.4) */
+/* Knob at top of a list */
 .mobile-knob-top {
   height: auto;
   min-height: 140px;
@@ -398,6 +375,7 @@
   width: auto;
 }
 
+/* ── Symbols input ── */
 .mobile-symbols-row {
   display: flex;
   flex-direction: column;
