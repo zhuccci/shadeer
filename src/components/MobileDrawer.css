@@ -18,6 +18,7 @@
   box-shadow:
     0 -2px 6px rgba(0, 0, 0, 0.12),
     0 4px 24px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   padding: 16px 16px 0;
@@ -108,9 +109,12 @@
   gap: 16px;
   opacity: 1;
   transition: opacity 200ms var(--ease-out-strong);
-  /* Extend to full card width so filter strip mask fades aren't clipped */
-  margin-left: -16px;
-  margin-right: -16px;
+  /* Extend beyond card content area so button shadows have breathing room;
+     the card's overflow:hidden clips at its rounded border */
+  margin-left: -24px;
+  margin-right: -24px;
+  padding-left: 8px;
+  padding-right: 8px;
 }
 
 .mobile-sheet.expanded .sheet-filter-area-inner {
@@ -126,13 +130,13 @@
 .sheet-filter-strip .filter-buttons-scroll {
   padding-left: 16px;
   padding-top: 3px;
-  padding-bottom: 0;
-  mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 8px), transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 8px), transparent 100%);
+  padding-bottom: 8px;
+  mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 4px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 4px), transparent 100%);
 }
 
 .sheet-filter-strip .filter-strip-end {
-  min-width: 8px;
+  min-width: 4px;
 }
 
 .sheet-filter-strip .filter-buttons {
@@ -147,6 +151,8 @@
 
 .sheet-filter-strip .btn-thumbnail {
   height: 80px;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .sheet-filter-strip .btn-bottom {
