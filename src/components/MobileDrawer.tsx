@@ -572,16 +572,16 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
   const [slideDir, setSlideDir] = useState<'forward' | 'back'>('forward');
   const [mobileColorPicker, setMobileColorPicker] = useState<MobileColorPickerState>(null);
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
-  const cardRef    = useRef<HTMLDivElement>(null);
+  const panelRef   = useRef<HTMLDivElement>(null);
 
   const openColor: OpenColorFn = (label, value, onChange, swatchRect) => {
-    // Compute transform-origin relative to the card so the picker expands from the swatch
+    // Compute transform-origin relative to the panel so the picker expands from the swatch
     let originX = '50%', originY = '50%';
-    const cardEl = cardRef.current;
-    if (cardEl) {
-      const cardRect = cardEl.getBoundingClientRect();
-      const ox = swatchRect.left + swatchRect.width  / 2 - cardRect.left;
-      const oy = swatchRect.top  + swatchRect.height / 2 - cardRect.top;
+    const panelEl = panelRef.current;
+    if (panelEl) {
+      const panelRect = panelEl.getBoundingClientRect();
+      const ox = swatchRect.left + swatchRect.width  / 2 - panelRect.left;
+      const oy = swatchRect.top  + swatchRect.height / 2 - panelRect.top;
       originX = `${ox}px`;
       originY = `${oy}px`;
     }
@@ -601,7 +601,7 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
 
   return (
     <div className={`mobile-sheet${(expanded || !!mobileColorPicker) ? ' expanded' : ''}`}>
-      <div className="sheet-card" ref={cardRef}>
+      <div className="sheet-card">
 
         {/* Header */}
         <div className="sheet-header">
@@ -634,42 +634,44 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
           )}
         </div>
 
-        {mobileColorPicker ? (
-          /* Color picker — direct card child, full card width, no inner nesting */
-          <MobileColorPicker
-            value={mobileColorPicker.value}
-            onChange={mobileColorPicker.onChange}
-            style={{ '--cp-origin-x': mobileColorPicker.originX, '--cp-origin-y': mobileColorPicker.originY } as React.CSSProperties}
-          />
-        ) : (
-          <>
-            {/* Filter strip — collapses when expanded */}
-            <div className="sheet-filter-area">
-              <div className="sheet-filter-area-inner">
-                <div className="sheet-filter-strip">
-                  <FilterStrip activeFilter={state.activeFilter} onSelect={onFilterSelect} />
-                </div>
+        {/* Filter strip — hidden when color picker is open, collapses when expanded */}
+        {!mobileColorPicker && (
+          <div className="sheet-filter-area">
+            <div className="sheet-filter-area-inner">
+              <div className="sheet-filter-strip">
+                <FilterStrip activeFilter={state.activeFilter} onSelect={onFilterSelect} />
               </div>
             </div>
+          </div>
+        )}
 
-            {/* Action bar */}
-            {state.image.hasUserImage && (
-              <div className="sheet-action-bar">
-                <button className="btn btn-secondary sheet-action-btn" onClick={onUpload}>
-                  <UploadIcon />
-                  Upload New
-                </button>
-                <button className="btn btn-primary sheet-action-btn" onClick={onSave}>
-                  <SaveIcon />
-                  Save
-                </button>
-              </div>
-            )}
+        {/* Action bar — hidden when color picker is open */}
+        {!mobileColorPicker && state.image.hasUserImage && (
+          <div className="sheet-action-bar">
+            <button className="btn btn-secondary sheet-action-btn" onClick={onUpload}>
+              <UploadIcon />
+              Upload New
+            </button>
+            <button className="btn btn-primary sheet-action-btn" onClick={onSave}>
+              <SaveIcon />
+              Save
+            </button>
+          </div>
+        )}
 
-            {/* Settings panel — expands when expanded */}
-            <div className="sheet-settings-area">
-              <div className="sheet-settings-area-inner">
-                <div className="sheet-panel">
+        {/* Settings panel — expands when expanded */}
+        <div className="sheet-settings-area">
+          <div className="sheet-settings-area-inner">
+            <div className="sheet-panel" ref={panelRef}>
+              {mobileColorPicker ? (
+                /* Color picker view — fills panel directly, no tabs or scroll wrapper */
+                <MobileColorPicker
+                  value={mobileColorPicker.value}
+                  onChange={mobileColorPicker.onChange}
+                  style={{ '--cp-origin-x': mobileColorPicker.originX, '--cp-origin-y': mobileColorPicker.originY } as React.CSSProperties}
+                />
+              ) : (
+                <>
                   {/* Segmented tabs */}
                   <div className="sheet-segmented-sticky">
                     <div className="sheet-segmented">
@@ -736,11 +738,11 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
                       )}
                     </div>
                   </div>
-                </div>
-              </div>
+                </>
+              )}
             </div>
-          </>
-        )}
+          </div>
+        </div>
 
       </div>
     </div>
