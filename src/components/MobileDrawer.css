@@ -130,8 +130,8 @@
   padding-left: 16px;
   padding-top: 3px;
   padding-bottom: 8px;
-  mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 4px), transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 4px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
 }
 
 .sheet-filter-strip .filter-strip-end {
