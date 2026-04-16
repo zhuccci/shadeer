@@ -509,7 +509,7 @@ function SymbolEdgesPanelContent({ state, updateState, tab }: PanelContentProps)
         <SliderControl
           label="Glow"
           min={0}
-          max={100}
+          max={30}
           value={se.glow}
           onChange={(v) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, glow: v } }))}
         />
