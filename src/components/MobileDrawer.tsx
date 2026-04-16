@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import './MobileDrawer.css';
 import { MobileColorPicker } from './MobileColorPicker';
 import { CheckboxControl } from './CheckboxControl';
@@ -59,7 +59,7 @@ function CloseIcon() {
   );
 }
 
-type OpenColorFn = (label: string, value: string, onChange: (v: string) => void) => void;
+type OpenColorFn = (label: string, value: string, onChange: (v: string) => void, swatchRect: DOMRect) => void;
 
 interface PanelContentProps {
   state: EditorState;
@@ -564,7 +564,7 @@ function SymbolEdgesPanelContent({ state, updateState, tab, openColor }: PanelCo
   );
 }
 
-type MobileColorPickerState = { label: string; value: string; onChange: (v: string) => void } | null;
+type MobileColorPickerState = { label: string; value: string; onChange: (v: string) => void; originX: string; originY: string } | null;
 
 export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSelect }: MobileDrawerProps) {
   const [expanded, setExpanded] = useState(false);
@@ -572,10 +572,21 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
   const [slideDir, setSlideDir] = useState<'forward' | 'back'>('forward');
   const [mobileColorPicker, setMobileColorPicker] = useState<MobileColorPickerState>(null);
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
+  const panelRef   = useRef<HTMLDivElement>(null);
 
-  const openColor: OpenColorFn = (label, value, onChange) => {
+  const openColor: OpenColorFn = (label, value, onChange, swatchRect) => {
+    // Compute transform-origin relative to the panel so the picker expands from the swatch
+    let originX = '50%', originY = '50%';
+    const panelEl = panelRef.current;
+    if (panelEl) {
+      const panelRect = panelEl.getBoundingClientRect();
+      const ox = swatchRect.left + swatchRect.width  / 2 - panelRect.left;
+      const oy = swatchRect.top  + swatchRect.height / 2 - panelRect.top;
+      originX = `${ox}px`;
+      originY = `${oy}px`;
+    }
     setExpanded(true);
-    setMobileColorPicker({ label, value, onChange });
+    setMobileColorPicker({ label, value, onChange, originX, originY });
   };
 
   const filterLabel = filterOptions.find((f) => f.id === state.activeFilter)?.label ?? '';
@@ -651,12 +662,13 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
         {/* Settings panel — expands when expanded */}
         <div className="sheet-settings-area">
           <div className="sheet-settings-area-inner">
-            <div className="sheet-panel">
+            <div className="sheet-panel" ref={panelRef}>
               {mobileColorPicker ? (
                 /* Color picker view — fills panel directly, no tabs or scroll wrapper */
                 <MobileColorPicker
                   value={mobileColorPicker.value}
                   onChange={mobileColorPicker.onChange}
+                  style={{ '--cp-origin-x': mobileColorPicker.originX, '--cp-origin-y': mobileColorPicker.originY } as React.CSSProperties}
                 />
               ) : (
                 <>

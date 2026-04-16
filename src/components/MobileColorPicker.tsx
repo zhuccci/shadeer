@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import './ColorPicker.css';
 import './MobileColorPicker.css';
 
@@ -48,9 +48,10 @@ const SLIDER_THUMB  = 40;
 interface MobileColorPickerProps {
   value: string;
   onChange: (hex: string) => void;
+  style?: React.CSSProperties;
 }
 
-export function MobileColorPicker({ value, onChange }: MobileColorPickerProps) {
+export function MobileColorPicker({ value, onChange, style }: MobileColorPickerProps) {
   const [color, setColor] = useState(() => {
     const rgb = hexToRgb(value);
     if (!rgb) return { h: 0, s: 0, v: 1 };
@@ -177,7 +178,7 @@ export function MobileColorPicker({ value, onChange }: MobileColorPickerProps) {
   const hueRatio      = color.h / 360;
 
   return (
-    <div className="mobile-cp-body">
+    <div className="mobile-cp-body" style={style}>
       {/* SV palette — fills available height */}
       <div
         ref={paletteRef}
