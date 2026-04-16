@@ -7,6 +7,8 @@
 .mobile-sheet {
   display: none;
   flex-shrink: 0;
+  width: 100%;
+  min-width: 0;
   padding: 0 16px 16px;
 }
 
@@ -20,6 +22,8 @@
     0 4px 24px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
+  width: 100%;
+  min-width: 0;
   padding: 16px 16px 0;
   gap: 8px;
   transition:
