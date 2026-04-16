@@ -593,20 +593,22 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
             <div className="sheet-filter-strip">
               <FilterStrip activeFilter={state.activeFilter} onSelect={onFilterSelect} />
             </div>
-            {state.image.hasUserImage && (
-              <div className="sheet-action-bar">
-                <button className="btn btn-secondary sheet-action-btn" onClick={onUpload}>
-                  <UploadIcon />
-                  Upload New
-                </button>
-                <button className="btn btn-primary sheet-action-btn" onClick={onSave}>
-                  <SaveIcon />
-                  Save
-                </button>
-              </div>
-            )}
           </div>
         </div>
+
+        {/* Action bar — direct card child so glow is not clipped by filter-area overflow:hidden */}
+        {state.image.hasUserImage && (
+          <div className="sheet-action-bar">
+            <button className="btn btn-secondary sheet-action-btn" onClick={onUpload}>
+              <UploadIcon />
+              Upload New
+            </button>
+            <button className="btn btn-primary sheet-action-btn" onClick={onSave}>
+              <SaveIcon />
+              Save
+            </button>
+          </div>
+        )}
 
         {/* Settings panel — expands when expanded */}
         <div className="sheet-settings-area">
