@@ -1090,9 +1090,9 @@ void main() {
     fragColor = mix(base, u_symbolColor, glyph);
   }
 
-  // Glow: soft halo bleeding from active cells into surrounding area
   if (u_seGlow > 0.001 && !outOfBounds) {
-    float sigma = u_cellSize * (0.4 + u_seGlow * 1.2);
+    // Tight Gaussian halo — sigma stays small so glow hugs each symbol
+    float sigma = u_cellSize * (0.15 + u_seGlow * 0.25);
     float glowAmt = 0.0;
     for (int di = -1; di <= 1; di++) {
       for (int dj = -1; dj <= 1; dj++) {
@@ -1119,7 +1119,7 @@ void main() {
         glowAmt = max(glowAmt, nCellOn * exp(-d * d / (2.0 * sigma * sigma)));
       }
     }
-    vec3 glowCol = u_symbolColor.rgb * glowAmt * u_seGlow * 1.5;
+    vec3 glowCol = u_symbolColor.rgb * glowAmt * u_seGlow * 0.5;
     fragColor = vec4(clamp(fragColor.rgb + glowCol, 0.0, 1.0), fragColor.a);
   }
 }`;

@@ -241,6 +241,10 @@
 }
 
 /* ── Segmented control — sticky at top of panel ── */
+.sheet-segmented-sticky.hidden {
+  display: none;
+}
+
 .sheet-segmented-sticky {
   position: sticky;
   top: 0;

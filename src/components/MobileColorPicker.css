@@ -1,0 +1,70 @@
+.mobile-cp-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.mobile-cp {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: linear-gradient(26.26deg, #202020 16.37%, #2d2d2d 100%);
+  border-radius: 32px;
+  padding: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.mobile-cp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 8px 8px 16px;
+  flex-shrink: 0;
+}
+
+.mobile-cp-label {
+  color: #d6d6d6;
+  font-size: 18px;
+  font-weight: 500;
+  font-family: 'Geist', 'Inter', system-ui, sans-serif;
+}
+
+.mobile-cp-close {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #c7c7c7;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.mobile-cp-card {
+  background: #141414;
+  border-radius: 24px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mobile-cp-palette {
+  position: relative;
+  width: 100%;
+  height: 190px;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: crosshair;
+  flex-shrink: 0;
+  touch-action: none;
+}

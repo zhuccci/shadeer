@@ -53,7 +53,7 @@ export function SymbolEdgesPanel({
         </div>
         <SliderControl label="Size" min={0} max={100} value={se.cellSize} onChange={onCellSizeChange} />
         <SliderControl label="Threshold" min={0} max={100} value={se.threshold} onChange={onThresholdChange} />
-        <SliderControl label="Glow" min={0} max={30} value={se.glow} onChange={onGlowChange} />
+        <SliderControl label="Glow" min={0} max={100} value={se.glow} onChange={onGlowChange} />
         <CheckboxControl label="Hide image" checked={se.hideImage} onChange={onHideImageChange} />
       </div>
 

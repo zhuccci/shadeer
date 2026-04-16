@@ -90,15 +90,6 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
       <LiquidPanel
         state={state}
         isActive={state.activeFilter === 'liquid'}
-        onFrontColorChange={(frontColor) =>
-          updateState((current) => ({
-            ...current,
-            liquid: {
-              ...current.liquid,
-              frontColor: sanitizeHex(frontColor, current.liquid.frontColor),
-            },
-          }))
-        }
         onHighlightColorChange={(highlightColor) =>
           updateState((current) => ({
             ...current,
