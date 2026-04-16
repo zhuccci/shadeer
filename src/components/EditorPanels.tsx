@@ -167,6 +167,7 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         onSymbolsChange={(symbols) => updateState((current) => ({ ...current, symbolEdges: { ...current.symbolEdges, symbols } }))}
         onSymbolColorChange={(symbolColor) => updateState((current) => ({ ...current, symbolEdges: { ...current.symbolEdges, symbolColor: sanitizeHex(symbolColor, current.symbolEdges.symbolColor) } }))}
         onThresholdChange={(threshold) => updateState((current) => ({ ...current, symbolEdges: { ...current.symbolEdges, threshold } }))}
+        onGlowChange={(glow) => updateState((current) => ({ ...current, symbolEdges: { ...current.symbolEdges, glow } }))}
         onCellSizeChange={(cellSize) => updateState((current) => ({ ...current, symbolEdges: { ...current.symbolEdges, cellSize } }))}
         onTargetColorChange={(targetColor) => updateState((current) => ({ ...current, symbolEdges: { ...current.symbolEdges, targetColor: sanitizeHex(targetColor, current.symbolEdges.targetColor) } }))}
         onInvertChange={(invert) => updateState((current) => ({ ...current, symbolEdges: { ...current.symbolEdges, invert } }))}

@@ -506,6 +506,13 @@ function SymbolEdgesPanelContent({ state, updateState, tab }: PanelContentProps)
           value={se.threshold}
           onChange={(v) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, threshold: v } }))}
         />
+        <SliderControl
+          label="Glow"
+          min={0}
+          max={100}
+          value={se.glow}
+          onChange={(v) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, glow: v } }))}
+        />
         <CheckboxControl
           label="Hide image"
           checked={se.hideImage}

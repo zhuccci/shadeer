@@ -290,6 +290,7 @@ export function buildSymbolEdgesUniforms(
     u_targetColor: hexToVec3(se.targetColor),
     u_invert: se.invert ? 1 : 0,
     u_hideImage: se.hideImage ? 1 : 0,
+    u_seGlow: se.glow / 100,
   };
 }
 

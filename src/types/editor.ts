@@ -82,6 +82,7 @@ export interface SymbolEdgesSettings {
   symbolColor: string;
   backgroundColor: string;
   threshold: number;
+  glow: number;
   cellSize: number;
   targetColor: string;
   invert: boolean;
@@ -161,6 +162,7 @@ export const defaultSymbolEdgesSettings: SymbolEdgesSettings = {
   symbolColor: '#FFFFFF',
   backgroundColor: '#000000',
   threshold: 60,
+  glow: 0,
   cellSize: 30,
   targetColor: '#808080',
   invert: false,

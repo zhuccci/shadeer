@@ -1016,6 +1016,7 @@ uniform float u_mode;
 uniform vec3 u_targetColor;
 uniform float u_invert;
 uniform float u_hideImage;
+uniform float u_seGlow;
 in vec2 v_imageUV;
 out vec4 fragColor;
 
@@ -1087,6 +1088,39 @@ void main() {
     fragColor = base;
   } else {
     fragColor = mix(base, u_symbolColor, glyph);
+  }
+
+  // Glow: soft halo bleeding from active cells into surrounding area
+  if (u_seGlow > 0.001 && !outOfBounds) {
+    float sigma = u_cellSize * (0.4 + u_seGlow * 1.2);
+    float glowAmt = 0.0;
+    for (int di = -1; di <= 1; di++) {
+      for (int dj = -1; dj <= 1; dj++) {
+        vec2 nCell = cell + vec2(float(di), float(dj));
+        vec2 nCenter = (nCell + 0.5) * u_cellSize;
+        vec2 ncUV = clamp(uv + dxUV*(nCenter.x - gl_FragCoord.x) + dyUV*(nCenter.y - gl_FragCoord.y), 0.001, 0.999);
+        float nCellOn;
+        if (u_mode < 0.5) {
+          float gxN = lum(texture(u_image, clamp(ncUV + sx, 0.001, 0.999)))
+                    - lum(texture(u_image, clamp(ncUV - sx, 0.001, 0.999)));
+          float gyN = lum(texture(u_image, clamp(ncUV + sy, 0.001, 0.999)))
+                    - lum(texture(u_image, clamp(ncUV - sy, 0.001, 0.999)));
+          float edgeN = clamp(length(vec2(gxN, gyN)) / 2.0, 0.0, 1.0);
+          float probN = smoothstep(1.0-u_threshold-0.15, 1.0-u_threshold+0.15, edgeN);
+          nCellOn = step(hash21(nCell), probN);
+        } else {
+          vec3 nColor = texture(u_image, ncUV).rgb;
+          float nDist = length(nColor - u_targetColor) / 1.732;
+          float probN = 1.0 - smoothstep(u_threshold * 0.4, u_threshold * 0.6, nDist);
+          nCellOn = step(hash21(nCell), probN);
+        }
+        if (u_invert > 0.5) nCellOn = 1.0 - nCellOn;
+        float d = length(gl_FragCoord.xy - nCenter);
+        glowAmt = max(glowAmt, nCellOn * exp(-d * d / (2.0 * sigma * sigma)));
+      }
+    }
+    vec3 glowCol = u_symbolColor.rgb * glowAmt * u_seGlow * 1.5;
+    fragColor = vec4(clamp(fragColor.rgb + glowCol, 0.0, 1.0), fragColor.a);
   }
 }`;
 

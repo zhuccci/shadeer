@@ -12,6 +12,7 @@ interface SymbolEdgesPanelProps {
   onSymbolsChange: (value: string) => void;
   onSymbolColorChange: (value: string) => void;
   onThresholdChange: (value: number) => void;
+  onGlowChange: (value: number) => void;
   onCellSizeChange: (value: number) => void;
   onTargetColorChange: (value: string) => void;
   onInvertChange: (value: boolean) => void;
@@ -25,6 +26,7 @@ export function SymbolEdgesPanel({
   onSymbolsChange,
   onSymbolColorChange,
   onThresholdChange,
+  onGlowChange,
   onCellSizeChange,
   onTargetColorChange,
   onInvertChange,
@@ -51,6 +53,7 @@ export function SymbolEdgesPanel({
         </div>
         <SliderControl label="Size" min={0} max={100} value={se.cellSize} onChange={onCellSizeChange} />
         <SliderControl label="Threshold" min={0} max={100} value={se.threshold} onChange={onThresholdChange} />
+        <SliderControl label="Glow" min={0} max={100} value={se.glow} onChange={onGlowChange} />
         <CheckboxControl label="Hide image" checked={se.hideImage} onChange={onHideImageChange} />
       </div>
 
