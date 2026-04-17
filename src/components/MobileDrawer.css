@@ -110,8 +110,7 @@
 }
 
 .sheet-filter-area-inner {
-  overflow-x: clip;
-  overflow-y: visible;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -137,8 +136,8 @@
 
 .sheet-filter-strip .filter-buttons-scroll {
   padding-left: 16px;
-  padding-top: 10px;
-  padding-bottom: 12px;
+  padding-top: 24px;
+  padding-bottom: 24px;
   mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
   -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
 }
