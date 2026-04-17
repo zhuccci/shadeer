@@ -11,7 +11,7 @@ import { HalftonePatternSelector } from './HalftonePatternSelector';
 import { KnobControl } from './KnobControl';
 import { ShapeSelector } from './ShapeSelector';
 import { SliderControl } from './SliderControl';
-import { PauseIcon, PlayIcon, SaveIcon, UploadIcon } from './icons/AppIcons';
+import { SaveIcon, UploadIcon } from './icons/AppIcons';
 import { filterOptions } from './filterOptions';
 import { sanitizeHex } from '../lib/editor';
 import type { ActiveFilter, EditorState } from '../types/editor';
@@ -202,14 +202,6 @@ function LiquidPanelContent({ state, updateState, tab, openColor }: PanelContent
           value={state.liquid.scale}
           onChange={(v) => updateState((s) => ({ ...s, liquid: { ...s.liquid, scale: v } }))}
         />
-        <button
-          type="button"
-          className="btn btn-tertiary mobile-play-btn"
-          onClick={() => updateState((s) => ({ ...s, liquid: { ...s.liquid, playing: !s.liquid.playing } }))}
-        >
-          {state.liquid.playing ? <PauseIcon /> : <PlayIcon />}
-          {state.liquid.playing ? 'Pause Effect' : 'Play Effect'}
-        </button>
       </div>
     );
   }
@@ -299,14 +291,6 @@ function GlitchyPanelContent({ state, updateState, tab, openColor: _openColor }:
         value={state.glitchy.glitchAmount}
         onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, glitchAmount: v } }))}
       />
-      <button
-        type="button"
-        className="btn btn-tertiary mobile-play-btn"
-        onClick={() => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, playing: !s.glitchy.playing } }))}
-      >
-        {state.glitchy.playing ? <PauseIcon /> : <PlayIcon />}
-        {state.glitchy.playing ? 'Pause Effect' : 'Play Effect'}
-      </button>
     </div>
   );
 }
