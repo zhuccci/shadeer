@@ -49,9 +49,11 @@ interface MobileColorPickerProps {
   value: string;
   onChange: (hex: string) => void;
   style?: React.CSSProperties;
+  closing?: boolean;
+  onCloseEnd?: () => void;
 }
 
-export function MobileColorPicker({ value, onChange, style }: MobileColorPickerProps) {
+export function MobileColorPicker({ value, onChange, style, closing, onCloseEnd }: MobileColorPickerProps) {
   const [color, setColor] = useState(() => {
     const rgb = hexToRgb(value);
     if (!rgb) return { h: 0, s: 0, v: 1 };
@@ -178,7 +180,11 @@ export function MobileColorPicker({ value, onChange, style }: MobileColorPickerP
   const hueRatio      = color.h / 360;
 
   return (
-    <div className="mobile-cp-body" style={style}>
+    <div
+      className={`mobile-cp-body${closing ? ' closing' : ''}`}
+      style={style}
+      onTransitionEnd={(e) => { if (e.propertyName === 'transform') onCloseEnd?.(); }}
+    >
       {/* SV palette — fills available height */}
       <div
         ref={paletteRef}

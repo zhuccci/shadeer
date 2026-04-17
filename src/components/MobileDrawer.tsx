@@ -571,8 +571,13 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
   const [activeTab, setActiveTab] = useState<MobileTab>('sliders');
   const [slideDir, setSlideDir] = useState<'forward' | 'back'>('forward');
   const [mobileColorPicker, setMobileColorPicker] = useState<MobileColorPickerState>(null);
+  const [colorPickerClosing, setColorPickerClosing] = useState(false);
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
   const panelRef   = useRef<HTMLDivElement>(null);
+
+  const closeColorPicker = () => {
+    setColorPickerClosing(true);
+  };
 
   const openColor: OpenColorFn = (label, value, onChange, swatchRect) => {
     // Compute transform-origin relative to the panel so the picker expands from the swatch
@@ -585,6 +590,7 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
       originX = `${ox}px`;
       originY = `${oy}px`;
     }
+    setColorPickerClosing(false);
     setExpanded(true);
     setMobileColorPicker({ label, value, onChange, originX, originY });
   };
@@ -611,7 +617,7 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
               <button
                 type="button"
                 className="sheet-icon-btn"
-                onClick={() => setMobileColorPicker(null)}
+                onClick={closeColorPicker}
                 aria-label="Close color picker"
               >
                 <span className="sheet-header-icon"><CloseIcon /></span>
@@ -669,6 +675,8 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
                   value={mobileColorPicker.value}
                   onChange={mobileColorPicker.onChange}
                   style={{ '--cp-origin-x': mobileColorPicker.originX, '--cp-origin-y': mobileColorPicker.originY } as React.CSSProperties}
+                  closing={colorPickerClosing}
+                  onCloseEnd={() => { setMobileColorPicker(null); setColorPickerClosing(false); }}
                 />
               ) : (
                 <>

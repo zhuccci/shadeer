@@ -25,6 +25,11 @@
   }
 }
 
+.mobile-cp-body.closing {
+  opacity: 0;
+  transform: scale(0.82);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mobile-cp-body {
     transition: opacity 150ms ease;
