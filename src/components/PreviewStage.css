@@ -72,13 +72,13 @@ button.upload-btn:hover {
   align-items: center;
   gap: 6px;
   padding: 6px;
-  background: rgba(10, 10, 10, 0.35);
+  background: #131313;
   border-radius: 56px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 0.5px solid rgba(255, 255, 255, 0.14);
   box-shadow:
-    0 4px 24px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(20px) saturate(1.4);
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 4px 16px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px) saturate(1.8) brightness(1.05);
   z-index: 2;
   opacity: 0;
   pointer-events: none;
