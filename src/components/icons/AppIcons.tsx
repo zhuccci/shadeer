@@ -78,17 +78,17 @@ export function CheckCircleIcon({ className }: { className?: string }) {
 
 export function PlayIcon() {
   return (
-    <svg className="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M8.75 5.75L19.25 12L8.75 18.25V5.75Z" fill="currentColor" />
+    <svg className="btn-icon" viewBox="0 0 16.8184 20.1568" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 2.75428C0.000265497 0.575106 2.4145 -0.738212 4.24414 0.445683L15.5625 7.7699C17.237 8.8536 17.2371 11.3035 15.5625 12.3871L4.24414 19.7113C2.4144 20.8952 0 19.5811 0 17.4017V2.75428ZM1.5 17.4017C1.5 18.3923 2.59703 18.9894 3.42871 18.4515L14.748 11.1273C15.5087 10.6346 15.5089 9.52121 14.748 9.02869L3.42871 1.70545C2.59713 1.16749 1.50027 1.76391 1.5 2.75428V17.4017Z" fill="currentColor" />
     </svg>
   );
 }
 
 export function PauseIcon() {
   return (
-    <svg className="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="5.75" y="4.75" width="4.5" height="14.5" rx="1.5" fill="currentColor" />
-      <rect x="13.75" y="4.75" width="4.5" height="14.5" rx="1.5" fill="currentColor" />
+    <svg className="btn-icon" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4.5 2.75C4.5 2.05964 3.94036 1.5 3.25 1.5H2.75C2.05964 1.5 1.5 2.05964 1.5 2.75V15.25C1.5 15.9404 2.05964 16.5 2.75 16.5H3.25C3.94036 16.5 4.5 15.9404 4.5 15.25V2.75ZM6 15.25C6 16.7688 4.76878 18 3.25 18H2.75C1.23122 18 0 16.7688 0 15.25V2.75C0 1.23122 1.23122 0 2.75 0H3.25C4.76878 0 6 1.23122 6 2.75V15.25Z" fill="currentColor" />
+      <path d="M14.5 2.75C14.5 2.05964 13.9404 1.5 13.25 1.5H12.75C12.0596 1.5 11.5 2.05964 11.5 2.75V15.25C11.5 15.9404 12.0596 16.5 12.75 16.5H13.25C13.9404 16.5 14.5 15.9404 14.5 15.25V2.75ZM16 15.25C16 16.7688 14.7688 18 13.25 18H12.75C11.2312 18 10 16.7688 10 15.25V2.75C10 1.23122 11.2312 0 12.75 0H13.25C14.7688 0 16 1.23122 16 2.75V15.25Z" fill="currentColor" />
     </svg>
   );
 }
