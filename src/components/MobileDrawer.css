@@ -110,7 +110,8 @@
 }
 
 .sheet-filter-area-inner {
-  overflow: hidden;
+  overflow-x: clip;
+  overflow-y: visible;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -120,10 +121,8 @@
      the card's overflow:hidden clips at its rounded border */
   margin-left: -32px;
   margin-right: -32px;
-  margin-top: -24px;
   padding-left: 16px;
   padding-right: 16px;
-  padding-top: 24px;
 }
 
 .mobile-sheet.expanded .sheet-filter-area-inner {
