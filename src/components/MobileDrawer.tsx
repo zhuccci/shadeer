@@ -26,6 +26,7 @@ function getFirstTabLabel(filter: ActiveFilter): string {
 function getSecondTabLabel(filter: ActiveFilter): string {
   if (filter === 'glass') return 'Angle';
   if (filter === 'glitchy') return 'Distortion';
+  if (filter === 'liquid') return 'Highlight';
   return 'Colors';
 }
 
@@ -178,11 +179,6 @@ function LiquidPanelContent({ state, updateState, tab, openColor }: PanelContent
     return (
       <div className="mobile-panel-section">
         <SliderControl
-          label="Highlights amount"
-          value={state.liquid.highlights}
-          onChange={(v) => updateState((s) => ({ ...s, liquid: { ...s.liquid, highlights: v } }))}
-        />
-        <SliderControl
           label="Waves"
           value={state.liquid.waves}
           onChange={(v) => updateState((s) => ({ ...s, liquid: { ...s.liquid, waves: v } }))}
@@ -207,6 +203,11 @@ function LiquidPanelContent({ state, updateState, tab, openColor }: PanelContent
   }
   return (
     <div className="mobile-panel-section">
+      <SliderControl
+        label="Highlights amount"
+        value={state.liquid.highlights}
+        onChange={(v) => updateState((s) => ({ ...s, liquid: { ...s.liquid, highlights: v } }))}
+      />
       <ColorSelectorControl
         label="Highlight"
         value={state.liquid.highlightColor}
