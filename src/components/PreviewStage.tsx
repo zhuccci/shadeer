@@ -104,7 +104,7 @@ export function PreviewStage({
         </div>
       </div>
 
-      {isAnimated && state.image.hasUserImage && (
+      {isAnimated && state.image.isReady && (
         <button
           type="button"
           className={`preview-play-btn${controlsVisible ? ' visible' : ''}`}
