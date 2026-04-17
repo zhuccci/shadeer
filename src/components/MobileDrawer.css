@@ -136,8 +136,8 @@
 
 .sheet-filter-strip .filter-buttons-scroll {
   padding-left: 16px;
-  padding-top: 3px;
-  padding-bottom: 8px;
+  padding-top: 10px;
+  padding-bottom: 12px;
   mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
   -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
 }
