@@ -42,6 +42,10 @@
   margin-top: 8px;
 }
 
+.mobile-sheet.cp-open .sheet-settings-area {
+  margin-top: 8px;
+}
+
 /* ── Header ── */
 .sheet-header {
   display: flex;
@@ -239,6 +243,7 @@
 .mobile-sheet.expanded .sheet-panel {
   opacity: 1;
   transform: translateY(0);
+  height: clamp(312px, calc(30vh + 48px), 368px);
   transition:
     opacity 220ms 60ms var(--ease-out-strong),
     transform 220ms 60ms var(--ease-out-strong);
@@ -316,7 +321,8 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: #373737 transparent;
-  height: clamp(200px, 30vh, 320px);
+  flex: 1;
+  min-height: 0;
   padding: 12px;
   display: flex;
   flex-direction: column;

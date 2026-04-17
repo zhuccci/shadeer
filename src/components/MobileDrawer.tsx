@@ -600,7 +600,7 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
   }
 
   return (
-    <div className={`mobile-sheet${(expanded || !!mobileColorPicker) ? ' expanded' : ''}`}>
+    <div className={`mobile-sheet${(expanded || !!mobileColorPicker) ? ' expanded' : ''}${mobileColorPicker ? ' cp-open' : ''}`}>
       <div className="sheet-card">
 
         {/* Header */}
