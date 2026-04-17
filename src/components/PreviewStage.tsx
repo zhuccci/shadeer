@@ -45,7 +45,6 @@ export function PreviewStage({
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
   }, []);
 
-  // Reset when switching to a non-animated filter
   useEffect(() => {
     setControlsVisible(false);
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
@@ -58,26 +57,13 @@ export function PreviewStage({
       ? state.glitchy.playing
       : false;
 
-  // Tap detection — pointerup always fires even after setPointerCapture; click may not
-  const pointerDownPos = useRef<{ x: number; y: number } | null>(null);
-
-  const handlePointerDown: PointerEventHandler<HTMLDivElement> = useCallback((e) => {
-    pointerDownPos.current = { x: e.clientX, y: e.clientY };
-    onPointerDown(e);
-  }, [onPointerDown]);
-
-  const handlePointerUp: PointerEventHandler<HTMLDivElement> = useCallback((e) => {
-    if (pointerDownPos.current) {
-      const dx = e.clientX - pointerDownPos.current.x;
-      const dy = e.clientY - pointerDownPos.current.y;
-      if (Math.hypot(dx, dy) < 8) showControls();
-      pointerDownPos.current = null;
-    }
-    onPointerUp(e);
-  }, [onPointerUp, showControls]);
+  const handlePanelTap = useCallback((e: React.TouchEvent) => {
+    if ((e.target as HTMLElement).closest('.preview-play-btn')) return;
+    showControls();
+  }, [showControls]);
 
   return (
-    <div className="preview-panel">
+    <div className="preview-panel" onTouchEnd={handlePanelTap}>
       <div
         ref={previewRef}
         className={`image-area${state.image.isReady ? ' has-image' : ''}${state.image.hasUserImage ? ' has-user-image' : ''}${state.fitMode === 'fill' ? ' fill-mode' : ''}${isDragging ? ' dragging-img' : ''}`}
@@ -87,9 +73,9 @@ export function PreviewStage({
           const file = event.dataTransfer.files[0];
           if (file) onDropFile(file);
         }}
-        onPointerDown={handlePointerDown}
+        onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
-        onPointerUp={handlePointerUp}
+        onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
         onLostPointerCapture={onLostPointerCapture}
       >
@@ -99,16 +85,6 @@ export function PreviewStage({
             Upload image
           </button>
         ) : null}
-
-        {isAnimated && state.image.hasUserImage && (
-          <button
-            type="button"
-            className={`preview-play-btn${controlsVisible ? ' visible' : ''}`}
-            onClick={(e) => { e.stopPropagation(); onTogglePlaying(); }}
-          >
-            {isPlaying ? <PauseIcon /> : <PlayIcon />}
-          </button>
-        )}
 
         <div className="fit-control" id="fitControl">
           <button
@@ -127,6 +103,17 @@ export function PreviewStage({
           </button>
         </div>
       </div>
+
+      {isAnimated && state.image.hasUserImage && (
+        <button
+          type="button"
+          className={`preview-play-btn${controlsVisible ? ' visible' : ''}`}
+          onTouchEnd={(e) => { e.stopPropagation(); onTogglePlaying(); showControls(); }}
+          onClick={(e) => { e.stopPropagation(); onTogglePlaying(); }}
+        >
+          {isPlaying ? <PauseIcon /> : <PlayIcon />}
+        </button>
+      )}
     </div>
   );
 }
