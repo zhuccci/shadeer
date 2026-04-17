@@ -86,7 +86,8 @@ export function PreviewStage({
           </button>
         ) : null}
 
-        <div className="fit-control" id="fitControl">
+        <div className="fit-control" id="fitControl" data-mode={state.fitMode}>
+          <span className="fit-pill" />
           <button
             type="button"
             className={`fit-btn${state.fitMode === 'fill' ? ' selected' : ''}`}

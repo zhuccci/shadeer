@@ -26,6 +26,10 @@
   background: transparent;
 }
 
+.image-area canvas {
+  transition: clip-path 250ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
 .image-area.has-image.fill-mode {
   cursor: grab;
 }
@@ -90,7 +94,26 @@ button.upload-btn:hover {
   pointer-events: auto;
 }
 
+/* Sliding pill indicator */
+.fit-pill {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  bottom: 6px;
+  width: calc(50% - 9px);
+  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 0.5px solid var(--accent);
+  pointer-events: none;
+  transition: transform 250ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.fit-control[data-mode="fit"] .fit-pill {
+  transform: translateX(calc(100% + 6px));
+}
+
 .fit-btn {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -98,13 +121,14 @@ button.upload-btn:hover {
   border-radius: 32px;
   cursor: pointer;
   background: transparent;
-  border: 1px solid transparent;
-  color: rgba(220, 220, 220, 0.85);
+  border: none;
+  color: rgba(220, 220, 220, 0.6);
+  position: relative;
+  z-index: 1;
+  transition: color 250ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .fit-btn.selected {
-  background: rgba(10, 10, 10, 0.7);
-  border-color: var(--accent);
   color: var(--accent);
 }
 
