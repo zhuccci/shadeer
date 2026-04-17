@@ -97,13 +97,8 @@ button.upload-btn:hover {
   padding: 8px 24px;
   border-radius: 32px;
   cursor: pointer;
-  background: linear-gradient(
-    160deg,
-    rgba(255, 255, 255, 0.1) 0%,
-    rgba(255, 255, 255, 0.03) 50%,
-    rgba(0, 0, 0, 0.1) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  border: 1px solid transparent;
   color: rgba(220, 220, 220, 0.85);
 }
 
