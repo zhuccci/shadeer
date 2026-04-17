@@ -144,7 +144,9 @@ button.upload-btn:hover {
     cursor: pointer;
   }
 
-  .preview-play-btn.visible {
+  .preview-play-btn.visible,
+  .image-area.has-image:hover ~ .preview-play-btn,
+  .preview-play-btn:hover {
     opacity: 1;
     pointer-events: auto;
   }
