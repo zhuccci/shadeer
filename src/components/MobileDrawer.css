@@ -120,8 +120,10 @@
      the card's overflow:hidden clips at its rounded border */
   margin-left: -32px;
   margin-right: -32px;
+  margin-top: -12px;
   padding-left: 16px;
   padding-right: 16px;
+  padding-top: 12px;
 }
 
 .mobile-sheet.expanded .sheet-filter-area-inner {
