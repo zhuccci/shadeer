@@ -58,6 +58,24 @@ export function PreviewStage({
       ? state.glitchy.playing
       : false;
 
+  // Tap detection — pointerup always fires even after setPointerCapture; click may not
+  const pointerDownPos = useRef<{ x: number; y: number } | null>(null);
+
+  const handlePointerDown: PointerEventHandler<HTMLDivElement> = useCallback((e) => {
+    pointerDownPos.current = { x: e.clientX, y: e.clientY };
+    onPointerDown(e);
+  }, [onPointerDown]);
+
+  const handlePointerUp: PointerEventHandler<HTMLDivElement> = useCallback((e) => {
+    if (pointerDownPos.current) {
+      const dx = e.clientX - pointerDownPos.current.x;
+      const dy = e.clientY - pointerDownPos.current.y;
+      if (Math.hypot(dx, dy) < 8) showControls();
+      pointerDownPos.current = null;
+    }
+    onPointerUp(e);
+  }, [onPointerUp, showControls]);
+
   return (
     <div className="preview-panel">
       <div
@@ -69,10 +87,9 @@ export function PreviewStage({
           const file = event.dataTransfer.files[0];
           if (file) onDropFile(file);
         }}
-        onClick={showControls}
-        onPointerDown={onPointerDown}
+        onPointerDown={handlePointerDown}
         onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
+        onPointerUp={handlePointerUp}
         onPointerCancel={onPointerCancel}
         onLostPointerCapture={onLostPointerCapture}
       >
