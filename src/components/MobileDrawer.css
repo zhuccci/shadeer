@@ -7,6 +7,8 @@
 .mobile-sheet {
   display: none;
   flex-shrink: 0;
+  width: 100%;
+  min-width: 0;
   padding: 0 16px 16px;
 }
 
@@ -20,6 +22,8 @@
     0 4px 24px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
+  width: 100%;
+  min-width: 0;
   padding: 16px 16px 0;
   gap: 8px;
   transition:
@@ -35,6 +39,10 @@
 }
 
 .mobile-sheet.expanded .sheet-settings-area {
+  margin-top: 8px;
+}
+
+.mobile-sheet.cp-open .sheet-settings-area {
   margin-top: 8px;
 }
 
@@ -235,12 +243,17 @@
 .mobile-sheet.expanded .sheet-panel {
   opacity: 1;
   transform: translateY(0);
+  height: clamp(312px, calc(30vh + 48px), 368px);
   transition:
     opacity 220ms 60ms var(--ease-out-strong),
     transform 220ms 60ms var(--ease-out-strong);
 }
 
 /* ── Segmented control — sticky at top of panel ── */
+.sheet-segmented-sticky.hidden {
+  display: none;
+}
+
 .sheet-segmented-sticky {
   position: sticky;
   top: 0;
@@ -308,7 +321,8 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: #373737 transparent;
-  height: clamp(200px, 30vh, 320px);
+  flex: 1;
+  min-height: 0;
   padding: 12px;
   display: flex;
   flex-direction: column;

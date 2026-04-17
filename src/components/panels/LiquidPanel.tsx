@@ -7,7 +7,6 @@ import type { EditorState } from '../../types/editor';
 interface LiquidPanelProps {
   state: EditorState;
   isActive: boolean;
-  onFrontColorChange: (value: string) => void;
   onHighlightColorChange: (value: string) => void;
   onTogglePlaying: () => void;
   onHighlightsChange: (value: number) => void;
@@ -20,7 +19,6 @@ interface LiquidPanelProps {
 export function LiquidPanel({
   state,
   isActive,
-  onFrontColorChange,
   onHighlightColorChange,
   onTogglePlaying,
   onHighlightsChange,
@@ -42,7 +40,6 @@ export function LiquidPanel({
         </div>
         <div className="panel-divider" />
         <div className="dither-right">
-          <ColorSelectorControl label="Front Color" value={state.liquid.frontColor} onChange={onFrontColorChange} />
           <ColorSelectorControl label="Highlight" value={state.liquid.highlightColor} onChange={onHighlightColorChange} />
         </div>
       </div>

@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import './MobileDrawer.css';
+import { MobileColorPicker } from './MobileColorPicker';
 import { CheckboxControl } from './CheckboxControl';
 import { ColorSelectorControl } from './ColorSelectorControl';
 import { DitherTypeSelector } from './DitherTypeSelector';
@@ -58,13 +59,16 @@ function CloseIcon() {
   );
 }
 
+type OpenColorFn = (label: string, value: string, onChange: (v: string) => void, swatchRect: DOMRect) => void;
+
 interface PanelContentProps {
   state: EditorState;
   updateState: (updater: (state: EditorState) => EditorState) => void;
   tab: MobileTab;
+  openColor: OpenColorFn;
 }
 
-function GlassPanelContent({ state, updateState, tab }: PanelContentProps) {
+function GlassPanelContent({ state, updateState, tab, openColor: _openColor }: PanelContentProps) {
   if (tab === 'colors') {
     return (
       <div className="mobile-panel-section mobile-angle-tab">
@@ -97,7 +101,7 @@ function GlassPanelContent({ state, updateState, tab }: PanelContentProps) {
   );
 }
 
-function DitheringPanelContent({ state, updateState, tab }: PanelContentProps) {
+function DitheringPanelContent({ state, updateState, tab, openColor }: PanelContentProps) {
   if (tab === 'sliders') {
     return (
       <div className="mobile-panel-section">
@@ -131,6 +135,7 @@ function DitheringPanelContent({ state, updateState, tab }: PanelContentProps) {
             dithering: { ...s.dithering, backgroundColor: sanitizeHex(v, s.dithering.backgroundColor) },
           }))
         }
+        onMobileOpen={openColor}
       />
       <ColorSelectorControl
         label="Front Color"
@@ -141,6 +146,7 @@ function DitheringPanelContent({ state, updateState, tab }: PanelContentProps) {
             dithering: { ...s.dithering, frontColor: sanitizeHex(v, s.dithering.frontColor) },
           }))
         }
+        onMobileOpen={openColor}
       />
       <ColorSelectorControl
         label="Highlight"
@@ -151,6 +157,7 @@ function DitheringPanelContent({ state, updateState, tab }: PanelContentProps) {
             dithering: { ...s.dithering, highlightColor: sanitizeHex(v, s.dithering.highlightColor) },
           }))
         }
+        onMobileOpen={openColor}
       />
       <CheckboxControl
         label="Original Colors"
@@ -166,7 +173,7 @@ function DitheringPanelContent({ state, updateState, tab }: PanelContentProps) {
   );
 }
 
-function LiquidPanelContent({ state, updateState, tab }: PanelContentProps) {
+function LiquidPanelContent({ state, updateState, tab, openColor }: PanelContentProps) {
   if (tab === 'sliders') {
     return (
       <div className="mobile-panel-section">
@@ -209,16 +216,6 @@ function LiquidPanelContent({ state, updateState, tab }: PanelContentProps) {
   return (
     <div className="mobile-panel-section">
       <ColorSelectorControl
-        label="Front Color"
-        value={state.liquid.frontColor}
-        onChange={(v) =>
-          updateState((s) => ({
-            ...s,
-            liquid: { ...s.liquid, frontColor: sanitizeHex(v, s.liquid.frontColor) },
-          }))
-        }
-      />
-      <ColorSelectorControl
         label="Highlight"
         value={state.liquid.highlightColor}
         onChange={(v) =>
@@ -227,12 +224,13 @@ function LiquidPanelContent({ state, updateState, tab }: PanelContentProps) {
             liquid: { ...s.liquid, highlightColor: sanitizeHex(v, s.liquid.highlightColor) },
           }))
         }
+        onMobileOpen={openColor}
       />
     </div>
   );
 }
 
-function GlitchyPanelContent({ state, updateState, tab }: PanelContentProps) {
+function GlitchyPanelContent({ state, updateState, tab, openColor: _openColor }: PanelContentProps) {
   if (tab === 'colors') {
     return (
       <div className="mobile-panel-section">
@@ -313,7 +311,7 @@ function GlitchyPanelContent({ state, updateState, tab }: PanelContentProps) {
   );
 }
 
-function HalftonePanelContent({ state, updateState, tab }: PanelContentProps) {
+function HalftonePanelContent({ state, updateState, tab, openColor }: PanelContentProps) {
   const segRef = useRef<HTMLDivElement>(null);
   const segDragging = useRef(false);
   const bw = state.halftone.blackAndWhite;
@@ -390,6 +388,7 @@ function HalftonePanelContent({ state, updateState, tab }: PanelContentProps) {
             halftone: { ...s.halftone, backgroundColor: sanitizeHex(v, s.halftone.backgroundColor) },
           }))
         }
+        onMobileOpen={openColor}
       />
       <CheckboxControl
         label="Original Colors"
@@ -430,6 +429,7 @@ function HalftonePanelContent({ state, updateState, tab }: PanelContentProps) {
                 halftone: { ...s.halftone, color1: sanitizeHex(v, s.halftone.color1) },
               }))
             }
+            onMobileOpen={openColor}
           />
           {!bw && (
             <>
@@ -442,6 +442,7 @@ function HalftonePanelContent({ state, updateState, tab }: PanelContentProps) {
                     halftone: { ...s.halftone, color2: sanitizeHex(v, s.halftone.color2) },
                   }))
                 }
+                onMobileOpen={openColor}
               />
               <ColorSelectorControl
                 label="Mid-Dark"
@@ -452,6 +453,7 @@ function HalftonePanelContent({ state, updateState, tab }: PanelContentProps) {
                     halftone: { ...s.halftone, color3: sanitizeHex(v, s.halftone.color3) },
                   }))
                 }
+                onMobileOpen={openColor}
               />
               <ColorSelectorControl
                 label="Dark"
@@ -462,6 +464,7 @@ function HalftonePanelContent({ state, updateState, tab }: PanelContentProps) {
                     halftone: { ...s.halftone, color4: sanitizeHex(v, s.halftone.color4) },
                   }))
                 }
+                onMobileOpen={openColor}
               />
             </>
           )}
@@ -476,7 +479,7 @@ function HalftonePanelContent({ state, updateState, tab }: PanelContentProps) {
   );
 }
 
-function SymbolEdgesPanelContent({ state, updateState, tab }: PanelContentProps) {
+function SymbolEdgesPanelContent({ state, updateState, tab, openColor }: PanelContentProps) {
   const se = state.symbolEdges;
   if (tab === 'sliders') {
     return (
@@ -532,6 +535,7 @@ function SymbolEdgesPanelContent({ state, updateState, tab }: PanelContentProps)
             symbolEdges: { ...s.symbolEdges, symbolColor: sanitizeHex(v, s.symbolEdges.symbolColor) },
           }))
         }
+        onMobileOpen={openColor}
       />
       <CheckboxControl
         label="Matching color"
@@ -548,6 +552,7 @@ function SymbolEdgesPanelContent({ state, updateState, tab }: PanelContentProps)
               symbolEdges: { ...s.symbolEdges, targetColor: sanitizeHex(v, s.symbolEdges.targetColor) },
             }))
           }
+          onMobileOpen={openColor}
         />
       )}
       <CheckboxControl
@@ -559,11 +564,36 @@ function SymbolEdgesPanelContent({ state, updateState, tab }: PanelContentProps)
   );
 }
 
+type MobileColorPickerState = { label: string; value: string; onChange: (v: string) => void; originX: string; originY: string } | null;
+
 export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSelect }: MobileDrawerProps) {
   const [expanded, setExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<MobileTab>('sliders');
   const [slideDir, setSlideDir] = useState<'forward' | 'back'>('forward');
+  const [mobileColorPicker, setMobileColorPicker] = useState<MobileColorPickerState>(null);
+  const [colorPickerClosing, setColorPickerClosing] = useState(false);
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
+  const panelRef   = useRef<HTMLDivElement>(null);
+
+  const closeColorPicker = () => {
+    setColorPickerClosing(true);
+  };
+
+  const openColor: OpenColorFn = (label, value, onChange, swatchRect) => {
+    // Compute transform-origin relative to the panel so the picker expands from the swatch
+    let originX = '50%', originY = '50%';
+    const panelEl = panelRef.current;
+    if (panelEl) {
+      const panelRect = panelEl.getBoundingClientRect();
+      const ox = swatchRect.left + swatchRect.width  / 2 - panelRect.left;
+      const oy = swatchRect.top  + swatchRect.height / 2 - panelRect.top;
+      originX = `${ox}px`;
+      originY = `${oy}px`;
+    }
+    setColorPickerClosing(false);
+    setExpanded(true);
+    setMobileColorPicker({ label, value, onChange, originX, originY });
+  };
 
   const filterLabel = filterOptions.find((f) => f.id === state.activeFilter)?.label ?? '';
   const firstTabLabel = getFirstTabLabel(state.activeFilter);
@@ -576,35 +606,53 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
   }
 
   return (
-    <div className={`mobile-sheet${expanded ? ' expanded' : ''}`}>
+    <div className={`mobile-sheet${(expanded || !!mobileColorPicker) ? ' expanded' : ''}${mobileColorPicker ? ' cp-open' : ''}`}>
       <div className="sheet-card">
 
         {/* Header */}
         <div className="sheet-header">
-          <span className="sheet-filter-name">{filterLabel}</span>
-          <button
-            type="button"
-            className="sheet-icon-btn"
-            onClick={() => setExpanded((v) => !v)}
-            aria-label={expanded ? 'Close settings' : 'Open settings'}
-          >
-            <span key={expanded ? 'close' : 'settings'} className="sheet-header-icon">
-              {expanded ? <CloseIcon /> : <SettingsIcon />}
-            </span>
-          </button>
+          {mobileColorPicker ? (
+            <>
+              <span className="sheet-filter-name">{mobileColorPicker.label}</span>
+              <button
+                type="button"
+                className="sheet-icon-btn"
+                onClick={closeColorPicker}
+                aria-label="Close color picker"
+              >
+                <span className="sheet-header-icon"><CloseIcon /></span>
+              </button>
+            </>
+          ) : (
+            <>
+              <span className="sheet-filter-name">{filterLabel}</span>
+              <button
+                type="button"
+                className="sheet-icon-btn"
+                onClick={() => setExpanded((v) => !v)}
+                aria-label={expanded ? 'Close settings' : 'Open settings'}
+              >
+                <span key={expanded ? 'close' : 'settings'} className="sheet-header-icon">
+                  {expanded ? <CloseIcon /> : <SettingsIcon />}
+                </span>
+              </button>
+            </>
+          )}
         </div>
 
-        {/* Filter strip — collapses when expanded */}
-        <div className="sheet-filter-area">
-          <div className="sheet-filter-area-inner">
-            <div className="sheet-filter-strip">
-              <FilterStrip activeFilter={state.activeFilter} onSelect={onFilterSelect} />
+        {/* Filter strip — hidden when color picker is open, collapses when expanded */}
+        {!mobileColorPicker && (
+          <div className="sheet-filter-area">
+            <div className="sheet-filter-area-inner">
+              <div className="sheet-filter-strip">
+                <FilterStrip activeFilter={state.activeFilter} onSelect={onFilterSelect} />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Action bar — direct card child so glow is not clipped by filter-area overflow:hidden */}
-        {state.image.hasUserImage && (
+        {/* Action bar — hidden when color picker is open */}
+        {!mobileColorPicker && state.image.hasUserImage && (
           <div className="sheet-action-bar">
             <button className="btn btn-secondary sheet-action-btn" onClick={onUpload}>
               <UploadIcon />
@@ -620,73 +668,86 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
         {/* Settings panel — expands when expanded */}
         <div className="sheet-settings-area">
           <div className="sheet-settings-area-inner">
-            <div className="sheet-panel">
-              {/* Segmented tabs */}
-              <div className="sheet-segmented-sticky">
-                <div className="sheet-segmented">
-                  <span
-                    className="sheet-seg-pill"
-                    style={{ transform: activeTab === 'colors' ? 'translateX(100%)' : 'translateX(0)' }}
-                  />
-                  <button
-                    type="button"
-                    className={`sheet-seg-btn${activeTab === 'sliders' ? ' active' : ''}`}
-                    onClick={() => switchTab('sliders')}
-                  >
-                    {firstTabLabel}
-                  </button>
-                  <button
-                    type="button"
-                    className={`sheet-seg-btn${activeTab === 'colors' ? ' active' : ''}`}
-                    onClick={() => switchTab('colors')}
-                  >
-                    {secondTabLabel}
-                  </button>
-                </div>
-              </div>
+            <div className="sheet-panel" ref={panelRef}>
+              {mobileColorPicker ? (
+                /* Color picker view — fills panel directly, no tabs or scroll wrapper */
+                <MobileColorPicker
+                  value={mobileColorPicker.value}
+                  onChange={mobileColorPicker.onChange}
+                  style={{ '--cp-origin-x': mobileColorPicker.originX, '--cp-origin-y': mobileColorPicker.originY } as React.CSSProperties}
+                  closing={colorPickerClosing}
+                  onCloseEnd={() => { setMobileColorPicker(null); setColorPickerClosing(false); }}
+                />
+              ) : (
+                <>
+                  {/* Segmented tabs */}
+                  <div className="sheet-segmented-sticky">
+                    <div className="sheet-segmented">
+                      <span
+                        className="sheet-seg-pill"
+                        style={{ transform: activeTab === 'colors' ? 'translateX(100%)' : 'translateX(0)' }}
+                      />
+                      <button
+                        type="button"
+                        className={`sheet-seg-btn${activeTab === 'sliders' ? ' active' : ''}`}
+                        onClick={() => switchTab('sliders')}
+                      >
+                        {firstTabLabel}
+                      </button>
+                      <button
+                        type="button"
+                        className={`sheet-seg-btn${activeTab === 'colors' ? ' active' : ''}`}
+                        onClick={() => switchTab('colors')}
+                      >
+                        {secondTabLabel}
+                      </button>
+                    </div>
+                  </div>
 
-              {/* Scrollable content */}
-              <div
-                className="sheet-scroll"
-                onTouchStart={(e) => {
-                  const t = e.target as HTMLElement;
-                  if (t.closest('.slider-track') || t.closest('.knob-area') || t.closest('.halftone-segment')) return;
-                  swipeStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-                }}
-                onTouchEnd={(e) => {
-                  if (!swipeStart.current) return;
-                  const dx = e.changedTouches[0].clientX - swipeStart.current.x;
-                  const dy = e.changedTouches[0].clientY - swipeStart.current.y;
-                  swipeStart.current = null;
-                  if (Math.abs(dx) < 80 || Math.abs(dx) < Math.abs(dy) * 3) return;
-                  if (dx < 0 && activeTab === 'sliders') switchTab('colors');
-                  if (dx > 0 && activeTab === 'colors') switchTab('sliders');
-                }}
-              >
-                <div
-                  key={`${state.activeFilter}-${activeTab}`}
-                  className={`sheet-tab-content${slideDir === 'back' ? ' slide-back' : ''}`}
-                >
-                  {state.activeFilter === 'glass' && (
-                    <GlassPanelContent state={state} updateState={updateState} tab={activeTab} />
-                  )}
-                  {state.activeFilter === 'dithering' && (
-                    <DitheringPanelContent state={state} updateState={updateState} tab={activeTab} />
-                  )}
-                  {state.activeFilter === 'liquid' && (
-                    <LiquidPanelContent state={state} updateState={updateState} tab={activeTab} />
-                  )}
-                  {state.activeFilter === 'glitchy' && (
-                    <GlitchyPanelContent state={state} updateState={updateState} tab={activeTab} />
-                  )}
-                  {state.activeFilter === 'halftone' && (
-                    <HalftonePanelContent state={state} updateState={updateState} tab={activeTab} />
-                  )}
-                  {state.activeFilter === 'symbolEdges' && (
-                    <SymbolEdgesPanelContent state={state} updateState={updateState} tab={activeTab} />
-                  )}
-                </div>
-              </div>
+                  {/* Scrollable content */}
+                  <div
+                    className="sheet-scroll"
+                    onTouchStart={(e) => {
+                      const t = e.target as HTMLElement;
+                      if (t.closest('.slider-track') || t.closest('.knob-area') || t.closest('.halftone-segment')) return;
+                      swipeStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                    }}
+                    onTouchEnd={(e) => {
+                      if (!swipeStart.current) return;
+                      const dx = e.changedTouches[0].clientX - swipeStart.current.x;
+                      const dy = e.changedTouches[0].clientY - swipeStart.current.y;
+                      swipeStart.current = null;
+                      if (Math.abs(dx) < 80 || Math.abs(dx) < Math.abs(dy) * 3) return;
+                      if (dx < 0 && activeTab === 'sliders') switchTab('colors');
+                      if (dx > 0 && activeTab === 'colors') switchTab('sliders');
+                    }}
+                  >
+                    <div
+                      key={`${state.activeFilter}-${activeTab}`}
+                      className={`sheet-tab-content${slideDir === 'back' ? ' slide-back' : ''}`}
+                    >
+                      {state.activeFilter === 'glass' && (
+                        <GlassPanelContent state={state} updateState={updateState} tab={activeTab} openColor={openColor} />
+                      )}
+                      {state.activeFilter === 'dithering' && (
+                        <DitheringPanelContent state={state} updateState={updateState} tab={activeTab} openColor={openColor} />
+                      )}
+                      {state.activeFilter === 'liquid' && (
+                        <LiquidPanelContent state={state} updateState={updateState} tab={activeTab} openColor={openColor} />
+                      )}
+                      {state.activeFilter === 'glitchy' && (
+                        <GlitchyPanelContent state={state} updateState={updateState} tab={activeTab} openColor={openColor} />
+                      )}
+                      {state.activeFilter === 'halftone' && (
+                        <HalftonePanelContent state={state} updateState={updateState} tab={activeTab} openColor={openColor} />
+                      )}
+                      {state.activeFilter === 'symbolEdges' && (
+                        <SymbolEdgesPanelContent state={state} updateState={updateState} tab={activeTab} openColor={openColor} />
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -6,15 +6,21 @@ interface ColorSelectorControlProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  onMobileOpen?: (label: string, value: string, onChange: (v: string) => void, swatchRect: DOMRect) => void;
 }
 
-export function ColorSelectorControl({ label, value, onChange }: ColorSelectorControlProps) {
+export function ColorSelectorControl({ label, value, onChange, onMobileOpen }: ColorSelectorControlProps) {
   const inputId   = useId();
   const swatchRef = useRef<HTMLButtonElement>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
 
   function handleSwatchClick() {
+    if (onMobileOpen) {
+      const rect = swatchRef.current?.getBoundingClientRect() ?? new DOMRect();
+      onMobileOpen(label, value, onChange, rect);
+      return;
+    }
     if (pickerOpen) {
       setPickerOpen(false);
     } else {
