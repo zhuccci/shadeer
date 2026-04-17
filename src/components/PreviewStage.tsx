@@ -1,6 +1,6 @@
-import type { PointerEventHandler } from 'react';
+import { useState, useRef, useEffect, useCallback, type PointerEventHandler } from 'react';
 import './PreviewStage.css';
-import { UploadIcon } from './icons/AppIcons';
+import { PauseIcon, PlayIcon, UploadIcon } from './icons/AppIcons';
 import type { EditorState } from '../types/editor';
 
 interface PreviewStageProps {
@@ -10,6 +10,7 @@ interface PreviewStageProps {
   onUpload: () => void;
   onDropFile: (file: File) => void;
   onFitModeChange: (mode: EditorState['fitMode']) => void;
+  onTogglePlaying: () => void;
   onPointerDown: PointerEventHandler<HTMLDivElement>;
   onPointerMove: PointerEventHandler<HTMLDivElement>;
   onPointerUp: PointerEventHandler<HTMLDivElement>;
@@ -24,12 +25,39 @@ export function PreviewStage({
   onUpload,
   onDropFile,
   onFitModeChange,
+  onTogglePlaying,
   onPointerDown,
   onPointerMove,
   onPointerUp,
   onPointerCancel,
   onLostPointerCapture,
 }: PreviewStageProps) {
+  const [controlsVisible, setControlsVisible] = useState(false);
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showControls = useCallback(() => {
+    setControlsVisible(true);
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    hideTimerRef.current = setTimeout(() => setControlsVisible(false), 2500);
+  }, []);
+
+  useEffect(() => () => {
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+  }, []);
+
+  // Reset when switching to a non-animated filter
+  useEffect(() => {
+    setControlsVisible(false);
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+  }, [state.activeFilter]);
+
+  const isAnimated = state.activeFilter === 'liquid' || state.activeFilter === 'glitchy';
+  const isPlaying = state.activeFilter === 'liquid'
+    ? state.liquid.playing
+    : state.activeFilter === 'glitchy'
+      ? state.glitchy.playing
+      : false;
+
   return (
     <div className="preview-panel">
       <div
@@ -41,6 +69,7 @@ export function PreviewStage({
           const file = event.dataTransfer.files[0];
           if (file) onDropFile(file);
         }}
+        onClick={showControls}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -53,6 +82,16 @@ export function PreviewStage({
             Upload image
           </button>
         ) : null}
+
+        {isAnimated && state.image.hasUserImage && (
+          <button
+            type="button"
+            className={`preview-play-btn${controlsVisible ? ' visible' : ''}`}
+            onClick={(e) => { e.stopPropagation(); onTogglePlaying(); }}
+          >
+            {isPlaying ? <PauseIcon /> : <PlayIcon />}
+          </button>
+        )}
 
         <div className="fit-control" id="fitControl">
           <button

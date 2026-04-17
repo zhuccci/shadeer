@@ -214,6 +214,17 @@ export default function App() {
               offsetY: 0,
             }))
           }
+          onTogglePlaying={() =>
+            updateState((current) => {
+              if (current.activeFilter === 'liquid') {
+                return { ...current, liquid: { ...current.liquid, playing: !current.liquid.playing } };
+              }
+              if (current.activeFilter === 'glitchy') {
+                return { ...current, glitchy: { ...current.glitchy, playing: !current.glitchy.playing } };
+              }
+              return current;
+            })
+          }
           onPointerDown={imageDrag.onPointerDown}
           onPointerMove={imageDrag.onPointerMove}
           onPointerUp={imageDrag.onPointerUp}

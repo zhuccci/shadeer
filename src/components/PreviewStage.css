@@ -112,3 +112,40 @@ button.upload-btn:hover {
   border-color: var(--accent);
   color: var(--accent);
 }
+
+/* ── Mobile play/pause overlay button ── */
+.preview-play-btn {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .preview-play-btn {
+    display: flex;
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(20, 20, 20, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    color: rgba(255, 255, 255, 0.9);
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    cursor: pointer;
+  }
+
+  .preview-play-btn.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
