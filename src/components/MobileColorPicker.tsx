@@ -183,7 +183,7 @@ export function MobileColorPicker({ value, onChange, style, closing, onCloseEnd 
     <div
       className={`mobile-cp-body${closing ? ' closing' : ''}`}
       style={style}
-      onTransitionEnd={(e) => { if (e.propertyName === 'transform') onCloseEnd?.(); }}
+      onTransitionEnd={(e) => { if (closing && e.propertyName === 'transform') onCloseEnd?.(); }}
     >
       {/* SV palette — fills available height */}
       <div
