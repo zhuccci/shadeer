@@ -491,6 +491,9 @@ export async function renderShaderToBlob(
   tempMount.gl.viewport(0, 0, outputWidth, outputHeight);
   tempMount.resolutionChanged = true;
   tempMount.renderScale = 1;
+  // Canvas resize may flush texture bindings on some GPUs — clear cache to force re-upload.
+  tempMount.uniformCache = {};
+  tempMount.setUniformValues(exportUniforms);
   tempMount.render(performance.now());
 
   const blob = await new Promise<Blob | null>((resolve) => {
