@@ -158,12 +158,11 @@
 /* Square 80×80 buttons, thumbnail only — no label row */
 .sheet-filter-strip .filter-btn {
   width: 80px;
-  border-radius: 12px;
+  border-radius: 16px;
 }
 
 .sheet-filter-strip .btn-thumbnail {
   height: 80px;
-  border-radius: 12px;
   overflow: hidden;
 }
 
