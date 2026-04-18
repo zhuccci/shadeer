@@ -555,11 +555,13 @@ function PaperPanelContent({ state, updateState, tab }: PanelContentProps) {
   if (tab === 'sliders') {
     return (
       <div className="mobile-panel-section">
-        <SliderControl label="Noise" value={state.paper.noise} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, noise: v } }))} />
+        <SliderControl label="Grain" value={state.paper.noise} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, noise: v } }))} />
+        <SliderControl label="Dust" value={state.paper.paperNoise} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, paperNoise: v } }))} />
         <SliderControl label="Ink Bleed" value={state.paper.inkBleed} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, inkBleed: v } }))} />
         <CheckboxControl label="Xerox" checked={state.paper.xerox} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, xerox: v } }))} />
         {state.paper.xerox && (
           <>
+            <SliderControl label="Amount" value={state.paper.xeroxAmount} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, xeroxAmount: v } }))} />
             <SliderControl label="Xerox Opacity" value={state.paper.xeroxOpacity} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, xeroxOpacity: v } }))} />
             <SliderControl label="Threshold" value={state.paper.xeroxThreshold} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, xeroxThreshold: v } }))} />
           </>
