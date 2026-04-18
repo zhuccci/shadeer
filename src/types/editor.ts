@@ -1,4 +1,4 @@
-export type ActiveFilter = 'glass' | 'dithering' | 'liquid' | 'glitchy' | 'halftone' | 'symbolEdges';
+export type ActiveFilter = 'glass' | 'dithering' | 'liquid' | 'glitchy' | 'halftone' | 'symbolEdges' | 'paper';
 
 export type SymbolEdgesMode = 'edges' | 'color';
 
@@ -76,6 +76,15 @@ export interface HalftoneSettings {
   blobThreshold: number;
 }
 
+export interface PaperSettings {
+  noise: number;
+  inkBleed: number;
+  xerox: boolean;
+  xeroxOpacity: number;
+  scanTexture: number;
+  scanOpacity: number;
+}
+
 export interface SymbolEdgesSettings {
   mode: SymbolEdgesMode;
   symbols: string;
@@ -108,6 +117,7 @@ export interface EditorState {
   glitchy: GlitchySettings;
   halftone: HalftoneSettings;
   symbolEdges: SymbolEdgesSettings;
+  paper: PaperSettings;
   image: EditorImageState;
 }
 
@@ -167,6 +177,15 @@ export const defaultSymbolEdgesSettings: SymbolEdgesSettings = {
   targetColor: '#808080',
   invert: false,
   hideImage: false,
+};
+
+export const defaultPaperSettings: PaperSettings = {
+  noise: 40,
+  inkBleed: 20,
+  xerox: false,
+  xeroxOpacity: 80,
+  scanTexture: 0,
+  scanOpacity: 50,
 };
 
 export const defaultHalftoneSettings: HalftoneSettings = {

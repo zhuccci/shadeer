@@ -53,8 +53,15 @@ export const filterOptions: FilterOption[] = [
     hoverThumbnail: `${baseUrl}placeholders/symbolEdges_hover.png`,
     implemented: true,
   },
+  {
+    id: 'paper',
+    label: 'Paper',
+    thumbnail: `${baseUrl}placeholders/glass.png`,
+    hoverThumbnail: `${baseUrl}placeholders/glass_hover.png`,
+    implemented: true,
+  },
 ];
 
 export function isActiveFilter(filterId: FilterOption['id']): filterId is ActiveFilter {
-  return filterId === 'glass' || filterId === 'dithering' || filterId === 'liquid' || filterId === 'glitchy' || filterId === 'halftone' || filterId === 'symbolEdges';
+  return filterId === 'glass' || filterId === 'dithering' || filterId === 'liquid' || filterId === 'glitchy' || filterId === 'halftone' || filterId === 'symbolEdges' || filterId === 'paper';
 }

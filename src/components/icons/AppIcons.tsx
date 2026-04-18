@@ -51,6 +51,18 @@ export function FilterIcon({ id }: { id: string }) {
     );
   }
 
+  if (id === 'paper') {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 4.75C6 3.64543 6.89543 2.75 8 2.75H14.25L18.25 6.75V19.25C18.25 20.3546 17.3546 21.25 16.25 21.25H8C6.89543 21.25 6 20.3546 6 19.25V4.75Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+        <path d="M14 2.75V5.75C14 6.30228 14.4477 6.75 15 6.75H18.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M9.5 11H14.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M9.5 14H14.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M9.5 17H12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
   if (id === 'liquid') {
     return (
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

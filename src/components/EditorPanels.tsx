@@ -6,6 +6,7 @@ import { GlassPanel } from './panels/GlassPanel';
 import { GlitchyPanel } from './panels/GlitchyPanel';
 import { HalftonePanel } from './panels/HalftonePanel';
 import { LiquidPanel } from './panels/LiquidPanel';
+import { PaperPanel } from './panels/PaperPanel';
 import { SymbolEdgesPanel } from './panels/SymbolEdgesPanel';
 
 interface EditorPanelsProps {
@@ -149,6 +150,17 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         onColor4Change={(color4) => updateState((current) => ({ ...current, halftone: { ...current.halftone, color4: sanitizeHex(color4, current.halftone.color4) } }))}
         onGrainOverlayChange={(grainOverlay) => updateState((current) => ({ ...current, halftone: { ...current.halftone, grainOverlay } }))}
         onBlobThresholdChange={(blobThreshold) => updateState((current) => ({ ...current, halftone: { ...current.halftone, blobThreshold } }))}
+      />
+
+      <PaperPanel
+        state={state}
+        isActive={state.activeFilter === 'paper'}
+        onNoiseChange={(noise) => updateState((current) => ({ ...current, paper: { ...current.paper, noise } }))}
+        onInkBleedChange={(inkBleed) => updateState((current) => ({ ...current, paper: { ...current.paper, inkBleed } }))}
+        onXeroxChange={(xerox) => updateState((current) => ({ ...current, paper: { ...current.paper, xerox } }))}
+        onXeroxOpacityChange={(xeroxOpacity) => updateState((current) => ({ ...current, paper: { ...current.paper, xeroxOpacity } }))}
+        onScanTextureChange={(scanTexture) => updateState((current) => ({ ...current, paper: { ...current.paper, scanTexture } }))}
+        onScanOpacityChange={(scanOpacity) => updateState((current) => ({ ...current, paper: { ...current.paper, scanOpacity } }))}
       />
 
       <SymbolEdgesPanel

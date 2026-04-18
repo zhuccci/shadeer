@@ -134,6 +134,15 @@
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #373737 transparent;
+  /*
+   * overflow-y:auto forces overflow-x to auto too (CSS spec),
+   * which clips box-shadows and scaled elements at the container edge.
+   * padding + negative margin extend the scroll container's padding box
+   * so shadows/glows have room and aren't clipped.
+   * The element's visual content stays at the same position as before.
+   */
+  padding: 4px 20px;
+  margin: -4px -20px;
 }
 
 .controls-left::-webkit-scrollbar,

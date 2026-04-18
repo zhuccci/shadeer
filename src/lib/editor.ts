@@ -6,6 +6,7 @@ import type {
   GlitchySettings,
   HalftoneSettings,
   LiquidSettings,
+  PaperSettings,
   SymbolEdgesSettings,
 } from '../types/editor';
 import {
@@ -14,6 +15,7 @@ import {
   defaultGlitchySettings,
   defaultHalftoneSettings,
   defaultLiquidSettings,
+  defaultPaperSettings,
   defaultSymbolEdgesSettings,
 } from '../types/editor';
 import {
@@ -25,6 +27,7 @@ import {
   glitchyFragmentShader,
   halftoneFragmentShader,
   imageDitheringFragmentShader,
+  paperFragmentShader,
   symbolEdgesFragmentShader,
   waterFragmentShader,
 } from './shaders';
@@ -40,6 +43,7 @@ export const defaultEditorState: EditorState = {
   glitchy: defaultGlitchySettings,
   halftone: defaultHalftoneSettings,
   symbolEdges: defaultSymbolEdgesSettings,
+  paper: defaultPaperSettings,
   image: {
     image: null,
     src: null,
@@ -229,6 +233,56 @@ export function buildGlitchyUniforms(
   };
 }
 
+const _scanCache = new Map<number, HTMLImageElement>();
+
+function getScanImage(index: number): HTMLImageElement {
+  if (_scanCache.has(index)) return _scanCache.get(index)!;
+  const img = new Image();
+  img.src = `${import.meta.env.BASE_URL}scans/${index}.webp`;
+  _scanCache.set(index, img);
+  return img;
+}
+
+let _scanDummy: HTMLCanvasElement | null = null;
+function getScanDummy(): HTMLCanvasElement {
+  if (!_scanDummy) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 1;
+    const ctx = c.getContext('2d')!;
+    ctx.fillStyle = '#808080';
+    ctx.fillRect(0, 0, 1, 1);
+    _scanDummy = c;
+  }
+  return _scanDummy;
+}
+
+export function buildPaperUniforms(
+  paper: PaperSettings,
+  fitMode: FitMode,
+  offsetX: number,
+  offsetY: number,
+) {
+  const hasScan = paper.scanTexture > 0;
+  return {
+    u_fit: fitMode === 'fill' ? 2 : 1,
+    u_scale: 1,
+    u_rotation: 0,
+    u_originX: 0.5,
+    u_originY: 0.5,
+    u_worldWidth: 0,
+    u_worldHeight: 0,
+    u_offsetX: offsetX,
+    u_offsetY: offsetY,
+    u_noiseStrength: paper.noise / 100,
+    u_inkBleed: paper.inkBleed / 100,
+    u_xerox: paper.xerox,
+    u_xeroxOpacity: paper.xeroxOpacity / 100,
+    u_scanTexture: hasScan ? getScanImage(paper.scanTexture) : getScanDummy(),
+    u_hasScan: hasScan ? 1 : 0,
+    u_scanOpacity: paper.scanOpacity / 100,
+  };
+}
+
 // ── Font atlas for symbol edges ───────────────────────────────────────────────
 const _fontAtlasCache = new Map<string, HTMLCanvasElement>();
 
@@ -334,6 +388,17 @@ export function getShaderConfig(state: EditorState, image: HTMLImageElement) {
       uniforms: {
         u_image: image,
         ...buildHalftoneUniforms(state.halftone, state.fitMode, state.offsetX, state.offsetY),
+      },
+      speed: 0,
+    };
+  }
+
+  if (state.activeFilter === 'paper') {
+    return {
+      fragmentShader: paperFragmentShader,
+      uniforms: {
+        u_image: image,
+        ...buildPaperUniforms(state.paper, state.fitMode, state.offsetX, state.offsetY),
       },
       speed: 0,
     };

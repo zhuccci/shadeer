@@ -1124,6 +1124,102 @@ void main() {
   }
 }`;
 
+export const paperFragmentShader = `#version 300 es
+precision mediump float;
+uniform sampler2D u_image;
+uniform sampler2D u_scanTexture;
+uniform vec2 u_resolution;
+uniform float u_noiseStrength;
+uniform float u_inkBleed;
+uniform bool u_xerox;
+uniform float u_xeroxOpacity;
+uniform float u_hasScan;
+uniform float u_scanOpacity;
+in vec2 v_imageUV;
+out vec4 fragColor;
+${_hash21}
+float valueNoise(vec2 st) {
+  vec2 i = floor(st); vec2 f = fract(st);
+  float a = hash21(i); float b = hash21(i + vec2(1.0, 0.0));
+  float c = hash21(i + vec2(0.0, 1.0)); float d = hash21(i + vec2(1.0, 1.0));
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+void main() {
+  float inBounds = float(v_imageUV.x >= 0.0 && v_imageUV.x <= 1.0 &&
+                         v_imageUV.y >= 0.0 && v_imageUV.y <= 1.0);
+  vec2 uv = clamp(v_imageUV, 0.0, 1.0);
+  vec4 img = texture(u_image, uv);
+  float alpha = img.a;
+  vec3 color = img.rgb;
+
+  // Ink bleed: morphological dilation — dark regions expand outward with sharp edges.
+  // Noise-perturbed sampling creates organic irregular bleed boundary.
+  if (u_inkBleed > 0.001) {
+    vec2 dx = dFdx(v_imageUV);
+    vec2 dy = dFdy(v_imageUV);
+    float radius = u_inkBleed * 6.0;
+    vec3 darkest = color;
+    float darkestLum = dot(color, vec3(0.299, 0.587, 0.114));
+    for (int ix = -3; ix <= 3; ix++) {
+      for (int iy = -3; iy <= 3; iy++) {
+        if (length(vec2(float(ix), float(iy))) > 3.2) continue;
+        float noisePert = valueNoise(gl_FragCoord.xy * 0.8 + vec2(float(ix) * 4.1, float(iy) * 3.7)) * 0.4 + 0.8;
+        vec2 sampleUV = clamp(uv + dx * float(ix) * radius * noisePert + dy * float(iy) * radius * noisePert, 0.0, 1.0);
+        vec3 s = texture(u_image, sampleUV).rgb;
+        float lum = dot(s, vec3(0.299, 0.587, 0.114));
+        if (lum < darkestLum) { darkest = s; darkestLum = lum; }
+      }
+    }
+    color = darkest;
+  }
+
+  // Paper texture: isotropic multi-octave grain
+  vec2 pUV = gl_FragCoord.xy;
+  float f1 = valueNoise(pUV * 0.028);
+  float f2 = valueNoise(pUV * 0.18 + vec2(7.3, 13.1));
+  float f3 = valueNoise(pUV * 0.44 + vec2(3.1, 27.5));
+  float f4 = valueNoise(pUV * 0.96 + vec2(19.7, 5.9));
+  float f5 = valueNoise(pUV * 2.08 + vec2(41.3, 11.7));
+  float paperTex = f1 * 0.10 + f2 * 0.25 + f3 * 0.31 + f4 * 0.21 + f5 * 0.13;
+  paperTex -= 0.5; // center around 0
+
+  // Soft overlay blend mode
+  vec3 overlay = vec3(0.5 + paperTex);
+  vec3 overlayBlend = mix(
+    2.0 * color * overlay,
+    1.0 - 2.0 * (1.0 - color) * (1.0 - overlay),
+    step(0.5, overlay)
+  );
+  color = mix(color, clamp(overlayBlend, 0.0, 1.0), u_noiseStrength * 0.5);
+  // Subtle warm tint
+  color = mix(color, color * vec3(1.02, 1.0, 0.965), u_noiseStrength * 0.25);
+
+  // Xerox effect: hard threshold with noisy edges and dropout
+  if (u_xerox) {
+    float lum = dot(color, vec3(0.299, 0.587, 0.114));
+    float edgeNoise = valueNoise(pUV * 0.11 + vec2(37.3, 12.7)) * 0.13
+                    + valueNoise(pUV * 0.32 + vec2(5.1, 28.9)) * 0.06;
+    float dropout = valueNoise(pUV * 0.26 + vec2(41.7, 66.3));
+    float dropAmt = step(0.87, dropout) * max(0.0, 0.7 - lum) * 0.55;
+    float adjusted = lum + edgeNoise + dropAmt;
+    float bw = step(0.5, adjusted);
+    vec3 xeroxColor = mix(vec3(0.04, 0.03, 0.02), vec3(0.97, 0.97, 0.93), bw);
+    color = mix(color, xeroxColor, u_xeroxOpacity);
+  }
+
+  // Scan texture overlay — soft light blend, capped so 100% is still subtle
+  if (u_hasScan > 0.5 && u_scanOpacity > 0.001) {
+    vec2 scanUV = gl_FragCoord.xy / u_resolution;
+    vec3 scan = texture(u_scanTexture, scanUV).rgb;
+    // Multiply blend — grain darkens white areas, leaves black untouched.
+    // Visible on all values including xerox black/white output.
+    color = mix(color, color * scan, u_scanOpacity * 0.6);
+  }
+
+  fragColor = vec4(color * alpha, alpha) * inBounds;
+}`;
+
 export class ShaderMount {
   parentElement: HTMLElement;
   canvasElement: HTMLCanvasElement;
