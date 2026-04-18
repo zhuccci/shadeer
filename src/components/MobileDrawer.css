@@ -103,6 +103,11 @@
   transition: grid-template-rows 240ms var(--ease-out-strong);
 }
 
+/* Pull filter area up to visually match the header→content gap in expanded view */
+.mobile-sheet:not(.expanded) .sheet-filter-area {
+  margin-top: -24px;
+}
+
 .mobile-sheet.expanded .sheet-filter-area {
   grid-template-rows: 0fr;
   transition: grid-template-rows 220ms var(--ease-out-strong);
