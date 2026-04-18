@@ -9,6 +9,7 @@ import { GlitchFormSelector } from './GlitchFormSelector';
 import { GlitchModeSelector } from './GlitchModeSelector';
 import { HalftonePatternSelector } from './HalftonePatternSelector';
 import { KnobControl } from './KnobControl';
+import { ScanSelector } from './ScanSelector';
 import { ShapeSelector } from './ShapeSelector';
 import { SliderControl } from './SliderControl';
 import { SaveIcon, UploadIcon } from './icons/AppIcons';
@@ -27,6 +28,7 @@ function getSecondTabLabel(filter: ActiveFilter): string {
   if (filter === 'glass') return 'Angle';
   if (filter === 'glitchy') return 'Distortion';
   if (filter === 'liquid') return 'Highlight';
+  if (filter === 'paper') return 'Scan & Angle';
   return 'Colors';
 }
 
@@ -549,6 +551,43 @@ function SymbolEdgesPanelContent({ state, updateState, tab, openColor }: PanelCo
   );
 }
 
+function PaperPanelContent({ state, updateState, tab }: PanelContentProps) {
+  if (tab === 'sliders') {
+    return (
+      <div className="mobile-panel-section">
+        <SliderControl label="Noise" value={state.paper.noise} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, noise: v } }))} />
+        <SliderControl label="Ink Bleed" value={state.paper.inkBleed} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, inkBleed: v } }))} />
+        <CheckboxControl label="Xerox" checked={state.paper.xerox} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, xerox: v } }))} />
+        {state.paper.xerox && (
+          <>
+            <SliderControl label="Xerox Opacity" value={state.paper.xeroxOpacity} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, xeroxOpacity: v } }))} />
+            <SliderControl label="Threshold" value={state.paper.xeroxThreshold} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, xeroxThreshold: v } }))} />
+          </>
+        )}
+      </div>
+    );
+  }
+  return (
+    <div className="mobile-panel-section">
+      <div className="mobile-angle-tab mobile-knob-top">
+        <KnobControl
+          labels={{ top: '0°', left: '270°', right: '90°', bottom: '180°' }}
+          value={state.paper.angle}
+          onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, angle: v } }))}
+        />
+      </div>
+      <CheckboxControl label="Scan Texture" checked={state.paper.scanEnabled} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, scanEnabled: v } }))} />
+      {state.paper.scanEnabled && (
+        <>
+          <ScanSelector value={state.paper.scanTexture} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, scanTexture: v } }))} />
+          <SliderControl label="Scan Opacity" value={state.paper.scanOpacity} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, scanOpacity: v } }))} />
+          <SliderControl label="Size" value={state.paper.scanScale} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, scanScale: v } }))} />
+        </>
+      )}
+    </div>
+  );
+}
+
 type MobileColorPickerState = { label: string; value: string; onChange: (v: string) => void; originX: string; originY: string } | null;
 
 export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSelect }: MobileDrawerProps) {
@@ -728,6 +767,9 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
                       )}
                       {state.activeFilter === 'symbolEdges' && (
                         <SymbolEdgesPanelContent state={state} updateState={updateState} tab={activeTab} openColor={openColor} />
+                      )}
+                      {state.activeFilter === 'paper' && (
+                        <PaperPanelContent state={state} updateState={updateState} tab={activeTab} openColor={openColor} />
                       )}
                     </div>
                   </div>

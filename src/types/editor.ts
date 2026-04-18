@@ -79,10 +79,14 @@ export interface HalftoneSettings {
 export interface PaperSettings {
   noise: number;
   inkBleed: number;
+  angle: number;
   xerox: boolean;
   xeroxOpacity: number;
+  xeroxThreshold: number;
+  scanEnabled: boolean;
   scanTexture: number;
   scanOpacity: number;
+  scanScale: number;
 }
 
 export interface SymbolEdgesSettings {
@@ -182,10 +186,14 @@ export const defaultSymbolEdgesSettings: SymbolEdgesSettings = {
 export const defaultPaperSettings: PaperSettings = {
   noise: 40,
   inkBleed: 20,
+  angle: 0,
   xerox: false,
   xeroxOpacity: 80,
-  scanTexture: 0,
+  xeroxThreshold: 50,
+  scanEnabled: false,
+  scanTexture: 3,
   scanOpacity: 50,
+  scanScale: 25,
 };
 
 export const defaultHalftoneSettings: HalftoneSettings = {

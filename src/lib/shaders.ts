@@ -1131,10 +1131,13 @@ uniform sampler2D u_scanTexture;
 uniform vec2 u_resolution;
 uniform float u_noiseStrength;
 uniform float u_inkBleed;
+uniform float u_angle;
 uniform bool u_xerox;
 uniform float u_xeroxOpacity;
+uniform float u_xeroxThreshold;
 uniform float u_hasScan;
 uniform float u_scanOpacity;
+uniform float u_scanScale;
 in vec2 v_imageUV;
 out vec4 fragColor;
 ${_hash21}
@@ -1152,6 +1155,14 @@ void main() {
   vec4 img = texture(u_image, uv);
   float alpha = img.a;
   vec3 color = img.rgb;
+
+  // Rotation for noise and scan textures
+  float cosA = cos(u_angle);
+  float sinA = sin(u_angle);
+  vec2 screenCenter = u_resolution * 0.5;
+  vec2 rotated = gl_FragCoord.xy - screenCenter;
+  rotated = vec2(rotated.x * cosA - rotated.y * sinA, rotated.x * sinA + rotated.y * cosA);
+  vec2 pUV = rotated + screenCenter;
 
   // Ink bleed: morphological dilation — dark regions expand outward with sharp edges.
   // Noise-perturbed sampling creates organic irregular bleed boundary.
@@ -1174,15 +1185,14 @@ void main() {
     color = darkest;
   }
 
-  // Paper texture: isotropic multi-octave grain
-  vec2 pUV = gl_FragCoord.xy;
+  // Paper texture: rotated multi-octave grain
   float f1 = valueNoise(pUV * 0.028);
   float f2 = valueNoise(pUV * 0.18 + vec2(7.3, 13.1));
   float f3 = valueNoise(pUV * 0.44 + vec2(3.1, 27.5));
   float f4 = valueNoise(pUV * 0.96 + vec2(19.7, 5.9));
   float f5 = valueNoise(pUV * 2.08 + vec2(41.3, 11.7));
   float paperTex = f1 * 0.10 + f2 * 0.25 + f3 * 0.31 + f4 * 0.21 + f5 * 0.13;
-  paperTex -= 0.5; // center around 0
+  paperTex -= 0.5;
 
   // Soft overlay blend mode
   vec3 overlay = vec3(0.5 + paperTex);
@@ -1203,18 +1213,19 @@ void main() {
     float dropout = valueNoise(pUV * 0.26 + vec2(41.7, 66.3));
     float dropAmt = step(0.87, dropout) * max(0.0, 0.7 - lum) * 0.55;
     float adjusted = lum + edgeNoise + dropAmt;
-    float bw = step(0.5, adjusted);
+    float bw = step(u_xeroxThreshold, adjusted);
     vec3 xeroxColor = mix(vec3(0.04, 0.03, 0.02), vec3(0.97, 0.97, 0.93), bw);
     color = mix(color, xeroxColor, u_xeroxOpacity);
   }
 
-  // Scan texture overlay — soft light blend, capped so 100% is still subtle
+  // Scan texture overlay — screen blend lightens the image, rotated and scaled
   if (u_hasScan > 0.5 && u_scanOpacity > 0.001) {
-    vec2 scanUV = gl_FragCoord.xy / u_resolution;
+    vec2 scanUV = (gl_FragCoord.xy - screenCenter) / u_resolution;
+    scanUV = vec2(scanUV.x * cosA - scanUV.y * sinA, scanUV.x * sinA + scanUV.y * cosA);
+    scanUV = scanUV / u_scanScale + 0.5;
     vec3 scan = texture(u_scanTexture, scanUV).rgb;
-    // Multiply blend — grain darkens white areas, leaves black untouched.
-    // Visible on all values including xerox black/white output.
-    color = mix(color, color * scan, u_scanOpacity * 0.6);
+    vec3 screened = 1.0 - (1.0 - color) * (1.0 - scan);
+    color = mix(color, screened, u_scanOpacity * 0.6);
   }
 
   fragColor = vec4(color * alpha, alpha) * inBounds;

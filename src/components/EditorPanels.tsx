@@ -157,10 +157,14 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         isActive={state.activeFilter === 'paper'}
         onNoiseChange={(noise) => updateState((current) => ({ ...current, paper: { ...current.paper, noise } }))}
         onInkBleedChange={(inkBleed) => updateState((current) => ({ ...current, paper: { ...current.paper, inkBleed } }))}
+        onAngleChange={(angle) => updateState((current) => ({ ...current, paper: { ...current.paper, angle } }))}
         onXeroxChange={(xerox) => updateState((current) => ({ ...current, paper: { ...current.paper, xerox } }))}
         onXeroxOpacityChange={(xeroxOpacity) => updateState((current) => ({ ...current, paper: { ...current.paper, xeroxOpacity } }))}
+        onXeroxThresholdChange={(xeroxThreshold) => updateState((current) => ({ ...current, paper: { ...current.paper, xeroxThreshold } }))}
+        onScanEnabledChange={(scanEnabled) => updateState((current) => ({ ...current, paper: { ...current.paper, scanEnabled } }))}
         onScanTextureChange={(scanTexture) => updateState((current) => ({ ...current, paper: { ...current.paper, scanTexture } }))}
         onScanOpacityChange={(scanOpacity) => updateState((current) => ({ ...current, paper: { ...current.paper, scanOpacity } }))}
+        onScanScaleChange={(scanScale) => updateState((current) => ({ ...current, paper: { ...current.paper, scanScale } }))}
       />
 
       <SymbolEdgesPanel

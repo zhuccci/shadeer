@@ -262,7 +262,7 @@ export function buildPaperUniforms(
   offsetX: number,
   offsetY: number,
 ) {
-  const hasScan = paper.scanTexture > 0;
+  const hasScan = paper.scanEnabled && paper.scanTexture > 0;
   return {
     u_fit: fitMode === 'fill' ? 2 : 1,
     u_scale: 1,
@@ -274,12 +274,15 @@ export function buildPaperUniforms(
     u_offsetX: offsetX,
     u_offsetY: offsetY,
     u_noiseStrength: paper.noise / 100,
-    u_inkBleed: paper.inkBleed / 100,
+    u_inkBleed: paper.inkBleed / 250,
+    u_angle: (paper.angle / 360) * Math.PI * 2,
     u_xerox: paper.xerox,
     u_xeroxOpacity: paper.xeroxOpacity / 100,
+    u_xeroxThreshold: paper.xeroxThreshold / 100,
     u_scanTexture: hasScan ? getScanImage(paper.scanTexture) : getScanDummy(),
     u_hasScan: hasScan ? 1 : 0,
     u_scanOpacity: paper.scanOpacity / 100,
+    u_scanScale: (100 + paper.scanScale * 2) / 100,
   };
 }
 

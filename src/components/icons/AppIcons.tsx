@@ -54,11 +54,9 @@ export function FilterIcon({ id }: { id: string }) {
   if (id === 'paper') {
     return (
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M6 4.75C6 3.64543 6.89543 2.75 8 2.75H14.25L18.25 6.75V19.25C18.25 20.3546 17.3546 21.25 16.25 21.25H8C6.89543 21.25 6 20.3546 6 19.25V4.75Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-        <path d="M14 2.75V5.75C14 6.30228 14.4477 6.75 15 6.75H18.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M9.5 11H14.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        <path d="M9.5 14H14.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        <path d="M9.5 17H12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <g transform="translate(2, 3)">
+          <path d="M18.5 11C18.5 10.3096 17.9404 9.75 17.25 9.75H15V14.75C15 15.7165 15.7835 16.5 16.75 16.5C17.7165 16.5 18.5 15.7165 18.5 14.75V11ZM10.25 12C10.6642 12 11 12.3358 11 12.75C11 13.1642 10.6642 13.5 10.25 13.5H4.75C4.33579 13.5 4 13.1642 4 12.75C4 12.3358 4.33579 12 4.75 12H10.25ZM10.25 4C10.6642 4 11 4.33579 11 4.75V9.25C11 9.66421 10.6642 10 10.25 10H4.75C4.33579 10 4 9.66421 4 9.25V4.75C4 4.33579 4.33579 4 4.75 4H10.25ZM5.5 8.5H9.5V5.5H5.5V8.5ZM13.5 2.75C13.5 2.05964 12.9404 1.5 12.25 1.5H2.75C2.05964 1.5 1.5 2.05964 1.5 2.75V14.75C1.5 15.7165 2.28351 16.5 3.25 16.5H14.0117C13.6882 15.9948 13.5 15.3945 13.5 14.75V2.75ZM15 8.25H17.25C18.7688 8.25 20 9.48119 20 11V14.75C20 16.5449 18.5449 18 16.75 18C16.6923 18 16.635 17.9981 16.5781 17.9951C16.5524 17.9978 16.5264 18 16.5 18H3.25C1.45507 18 0 16.5449 0 14.75V2.75C0 1.23122 1.23122 0 2.75 0H12.25C13.7688 0 15 1.23122 15 2.75V8.25Z" fill="currentColor" />
+        </g>
       </svg>
     );
   }

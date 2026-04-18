@@ -2,10 +2,9 @@ import './ShapeSelector.css';
 import { useEffect, useRef, useState } from 'react';
 
 const SCAN_OPTIONS = [
-  { value: 0, label: 'None' },
-  { value: 1, label: 'Scan 1' },
+  { value: 3, label: 'Scan 1' },
   { value: 2, label: 'Scan 2' },
-  { value: 3, label: 'Scan 3' },
+  { value: 1, label: 'Scan 3' },
   { value: 4, label: 'Scan 4' },
   { value: 6, label: 'Scan 6' },
 ];
@@ -20,6 +19,7 @@ export function ScanSelector({ label, value, onChange }: ScanSelectorProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
   const selected = SCAN_OPTIONS.find((o) => o.value === value) ?? SCAN_OPTIONS[0];
+
 
   useEffect(() => {
     if (!open) return;

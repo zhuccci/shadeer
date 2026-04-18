@@ -56,8 +56,8 @@ export const filterOptions: FilterOption[] = [
   {
     id: 'paper',
     label: 'Paper',
-    thumbnail: `${baseUrl}placeholders/glass.png`,
-    hoverThumbnail: `${baseUrl}placeholders/glass_hover.png`,
+    thumbnail: `${baseUrl}placeholders/paper.png`,
+    hoverThumbnail: `${baseUrl}placeholders/paper_hover.png`,
     implemented: true,
   },
 ];
