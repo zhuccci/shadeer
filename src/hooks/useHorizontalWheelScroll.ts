@@ -15,6 +15,14 @@ export function useHorizontalWheelScroll() {
 
   useEffect(() => stopAnimation, [stopAnimation]);
 
+  // Cancel programmatic scroll animation the moment the user touches the strip
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.addEventListener('touchstart', stopAnimation, { passive: true });
+    return () => el.removeEventListener('touchstart', stopAnimation);
+  }, [stopAnimation]);
+
   const animate = useCallback(() => {
     const scrollElement = scrollRef.current;
     if (!scrollElement) {
