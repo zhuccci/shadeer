@@ -9,9 +9,11 @@ interface PaperPanelProps {
   state: EditorState;
   isActive: boolean;
   onNoiseChange: (value: number) => void;
+  onPaperNoiseChange: (value: number) => void;
   onInkBleedChange: (value: number) => void;
   onAngleChange: (value: number) => void;
   onXeroxChange: (value: boolean) => void;
+  onXeroxAmountChange: (value: number) => void;
   onXeroxOpacityChange: (value: number) => void;
   onXeroxThresholdChange: (value: number) => void;
   onScanEnabledChange: (value: boolean) => void;
@@ -24,9 +26,11 @@ export function PaperPanel({
   state,
   isActive,
   onNoiseChange,
+  onPaperNoiseChange,
   onInkBleedChange,
   onAngleChange,
   onXeroxChange,
+  onXeroxAmountChange,
   onXeroxOpacityChange,
   onXeroxThresholdChange,
   onScanEnabledChange,
@@ -38,16 +42,9 @@ export function PaperPanel({
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="paperPanel">
       <TextureLayer className="panel-grain" />
       <div className="controls-left">
-        <SliderControl label="Noise" value={state.paper.noise} onChange={onNoiseChange} />
+        <SliderControl label="Grain" value={state.paper.noise} onChange={onNoiseChange} />
+        <SliderControl label="Dust" value={state.paper.paperNoise} onChange={onPaperNoiseChange} />
         <SliderControl label="Ink Bleed" value={state.paper.inkBleed} onChange={onInkBleedChange} />
-        <div className="paper-divider-h" />
-        <CheckboxControl label="Xerox" checked={state.paper.xerox} onChange={onXeroxChange} />
-        {state.paper.xerox && (
-          <>
-            <SliderControl label="Xerox Opacity" value={state.paper.xeroxOpacity} onChange={onXeroxOpacityChange} />
-            <SliderControl label="Threshold" value={state.paper.xeroxThreshold} onChange={onXeroxThresholdChange} />
-          </>
-        )}
       </div>
       <div className="panel-divider" />
       <div className="paper-right">
@@ -56,6 +53,16 @@ export function PaperPanel({
           value={state.paper.angle}
           onChange={onAngleChange}
         />
+        <div className="paper-divider-h" />
+        <CheckboxControl label="Xerox" checked={state.paper.xerox} onChange={onXeroxChange} />
+        {state.paper.xerox && (
+          <>
+            <SliderControl label="Amount" value={state.paper.xeroxAmount} onChange={onXeroxAmountChange} />
+            <SliderControl label="Xerox Opacity" value={state.paper.xeroxOpacity} onChange={onXeroxOpacityChange} />
+            <SliderControl label="Threshold" value={state.paper.xeroxThreshold} onChange={onXeroxThresholdChange} />
+          </>
+        )}
+        <div className="paper-divider-h" />
         <CheckboxControl label="Scan Texture" checked={state.paper.scanEnabled} onChange={onScanEnabledChange} />
         {state.paper.scanEnabled && (
           <>

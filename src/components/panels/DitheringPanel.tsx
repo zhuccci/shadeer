@@ -42,9 +42,11 @@ export function DitheringPanel({
       </div>
       <div className="panel-divider" />
       <div className="dither-right">
-        <ColorSelectorControl label="Background Color" value={state.dithering.backgroundColor} onChange={onBackgroundColorChange} />
-        <ColorSelectorControl label="Front Color" value={state.dithering.frontColor} onChange={onFrontColorChange} />
-        <ColorSelectorControl label="Highlight" value={state.dithering.highlightColor} onChange={onHighlightColorChange} />
+        <div className="widget-group" style={{ gap: '24px' }}>
+          <ColorSelectorControl label="Background Color" value={state.dithering.backgroundColor} onChange={onBackgroundColorChange} />
+          <ColorSelectorControl label="Front Color" value={state.dithering.frontColor} onChange={onFrontColorChange} />
+          <ColorSelectorControl label="Highlight" value={state.dithering.highlightColor} onChange={onHighlightColorChange} />
+        </div>
         <CheckboxControl label="Original Colors" checked={state.dithering.originalColors} onChange={onOriginalColorsChange} />
         <CheckboxControl label="Invert" checked={state.dithering.invert} onChange={onInvertChange} />
       </div>

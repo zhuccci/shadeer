@@ -16,10 +16,12 @@
 .sheet-card {
   border-radius: 32px;
   border: 0.5px solid #606060;
-  background: linear-gradient(12.46deg, rgb(32, 32, 32) 16.37%, rgb(45, 45, 45) 100%);
+  background: radial-gradient(ellipse at bottom left, #292929 0%, #2d2d2d 100%);
   box-shadow:
     0 -2px 6px rgba(0, 0, 0, 0.12),
-    0 4px 24px rgba(0, 0, 0, 0.3);
+    0 4px 24px rgba(0, 0, 0, 0.3),
+    inset 4px 4px 16px 0px rgba(255, 255, 255, 0.05),
+    inset -2px -4px 16px 0px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -33,7 +35,7 @@
 }
 
 .mobile-sheet.expanded .sheet-card {
-  background: linear-gradient(26.26deg, rgb(32, 32, 32) 16.37%, rgb(45, 45, 45) 100%);
+  background: radial-gradient(ellipse at bottom left, #292929 0%, #2d2d2d 100%);
   padding: 8px;
   gap: 0;
 }
@@ -106,6 +108,12 @@
 /* Pull filter area up to visually match the header→content gap in expanded view */
 .mobile-sheet:not(.expanded) .sheet-filter-area {
   margin-top: -24px;
+  margin-bottom: -14px;
+}
+
+/* Extend inner overflow box downward so the selected button glow isn't clipped */
+.mobile-sheet:not(.expanded) .sheet-filter-area-inner {
+  padding-bottom: 14px;
 }
 
 .mobile-sheet.expanded .sheet-filter-area {
@@ -137,10 +145,12 @@
 /* ── Filter strip inside the sheet ── */
 .sheet-filter-strip .filter-buttons-wrap {
   margin: 0;
+  margin-bottom: -16px;
 }
 
 .sheet-filter-strip .filter-buttons-scroll {
   padding-left: 16px;
+  padding-right: 16px;
   padding-top: 24px;
   padding-bottom: 24px;
   mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
@@ -158,6 +168,10 @@
 /* Square 80×80 buttons, thumbnail only — no label row */
 .sheet-filter-strip .filter-btn {
   width: 80px;
+  border-radius: 16px;
+}
+
+.sheet-filter-strip .filter-btn::after {
   border-radius: 16px;
 }
 
@@ -435,7 +449,7 @@
   padding: 0 12px;
   border: none;
   outline: none;
-  color: #c7c7c7;
+  color: #d6d6d6;
   font-family: 'Geist Mono', 'JetBrains Mono', monospace;
   font-size: 15px;
   letter-spacing: 2px;

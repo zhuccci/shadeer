@@ -78,9 +78,11 @@ export interface HalftoneSettings {
 
 export interface PaperSettings {
   noise: number;
+  paperNoise: number;
   inkBleed: number;
   angle: number;
   xerox: boolean;
+  xeroxAmount: number;
   xeroxOpacity: number;
   xeroxThreshold: number;
   scanEnabled: boolean;
@@ -133,7 +135,7 @@ export const defaultGlassSettings: GlassSettings = {
 };
 
 export const defaultDitheringSettings: DitheringSettings = {
-  backgroundColor: '#FFF679',
+  backgroundColor: '#000000',
   frontColor: '#798FFF',
   highlightColor: '#FA4F29',
   originalColors: false,
@@ -185,9 +187,11 @@ export const defaultSymbolEdgesSettings: SymbolEdgesSettings = {
 
 export const defaultPaperSettings: PaperSettings = {
   noise: 40,
+  paperNoise: 0,
   inkBleed: 20,
   angle: 0,
   xerox: false,
+  xeroxAmount: 50,
   xeroxOpacity: 80,
   xeroxThreshold: 50,
   scanEnabled: false,

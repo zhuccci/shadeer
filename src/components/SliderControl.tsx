@@ -49,7 +49,7 @@ export function SliderControl({
   const clamp = (nextValue: number) => Math.max(min, Math.min(max, nextValue));
 
   const rangeSpan = max - min;
-  const usableTrackWidth = Math.max(1, trackWidth - 6);
+  const usableTrackWidth = Math.max(1, trackWidth - 12);
 
   useEffect(() => {
     const track = trackRef.current;
@@ -77,7 +77,7 @@ export function SliderControl({
     const rect = track.getBoundingClientRect();
     const ds = dragStateRef.current;
     const nextValue = Math.max(ds.min, Math.min(ds.max,
-      ds.min + ((clientX - rect.left - 3) / Math.max(1, rect.width - 6)) * ds.rangeSpan
+      ds.min + ((clientX - rect.left - 6) / Math.max(1, rect.width - 12)) * ds.rangeSpan
     ));
     onChangeRef.current(nextValue);
   };
@@ -185,7 +185,7 @@ export function SliderControl({
 
   const inactive = min === 0 && value === 0;
   const normalized = max === min ? 0 : (value - min) / rangeSpan;
-  const fillWidth = inactive ? 2 : normalized * usableTrackWidth;
+  const fillWidth = 6 + (inactive ? 0 : normalized * usableTrackWidth);
   const thumbColor =
     inactive ? '#a6a6a6' : isPointerDown ? '#9D9635' : isHoveringThumb ? '#C7BE44' : '#fff679';
 

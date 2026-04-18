@@ -1,7 +1,7 @@
 .halftone-right {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
   flex: 1;
   min-height: 0;
   min-width: 0;
@@ -29,10 +29,17 @@
   align-self: center;
 }
 
+.halftone-seg-wrapper {
+  background: #141414;
+  border-radius: 10px;
+  padding: 4px;
+  width: 100%;
+}
+
 .halftone-segment {
   position: relative;
   display: flex;
-  background: #141414;
+  background: #101010;
   border-radius: 8px;
   padding: 4px;
   width: 100%;
@@ -58,7 +65,7 @@
   padding: 8px;
   border-radius: 4px;
   font-size: 16px;
-  color: #c7c7c7;
+  color: #d6d6d6;
   background: transparent;
   cursor: pointer;
   position: relative;
@@ -98,7 +105,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
   transition: opacity 0.2s ease;
 }
 
@@ -128,7 +135,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
   transition: opacity 0.2s ease;
 }
 

@@ -60,7 +60,7 @@
 }
 
 .picker-hex-label {
-  color: #c7c7c7;
+  color: #d6d6d6;
   font-size: 16px;
   font-weight: 400;
   flex-shrink: 0;
@@ -86,7 +86,7 @@
 }
 
 .picker-hex-hash {
-  color: #c7c7c7;
+  color: #d6d6d6;
   font-size: 16px;
   font-family: 'Geist', 'Inter', system-ui, sans-serif;
   flex-shrink: 0;
@@ -97,7 +97,7 @@
   background: transparent;
   border: none;
   outline: none;
-  color: #c7c7c7;
+  color: #d6d6d6;
   font-size: 16px;
   font-family: 'Geist', 'Inter', system-ui, sans-serif;
   width: 100%;
@@ -112,7 +112,7 @@
   background: #373737;
   border-radius: 8px;
   border: none;
-  color: #c7c7c7;
+  color: #d6d6d6;
   display: flex;
   align-items: center;
   justify-content: center;

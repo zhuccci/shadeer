@@ -156,9 +156,11 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         state={state}
         isActive={state.activeFilter === 'paper'}
         onNoiseChange={(noise) => updateState((current) => ({ ...current, paper: { ...current.paper, noise } }))}
+        onPaperNoiseChange={(paperNoise) => updateState((current) => ({ ...current, paper: { ...current.paper, paperNoise } }))}
         onInkBleedChange={(inkBleed) => updateState((current) => ({ ...current, paper: { ...current.paper, inkBleed } }))}
         onAngleChange={(angle) => updateState((current) => ({ ...current, paper: { ...current.paper, angle } }))}
         onXeroxChange={(xerox) => updateState((current) => ({ ...current, paper: { ...current.paper, xerox } }))}
+        onXeroxAmountChange={(xeroxAmount) => updateState((current) => ({ ...current, paper: { ...current.paper, xeroxAmount } }))}
         onXeroxOpacityChange={(xeroxOpacity) => updateState((current) => ({ ...current, paper: { ...current.paper, xeroxOpacity } }))}
         onXeroxThresholdChange={(xeroxThreshold) => updateState((current) => ({ ...current, paper: { ...current.paper, xeroxThreshold } }))}
         onScanEnabledChange={(scanEnabled) => updateState((current) => ({ ...current, paper: { ...current.paper, scanEnabled } }))}

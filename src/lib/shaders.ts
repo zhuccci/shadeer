@@ -720,9 +720,9 @@ void main() {
   vec2 normalizedUV = canvasPixelizedUV / u_resolution;
   vec2 imageUV = getImageUV(normalizedUV);
   vec4 image = texture(u_image, imageUV);
+  if (u_inverted) image.rgb = 1.0 - image.rgb;
   float frame = getUvFrame(imageUV, pxSize / u_resolution);
   float lum = dot(vec3(.2126, .7152, .0722), image.rgb);
-  lum = u_inverted ? (1. - lum) : lum;
   int type = int(floor(u_type));
   float dithering = 0.0;
   if (type == 1) { dithering = step(hash21(canvasPixelizedUV), lum); }
@@ -829,11 +829,11 @@ void main() {
   bool cellInBounds = cellImageUV.x >= 0.0 && cellImageUV.x <= 1.0 &&
                       cellImageUV.y >= 0.0 && cellImageUV.y <= 1.0;
   vec4 tex = texture(u_image, clamp(cellImageUV, 0.0, 1.0));
+  if (u_inverted > 0.5) tex.rgb = 1.0 - tex.rgb;
+  tex.rgb = clamp(tex.rgb + u_brightness, 0.0, 1.0);
+  tex.rgb = clamp((tex.rgb - 0.5) * u_contrast + 0.5, 0.0, 1.0);
   float a_ch = cellInBounds ? tex.a : 0.0;
   float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
-  lum = u_inverted > 0.5 ? 1.0 - lum : lum;
-  lum = clamp(lum + u_brightness, 0.0, 1.0);
-  lum = clamp((lum - 0.5) * u_contrast + 0.5, 0.0, 1.0);
 
   // Cell index for per-cell randomness (in rotated grid space)
   vec2 cellIdx = floor(rotCoord / cellPx);
@@ -882,9 +882,10 @@ void main() {
                                   -sinA * nOffset.x + cosA * nOffset.y);
         vec2 nUV = clamp(cellImageUV + dFdx(v_imageUV) * nOffsetScreen.x + dFdy(v_imageUV) * nOffsetScreen.y, 0.0, 1.0);
         vec4 nTex = texture(u_image, nUV);
+        if (u_inverted > 0.5) nTex.rgb = 1.0 - nTex.rgb;
+        nTex.rgb = clamp(nTex.rgb + u_brightness, 0.0, 1.0);
+        nTex.rgb = clamp((nTex.rgb - 0.5) * u_contrast + 0.5, 0.0, 1.0);
         float nLum = dot(nTex.rgb, vec3(0.299, 0.587, 0.114));
-        nLum = clamp(nLum + u_brightness, 0.0, 1.0);
-        nLum = clamp((nLum - 0.5) * u_contrast + 0.5, 0.0, 1.0);
         float nr = sqrt(1.0 - nLum) * cellPx * 0.5;
         float dist = max(length(rotCoord - nCenter), 0.001);
         float contrib = (nr * nr) / (dist * dist);
@@ -1130,9 +1131,11 @@ uniform sampler2D u_image;
 uniform sampler2D u_scanTexture;
 uniform vec2 u_resolution;
 uniform float u_noiseStrength;
+uniform float u_paperNoise;
 uniform float u_inkBleed;
 uniform float u_angle;
 uniform bool u_xerox;
+uniform float u_xeroxAmount;
 uniform float u_xeroxOpacity;
 uniform float u_xeroxThreshold;
 uniform float u_hasScan;
@@ -1185,33 +1188,40 @@ void main() {
     color = darkest;
   }
 
-  // Paper texture: rotated multi-octave grain
-  float f1 = valueNoise(pUV * 0.028);
-  float f2 = valueNoise(pUV * 0.18 + vec2(7.3, 13.1));
-  float f3 = valueNoise(pUV * 0.44 + vec2(3.1, 27.5));
-  float f4 = valueNoise(pUV * 0.96 + vec2(19.7, 5.9));
-  float f5 = valueNoise(pUV * 2.08 + vec2(41.3, 11.7));
-  float paperTex = f1 * 0.10 + f2 * 0.25 + f3 * 0.31 + f4 * 0.21 + f5 * 0.13;
-  paperTex -= 0.5;
+  // Film grain (Lightroom-style): per-pixel hash for crisp specks + slight
+  // value noise clumping to mimic silver halide crystal aggregation.
+  // Applied as luminance addition — same as LR's grain model.
+  float g1 = hash21(pUV);
+  float g2 = valueNoise(pUV * 3.5 + vec2(7.3, 13.1));
+  float grain = (g1 * 0.65 + g2 * 0.35) - 0.5;
+  color = clamp(color + vec3(grain) * u_noiseStrength * 0.45, 0.0, 1.0);
 
-  // Soft overlay blend mode
-  vec3 overlay = vec3(0.5 + paperTex);
-  vec3 overlayBlend = mix(
-    2.0 * color * overlay,
-    1.0 - 2.0 * (1.0 - color) * (1.0 - overlay),
-    step(0.5, overlay)
-  );
-  color = mix(color, clamp(overlayBlend, 0.0, 1.0), u_noiseStrength * 0.5);
+  // Paper texture: multi-octave value noise, soft-overlay blend
+  if (u_paperNoise > 0.001) {
+    float f1 = valueNoise(pUV * 0.028);
+    float f2 = valueNoise(pUV * 0.18 + vec2(7.3, 13.1));
+    float f3 = valueNoise(pUV * 0.44 + vec2(3.1, 27.5));
+    float f4 = valueNoise(pUV * 0.96 + vec2(19.7, 5.9));
+    float f5 = valueNoise(pUV * 2.08 + vec2(41.3, 11.7));
+    float paperTex = f1 * 0.10 + f2 * 0.25 + f3 * 0.31 + f4 * 0.21 + f5 * 0.13 - 0.5;
+    vec3 overlay = vec3(0.5 + paperTex);
+    vec3 overlayBlend = mix(
+      2.0 * color * overlay,
+      1.0 - 2.0 * (1.0 - color) * (1.0 - overlay),
+      step(0.5, overlay)
+    );
+    color = mix(color, clamp(overlayBlend, 0.0, 1.0), u_paperNoise * 0.5);
+  }
   // Subtle warm tint
   color = mix(color, color * vec3(1.02, 1.0, 0.965), u_noiseStrength * 0.25);
 
   // Xerox effect: hard threshold with noisy edges and dropout
   if (u_xerox) {
     float lum = dot(color, vec3(0.299, 0.587, 0.114));
-    float edgeNoise = valueNoise(pUV * 0.11 + vec2(37.3, 12.7)) * 0.13
-                    + valueNoise(pUV * 0.32 + vec2(5.1, 28.9)) * 0.06;
-    float dropout = valueNoise(pUV * 0.26 + vec2(41.7, 66.3));
-    float dropAmt = step(0.87, dropout) * max(0.0, 0.7 - lum) * 0.55;
+    float edgeNoise = (valueNoise(pUV * 0.22 + vec2(37.3, 12.7)) * 0.13
+                    + valueNoise(pUV * 0.64 + vec2(5.1, 28.9)) * 0.06) * u_xeroxAmount;
+    float dropout = valueNoise(pUV * 0.52 + vec2(41.7, 66.3));
+    float dropAmt = step(0.87, dropout) * max(0.0, 0.7 - lum) * 0.55 * u_xeroxAmount;
     float adjusted = lum + edgeNoise + dropAmt;
     float bw = step(u_xeroxThreshold, adjusted);
     vec3 xeroxColor = mix(vec3(0.04, 0.03, 0.02), vec3(0.97, 0.97, 0.93), bw);
