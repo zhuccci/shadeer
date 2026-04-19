@@ -1162,10 +1162,10 @@ void main() {
   // Each pixel samples a randomly offset position in the source image, breaking up edges.
   if (u_diffuse > 0.001) {
     vec2 pixelUV = gl_FragCoord.xy;
-    float nx = valueNoise(pixelUV * 0.12) - 0.5;
-    float ny = valueNoise(pixelUV * 0.12 + vec2(17.3, 5.7)) - 0.5;
+    float nx = valueNoise(pixelUV * 0.24) - 0.5;
+    float ny = valueNoise(pixelUV * 0.24 + vec2(17.3, 5.7)) - 0.5;
     vec2 pixelSize = vec2(length(dFdx(uv)), length(dFdy(uv)));
-    uv = clamp(uv + vec2(nx, ny) * pixelSize * u_diffuse * 30.0, 0.0, 1.0);
+    uv = clamp(uv + vec2(nx, ny) * pixelSize * u_diffuse * 7.5, 0.0, 1.0);
   }
 
   vec4 img = texture(u_image, uv);

@@ -45,7 +45,7 @@ export function PaperPanel({
       <TextureLayer className="panel-grain" />
       <div className="controls-left">
         <SliderControl label="Grain" value={state.paper.noise} onChange={onNoiseChange} />
-        <SliderControl label="Diffuse" value={state.paper.diffuse} onChange={onDiffuseChange} />
+        <SliderControl label="Diffuse" value={state.paper.diffuse} max={30} onChange={onDiffuseChange} />
         <SliderControl label="Dust" value={state.paper.paperNoise} onChange={onPaperNoiseChange} />
         <SliderControl label="Ink Bleed" value={state.paper.inkBleed} onChange={onInkBleedChange} />
       </div>
