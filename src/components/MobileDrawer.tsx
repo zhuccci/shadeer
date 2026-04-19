@@ -556,6 +556,7 @@ function PaperPanelContent({ state, updateState, tab }: PanelContentProps) {
     return (
       <div className="mobile-panel-section">
         <SliderControl label="Grain" value={state.paper.noise} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, noise: v } }))} />
+        <SliderControl label="Diffuse" value={state.paper.diffuse} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, diffuse: v } }))} />
         <SliderControl label="Dust" value={state.paper.paperNoise} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, paperNoise: v } }))} />
         <SliderControl label="Ink Bleed" value={state.paper.inkBleed} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, inkBleed: v } }))} />
         <CheckboxControl label="Xerox" checked={state.paper.xerox} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, xerox: v } }))} />

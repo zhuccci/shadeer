@@ -9,6 +9,7 @@ interface PaperPanelProps {
   state: EditorState;
   isActive: boolean;
   onNoiseChange: (value: number) => void;
+  onDiffuseChange: (value: number) => void;
   onPaperNoiseChange: (value: number) => void;
   onInkBleedChange: (value: number) => void;
   onAngleChange: (value: number) => void;
@@ -26,6 +27,7 @@ export function PaperPanel({
   state,
   isActive,
   onNoiseChange,
+  onDiffuseChange,
   onPaperNoiseChange,
   onInkBleedChange,
   onAngleChange,
@@ -43,6 +45,7 @@ export function PaperPanel({
       <TextureLayer className="panel-grain" />
       <div className="controls-left">
         <SliderControl label="Grain" value={state.paper.noise} onChange={onNoiseChange} />
+        <SliderControl label="Diffuse" value={state.paper.diffuse} onChange={onDiffuseChange} />
         <SliderControl label="Dust" value={state.paper.paperNoise} onChange={onPaperNoiseChange} />
         <SliderControl label="Ink Bleed" value={state.paper.inkBleed} onChange={onInkBleedChange} />
       </div>

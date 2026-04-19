@@ -1132,6 +1132,7 @@ uniform sampler2D u_image;
 uniform sampler2D u_scanTexture;
 uniform vec2 u_resolution;
 uniform float u_noiseStrength;
+uniform float u_diffuse;
 uniform float u_paperNoise;
 uniform float u_inkBleed;
 uniform float u_angle;
@@ -1156,6 +1157,17 @@ void main() {
   float inBounds = float(v_imageUV.x >= 0.0 && v_imageUV.x <= 1.0 &&
                          v_imageUV.y >= 0.0 && v_imageUV.y <= 1.0);
   vec2 uv = clamp(v_imageUV, 0.0, 1.0);
+
+  // Diffuse: scatter image pixels by noise-based UV displacement (like Affinity Live Diffuse).
+  // Each pixel samples a randomly offset position in the source image, breaking up edges.
+  if (u_diffuse > 0.001) {
+    vec2 pixelUV = gl_FragCoord.xy;
+    float nx = valueNoise(pixelUV * 0.12) - 0.5;
+    float ny = valueNoise(pixelUV * 0.12 + vec2(17.3, 5.7)) - 0.5;
+    vec2 pixelSize = vec2(length(dFdx(uv)), length(dFdy(uv)));
+    uv = clamp(uv + vec2(nx, ny) * pixelSize * u_diffuse * 30.0, 0.0, 1.0);
+  }
+
   vec4 img = texture(u_image, uv);
   float alpha = img.a;
   vec3 color = img.rgb;
@@ -1191,7 +1203,6 @@ void main() {
 
   // Film grain (Lightroom-style): per-pixel hash for crisp specks + slight
   // value noise clumping to mimic silver halide crystal aggregation.
-  // Applied as luminance addition — same as LR's grain model.
   float g1 = hash21(pUV);
   float g2 = valueNoise(pUV * 3.5 + vec2(7.3, 13.1));
   float grain = (g1 * 0.65 + g2 * 0.35) - 0.5;

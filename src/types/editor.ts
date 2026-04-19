@@ -78,6 +78,7 @@ export interface HalftoneSettings {
 
 export interface PaperSettings {
   noise: number;
+  diffuse: number;
   paperNoise: number;
   inkBleed: number;
   angle: number;
@@ -187,6 +188,7 @@ export const defaultSymbolEdgesSettings: SymbolEdgesSettings = {
 
 export const defaultPaperSettings: PaperSettings = {
   noise: 40,
+  diffuse: 0,
   paperNoise: 0,
   inkBleed: 20,
   angle: 0,

@@ -156,6 +156,7 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         state={state}
         isActive={state.activeFilter === 'paper'}
         onNoiseChange={(noise) => updateState((current) => ({ ...current, paper: { ...current.paper, noise } }))}
+        onDiffuseChange={(diffuse) => updateState((current) => ({ ...current, paper: { ...current.paper, diffuse } }))}
         onPaperNoiseChange={(paperNoise) => updateState((current) => ({ ...current, paper: { ...current.paper, paperNoise } }))}
         onInkBleedChange={(inkBleed) => updateState((current) => ({ ...current, paper: { ...current.paper, inkBleed } }))}
         onAngleChange={(angle) => updateState((current) => ({ ...current, paper: { ...current.paper, angle } }))}

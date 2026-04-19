@@ -274,6 +274,7 @@ export function buildPaperUniforms(
     u_offsetX: offsetX,
     u_offsetY: offsetY,
     u_noiseStrength: paper.noise / 100,
+    u_diffuse: paper.diffuse / 100,
     u_paperNoise: paper.paperNoise / 100,
     u_inkBleed: paper.inkBleed / 250,
     u_angle: (paper.angle / 360) * Math.PI * 2,
