@@ -152,7 +152,7 @@ export function buildLiquidUniforms(
     u_colorHighlight: hexToVec4(liquid.highlightColor),
     u_highlights: liquid.highlights / 10,
     u_waves: liquid.waves / 100,
-    u_caustic: liquid.distortion / 10,
+    u_caustic: Math.pow(liquid.distortion / 100, 2) * 3.5,
     u_size: liquid.size / 100,
     u_layering: liquid.scale / 100,
     u_edges: 1,

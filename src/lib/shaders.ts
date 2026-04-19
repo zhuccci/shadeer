@@ -393,13 +393,14 @@ void main() {
   float wavesNoise = snoise((.3 + .1 * sin(t)) * .1 * patternUV + vec2(0., .4 * t));
   float causticNoise = getCausticNoise(patternUV + u_waves * vec2(1., -1.) * wavesNoise, 2. * t, 1.5);
   causticNoise += u_layering * getCausticNoise(patternUV + 2. * u_waves * vec2(1., -1.) * wavesNoise, 1.5 * t, 2.);
+  float causticNoiseCentered = causticNoise - 1.0;
   causticNoise = causticNoise * causticNoise;
   float edgesDistortion = smoothstep(0., .1, imageUV.x);
   edgesDistortion *= smoothstep(0., .1, imageUV.y);
   edgesDistortion *= (smoothstep(1., 1.1, imageUV.x) + (1.0 - smoothstep(.8, .95, imageUV.x)));
   edgesDistortion *= (1.0 - smoothstep(.9, 1., imageUV.y));
   edgesDistortion = mix(edgesDistortion, 1., u_edges);
-  float causticNoiseDistortion = .02 * causticNoise * edgesDistortion;
+  float causticNoiseDistortion = .02 * causticNoiseCentered * edgesDistortion;
   float wavesDistortion = .1 * u_waves * wavesNoise;
   imageUV += vec2(wavesDistortion, -wavesDistortion);
   imageUV += (u_caustic * causticNoiseDistortion);

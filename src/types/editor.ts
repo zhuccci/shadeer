@@ -150,7 +150,7 @@ export const defaultLiquidSettings: LiquidSettings = {
   highlightColor: '#FFFFFF',
   highlights: 1,
   waves: 32,
-  distortion: 1,
+  distortion: 30,
   size: 50,
   scale: 50,
   playing: true,
