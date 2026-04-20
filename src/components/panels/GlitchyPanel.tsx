@@ -2,7 +2,6 @@ import './GlitchyPanel.css';
 import { CheckboxControl } from '../CheckboxControl';
 import { GlitchFormSelector } from '../GlitchFormSelector';
 import { GlitchModeSelector } from '../GlitchModeSelector';
-import { TextureLayer } from '../TextureLayer';
 import { SliderControl } from '../SliderControl';
 import { PauseIcon, PlayIcon } from '../icons/AppIcons';
 import type { GlitchMode, GlitchFormMode, EditorState } from '../../types/editor';
@@ -42,8 +41,6 @@ export function GlitchyPanel({
 }: GlitchyPanelProps) {
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="glitchyPanel">
-      <TextureLayer className="panel-grain" />
-
       <div className="glitchy-top">
         <div className="glitchy-left">
           <span className="glitchy-section-label">Glitch Mode</span>

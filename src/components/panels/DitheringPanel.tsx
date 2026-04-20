@@ -1,7 +1,6 @@
 import { CheckboxControl } from '../CheckboxControl';
 import { ColorSelectorControl } from '../ColorSelectorControl';
 import { DitherTypeSelector } from '../DitherTypeSelector';
-import { TextureLayer } from '../TextureLayer';
 import { SliderControl } from '../SliderControl';
 import type { DitherType, EditorState } from '../../types/editor';
 
@@ -32,7 +31,6 @@ export function DitheringPanel({
 }: DitheringPanelProps) {
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="ditheringPanel">
-      <TextureLayer className="panel-grain" />
       <div className="controls-left">
         <DitherTypeSelector value={state.dithering.type} onChange={onTypeChange} />
         <div className="dither-slider-section">

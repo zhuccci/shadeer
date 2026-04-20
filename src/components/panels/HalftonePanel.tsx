@@ -4,7 +4,6 @@ import { ColorSelectorControl } from '../ColorSelectorControl';
 import { HalftonePatternSelector } from '../HalftonePatternSelector';
 import { KnobControl } from '../KnobControl';
 import { SliderControl } from '../SliderControl';
-import { TextureLayer } from '../TextureLayer';
 import type { EditorState, HalftonePattern } from '../../types/editor';
 import './HalftonePanel.css';
 
@@ -59,7 +58,6 @@ export function HalftonePanel({
 
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="halftonePanel">
-      <TextureLayer className="panel-grain" />
       <div className="controls-left">
         <HalftonePatternSelector label="Pattern" value={state.halftone.pattern} onChange={onPatternChange} />
         {state.halftone.pattern === 'blob' && (

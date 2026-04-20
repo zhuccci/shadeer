@@ -6,7 +6,6 @@ import { FilterStrip } from './components/FilterStrip';
 import { MobileDrawer } from './components/MobileDrawer';
 import { PreviewStage } from './components/PreviewStage';
 import { PullToRefresh } from './components/PullToRefresh';
-import { TextureLayer } from './components/TextureLayer';
 import {
   defaultEditorState,
   loadImage,
@@ -192,7 +191,6 @@ export default function App() {
 <FilterStrip activeFilter={editorState.activeFilter} onSelect={handleFilterSelect} />
         <EditorPanels state={editorState} updateState={updateState} />
         <ActionBar visible={editorState.image.hasUserImage} onUpload={handleUploadClick} onSave={() => void handleSave()} />
-        <TextureLayer className="app-grain" />
       </div>
 
       <div className="preview-wrap">

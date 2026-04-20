@@ -7,6 +7,7 @@ import { GlitchyPanel } from './panels/GlitchyPanel';
 import { HalftonePanel } from './panels/HalftonePanel';
 import { LiquidPanel } from './panels/LiquidPanel';
 import { PaperPanel } from './panels/PaperPanel';
+import { HeatmapPanel } from './panels/HeatmapPanel';
 import { SymbolEdgesPanel } from './panels/SymbolEdgesPanel';
 
 interface EditorPanelsProps {
@@ -168,6 +169,15 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         onScanTextureChange={(scanTexture) => updateState((current) => ({ ...current, paper: { ...current.paper, scanTexture } }))}
         onScanOpacityChange={(scanOpacity) => updateState((current) => ({ ...current, paper: { ...current.paper, scanOpacity } }))}
         onScanScaleChange={(scanScale) => updateState((current) => ({ ...current, paper: { ...current.paper, scanScale } }))}
+      />
+
+      <HeatmapPanel
+        state={state}
+        isActive={state.activeFilter === 'heatmap'}
+        onPaletteChange={(palette) => updateState((current) => ({ ...current, heatmap: { ...current.heatmap, palette } }))}
+        onIntensityChange={(intensity) => updateState((current) => ({ ...current, heatmap: { ...current.heatmap, intensity } }))}
+        onBlendChange={(blend) => updateState((current) => ({ ...current, heatmap: { ...current.heatmap, blend } }))}
+        onGrainChange={(grain) => updateState((current) => ({ ...current, heatmap: { ...current.heatmap, grain } }))}
       />
 
       <SymbolEdgesPanel

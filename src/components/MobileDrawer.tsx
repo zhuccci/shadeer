@@ -15,12 +15,13 @@ import { SliderControl } from './SliderControl';
 import { SaveIcon, UploadIcon } from './icons/AppIcons';
 import { filterOptions } from './filterOptions';
 import { sanitizeHex } from '../lib/editor';
-import type { ActiveFilter, EditorState } from '../types/editor';
+import type { ActiveFilter, EditorState, HeatmapPalette } from '../types/editor';
 
 type MobileTab = 'sliders' | 'colors';
 
 function getFirstTabLabel(filter: ActiveFilter): string {
   if (filter === 'symbolEdges') return 'Symbol';
+  if (filter === 'heatmap') return 'Palette';
   return 'Sliders';
 }
 
@@ -29,6 +30,7 @@ function getSecondTabLabel(filter: ActiveFilter): string {
   if (filter === 'glitchy') return 'Distortion';
   if (filter === 'liquid') return 'Highlight';
   if (filter === 'paper') return 'Scan & Angle';
+  if (filter === 'heatmap') return 'Sliders';
   return 'Colors';
 }
 
@@ -551,6 +553,41 @@ function SymbolEdgesPanelContent({ state, updateState, tab, openColor }: PanelCo
   );
 }
 
+const HEATMAP_PALETTES: { id: HeatmapPalette; label: string; gradient: string }[] = [
+  { id: 'thermal', label: 'Thermal', gradient: 'linear-gradient(to right, #000, #0000ff, #00ffff, #ffff00, #ff0000, #fff)' },
+  { id: 'inferno', label: 'Inferno', gradient: 'linear-gradient(to right, #000, #5a00a6, #e55a00, #f9f233)' },
+  { id: 'ice',     label: 'Ice',     gradient: 'linear-gradient(to right, #000026, #004de5, #00ccff, #ccffff)' },
+  { id: 'acid',    label: 'Acid',    gradient: 'linear-gradient(to right, #0d001a, #00b31a, #b3ff00)' },
+  { id: 'sunset',  label: 'Sunset',  gradient: 'linear-gradient(to right, #0d0020, #9c1b5a, #f0622a, #fce5a3)' },
+];
+
+function HeatmapPanelContent({ state, updateState, tab }: PanelContentProps) {
+  if (tab === 'sliders') {
+    return (
+      <div className="mobile-panel-section">
+        <SliderControl label="Intensity" value={state.heatmap.intensity} onChange={(v) => updateState((s) => ({ ...s, heatmap: { ...s.heatmap, intensity: v } }))} />
+        <SliderControl label="Blend" value={state.heatmap.blend} onChange={(v) => updateState((s) => ({ ...s, heatmap: { ...s.heatmap, blend: v } }))} />
+        <SliderControl label="Grain" value={state.heatmap.grain} onChange={(v) => updateState((s) => ({ ...s, heatmap: { ...s.heatmap, grain: v } }))} />
+      </div>
+    );
+  }
+  return (
+    <div className="mobile-panel-section">
+      {HEATMAP_PALETTES.map((p) => (
+        <button
+          key={p.id}
+          type="button"
+          className={`mobile-heatmap-palette-btn${state.heatmap.palette === p.id ? ' selected' : ''}`}
+          onClick={() => updateState((s) => ({ ...s, heatmap: { ...s.heatmap, palette: p.id } }))}
+        >
+          <span className="mobile-heatmap-swatch" style={{ background: p.gradient }} />
+          <span className="mobile-heatmap-palette-label">{p.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function PaperPanelContent({ state, updateState, tab }: PanelContentProps) {
   if (tab === 'sliders') {
     return (
@@ -773,6 +810,9 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
                       )}
                       {state.activeFilter === 'paper' && (
                         <PaperPanelContent state={state} updateState={updateState} tab={activeTab} openColor={openColor} />
+                      )}
+                      {state.activeFilter === 'heatmap' && (
+                        <HeatmapPanelContent state={state} updateState={updateState} tab={activeTab} openColor={openColor} />
                       )}
                     </div>
                   </div>

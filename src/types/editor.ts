@@ -1,4 +1,4 @@
-export type ActiveFilter = 'glass' | 'dithering' | 'liquid' | 'glitchy' | 'halftone' | 'symbolEdges' | 'paper';
+export type ActiveFilter = 'glass' | 'dithering' | 'liquid' | 'glitchy' | 'halftone' | 'symbolEdges' | 'paper' | 'heatmap';
 
 export type SymbolEdgesMode = 'edges' | 'color';
 
@@ -12,6 +12,8 @@ export type GlitchFormMode = 'bands' | 'wide' | 'mosaic' | 'compress';
 export type DitherType = '2x2' | '4x4' | '8x8';
 
 export type HalftonePattern = 'dots' | 'print' | 'lines' | 'cross' | 'grunge' | 'blob';
+
+export type HeatmapPalette = 'thermal' | 'inferno' | 'ice' | 'acid' | 'sunset';
 
 export interface GlassSettings {
   size: number;
@@ -105,6 +107,13 @@ export interface SymbolEdgesSettings {
   hideImage: boolean;
 }
 
+export interface HeatmapSettings {
+  palette: HeatmapPalette;
+  intensity: number;
+  blend: number;
+  grain: number;
+}
+
 export interface EditorImageState {
   image: HTMLImageElement | null;
   src: string | null;
@@ -125,6 +134,7 @@ export interface EditorState {
   halftone: HalftoneSettings;
   symbolEdges: SymbolEdgesSettings;
   paper: PaperSettings;
+  heatmap: HeatmapSettings;
   image: EditorImageState;
 }
 
@@ -200,6 +210,13 @@ export const defaultPaperSettings: PaperSettings = {
   scanTexture: 3,
   scanOpacity: 50,
   scanScale: 25,
+};
+
+export const defaultHeatmapSettings: HeatmapSettings = {
+  palette: 'thermal',
+  intensity: 50,
+  blend: 100,
+  grain: 0,
 };
 
 export const defaultHalftoneSettings: HalftoneSettings = {

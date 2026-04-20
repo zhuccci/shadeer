@@ -16,24 +16,6 @@
   overflow: hidden;
 }
 
-.btn .action-btn-grain {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  mix-blend-mode: overlay;
-  opacity: 1;
-  z-index: 0;
-  background-repeat: repeat;
-  background-size: 41px 41px;
-}
-
-.btn > :not(.action-btn-grain) {
-  position: relative;
-  z-index: 1;
-}
-
 .btn-icon {
   width: 24px;
   height: 24px;
@@ -73,7 +55,7 @@
 }
 
 .btn-secondary:hover {
-  background: #434343;
+  background: linear-gradient(180.07deg, rgb(92, 92, 92) 0.418%, rgb(78, 78, 78) 99.871%);
   color: #d6d6d6;
   box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.2),

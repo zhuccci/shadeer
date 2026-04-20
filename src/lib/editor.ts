@@ -5,6 +5,7 @@ import type {
   GlassSettings,
   GlitchySettings,
   HalftoneSettings,
+  HeatmapSettings,
   LiquidSettings,
   PaperSettings,
   SymbolEdgesSettings,
@@ -14,6 +15,7 @@ import {
   defaultGlassSettings,
   defaultGlitchySettings,
   defaultHalftoneSettings,
+  defaultHeatmapSettings,
   defaultLiquidSettings,
   defaultPaperSettings,
   defaultSymbolEdgesSettings,
@@ -26,6 +28,7 @@ import {
   flutedGlassFragmentShader,
   glitchyFragmentShader,
   halftoneFragmentShader,
+  heatmapFragmentShader,
   imageDitheringFragmentShader,
   paperFragmentShader,
   symbolEdgesFragmentShader,
@@ -44,6 +47,7 @@ export const defaultEditorState: EditorState = {
   halftone: defaultHalftoneSettings,
   symbolEdges: defaultSymbolEdgesSettings,
   paper: defaultPaperSettings,
+  heatmap: defaultHeatmapSettings,
   image: {
     image: null,
     src: null,
@@ -289,6 +293,29 @@ export function buildPaperUniforms(
   };
 }
 
+export function buildHeatmapUniforms(
+  heatmap: HeatmapSettings,
+  fitMode: FitMode,
+  offsetX: number,
+  offsetY: number,
+) {
+  return {
+    u_fit: fitMode === 'fill' ? 2 : 1,
+    u_scale: 1,
+    u_rotation: 0,
+    u_originX: 0.5,
+    u_originY: 0.5,
+    u_worldWidth: 0,
+    u_worldHeight: 0,
+    u_offsetX: offsetX,
+    u_offsetY: offsetY,
+    u_palette: ({ thermal: 0, inferno: 1, ice: 2, acid: 3, sunset: 4 } as const)[heatmap.palette],
+    u_intensity: heatmap.intensity / 50,
+    u_blend: heatmap.blend / 100,
+    u_grain: heatmap.grain / 100,
+  };
+}
+
 // ── Font atlas for symbol edges ───────────────────────────────────────────────
 const _fontAtlasCache = new Map<string, HTMLCanvasElement>();
 
@@ -416,6 +443,17 @@ export function getShaderConfig(state: EditorState, image: HTMLImageElement) {
       uniforms: {
         u_image: image,
         ...buildSymbolEdgesUniforms(state.symbolEdges, state.fitMode, state.offsetX, state.offsetY),
+      },
+      speed: 0,
+    };
+  }
+
+  if (state.activeFilter === 'heatmap') {
+    return {
+      fragmentShader: heatmapFragmentShader,
+      uniforms: {
+        u_image: image,
+        ...buildHeatmapUniforms(state.heatmap, state.fitMode, state.offsetX, state.offsetY),
       },
       speed: 0,
     };

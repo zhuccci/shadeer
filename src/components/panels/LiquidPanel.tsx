@@ -1,5 +1,4 @@
 import { ColorSelectorControl } from '../ColorSelectorControl';
-import { TextureLayer } from '../TextureLayer';
 import { PauseIcon, PlayIcon } from '../icons/AppIcons';
 import { SliderControl } from '../SliderControl';
 import type { EditorState } from '../../types/editor';
@@ -29,7 +28,6 @@ export function LiquidPanel({
 }: LiquidPanelProps) {
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="liquidPanel">
-      <TextureLayer className="panel-grain" />
       <div className="liquid-main">
         <div className="controls-left">
           <SliderControl label="Highlights amount" value={state.liquid.highlights} onChange={onHighlightsChange} />

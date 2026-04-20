@@ -2,7 +2,6 @@ import { CheckboxControl } from '../CheckboxControl';
 import { KnobControl } from '../KnobControl';
 import { ScanSelector } from '../ScanSelector';
 import { SliderControl } from '../SliderControl';
-import { TextureLayer } from '../TextureLayer';
 import type { EditorState } from '../../types/editor';
 
 interface PaperPanelProps {
@@ -42,7 +41,6 @@ export function PaperPanel({
 }: PaperPanelProps) {
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="paperPanel">
-      <TextureLayer className="panel-grain" />
       <div className="controls-left">
         <SliderControl label="Grain" value={state.paper.noise} onChange={onNoiseChange} />
         <SliderControl label="Diffuse" value={state.paper.diffuse} max={30} onChange={onDiffuseChange} />

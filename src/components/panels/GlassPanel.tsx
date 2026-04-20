@@ -1,7 +1,6 @@
 import { ShapeSelector } from '../ShapeSelector';
 import { SliderControl } from '../SliderControl';
 import { KnobControl } from '../KnobControl';
-import { TextureLayer } from '../TextureLayer';
 import type { EditorState } from '../../types/editor';
 
 interface GlassPanelProps {
@@ -23,7 +22,6 @@ export function GlassPanel({
 }: GlassPanelProps) {
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="glassPanel">
-      <TextureLayer className="panel-grain" />
       <div className="controls-left">
         <ShapeSelector label="Shape" value={state.glass.shape} onChange={onShapeChange} />
         <SliderControl label="Size" value={state.glass.size} onChange={onSizeChange} />

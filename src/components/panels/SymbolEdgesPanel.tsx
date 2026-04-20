@@ -1,7 +1,6 @@
 import { CheckboxControl } from '../CheckboxControl';
 import { ColorSelectorControl } from '../ColorSelectorControl';
 import { SliderControl } from '../SliderControl';
-import { TextureLayer } from '../TextureLayer';
 import type { EditorState, SymbolEdgesMode } from '../../types/editor';
 import './SymbolEdgesPanel.css';
 
@@ -37,8 +36,6 @@ export function SymbolEdgesPanel({
 
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="symbolEdgesPanel">
-      <TextureLayer className="panel-grain" />
-
       <div className="controls-left">
         <div className="se-symbols-row">
           <span className="widget-label">Symbols</span>

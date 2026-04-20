@@ -106,13 +106,9 @@ button {
     0px 65px 18px rgba(0, 0, 0, 0);
 }
 
-.sidebar > *:not(.app-grain):not(.app-shadow-overlay) {
+.sidebar > *:not(.app-shadow-overlay) {
   position: relative;
   z-index: 1;
-}
-
-.sidebar > .app-grain {
-  border-radius: 40px;
 }
 
 

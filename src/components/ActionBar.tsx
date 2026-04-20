@@ -1,5 +1,4 @@
 import './ActionBar.css';
-import { TextureLayer } from './TextureLayer';
 import { SaveIcon, UploadIcon } from './icons/AppIcons';
 
 interface ActionBarProps {
@@ -16,7 +15,6 @@ export function ActionBar({ visible, onUpload, onSave }: ActionBarProps) {
         Upload new
       </button>
       <button className="btn btn-primary" onClick={onSave}>
-        <TextureLayer className="action-btn-grain" />
         <SaveIcon />
         Save
       </button>

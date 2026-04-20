@@ -1253,6 +1253,83 @@ void main() {
   fragColor = vec4(color * alpha, alpha) * inBounds;
 }`;
 
+export const heatmapFragmentShader = `#version 300 es
+precision mediump float;
+uniform sampler2D u_image;
+uniform float u_imageAspectRatio;
+uniform float u_fit;
+uniform float u_scale;
+uniform float u_rotation;
+uniform float u_offsetX;
+uniform float u_offsetY;
+uniform float u_originX;
+uniform float u_originY;
+uniform float u_worldWidth;
+uniform float u_worldHeight;
+uniform float u_palette;
+uniform float u_intensity;
+uniform float u_blend;
+uniform float u_grain;
+in vec2 v_imageUV;
+out vec4 fragColor;
+
+float hmHash(vec2 p) {
+  p = fract(p * vec2(0.3183099, 0.3678794)) + 0.1;
+  p += dot(p, p + 19.19);
+  return fract(p.x * p.y);
+}
+
+vec3 paletteColor(float t) {
+  t = clamp(t, 0.0, 1.0);
+  if (u_palette < 0.5) {
+    if (t < 0.2) return mix(vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), t / 0.2);
+    if (t < 0.4) return mix(vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 1.0), (t - 0.2) / 0.2);
+    if (t < 0.6) return mix(vec3(0.0, 1.0, 1.0), vec3(1.0, 1.0, 0.0), (t - 0.4) / 0.2);
+    if (t < 0.8) return mix(vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), (t - 0.6) / 0.2);
+    return mix(vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0), (t - 0.8) / 0.2);
+  }
+  if (u_palette < 1.5) {
+    if (t < 0.33) return mix(vec3(0.0, 0.0, 0.0), vec3(0.35, 0.0, 0.65), t / 0.33);
+    if (t < 0.66) return mix(vec3(0.35, 0.0, 0.65), vec3(0.9, 0.35, 0.0), (t - 0.33) / 0.33);
+    return mix(vec3(0.9, 0.35, 0.0), vec3(0.98, 0.95, 0.2), (t - 0.66) / 0.34);
+  }
+  if (u_palette < 2.5) {
+    if (t < 0.5) return mix(vec3(0.0, 0.0, 0.15), vec3(0.0, 0.3, 0.9), t / 0.5);
+    if (t < 0.75) return mix(vec3(0.0, 0.3, 0.9), vec3(0.0, 0.8, 1.0), (t - 0.5) / 0.25);
+    return mix(vec3(0.0, 0.8, 1.0), vec3(0.8, 1.0, 1.0), (t - 0.75) / 0.25);
+  }
+  if (u_palette < 3.5) {
+    if (t < 0.5) return mix(vec3(0.05, 0.0, 0.1), vec3(0.0, 0.7, 0.1), t / 0.5);
+    return mix(vec3(0.0, 0.7, 0.1), vec3(0.7, 1.0, 0.0), (t - 0.5) / 0.5);
+  }
+  if (t < 0.33) return mix(vec3(0.051, 0.0, 0.125), vec3(0.612, 0.106, 0.353), t / 0.33);
+  if (t < 0.66) return mix(vec3(0.612, 0.106, 0.353), vec3(0.941, 0.384, 0.165), (t - 0.33) / 0.33);
+  return mix(vec3(0.941, 0.384, 0.165), vec3(0.988, 0.898, 0.639), (t - 0.66) / 0.34);
+}
+
+void main() {
+  vec2 uv = v_imageUV;
+  float inBounds = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
+  if (inBounds < 0.5) { fragColor = vec4(0.0); return; }
+
+  vec4 tex = texture(u_image, uv);
+  if (tex.a < 0.01) { fragColor = vec4(0.0); return; }
+
+  float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
+  lum = clamp((lum - 0.5) * u_intensity + 0.5, 0.0, 1.0);
+
+  vec3 heatColor = paletteColor(lum);
+  vec3 finalColor = mix(tex.rgb, heatColor, u_blend);
+
+  if (u_grain > 0.0) {
+    vec2 grainUV = gl_FragCoord.xy;
+    float noise = hmHash(grainUV) * 2.0 - 1.0;
+    finalColor += noise * u_grain * 0.25;
+  }
+
+  fragColor = vec4(clamp(finalColor, 0.0, 1.0), tex.a);
+}`;
+
 export class ShaderMount {
   parentElement: HTMLElement;
   canvasElement: HTMLCanvasElement;
