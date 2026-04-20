@@ -61,6 +61,42 @@ export function FilterIcon({ id }: { id: string }) {
     );
   }
 
+  if (id === 'heatmap') {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* center cross — largest dots r=1.5 */}
+        <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+        <circle cx="12" cy="8"  r="1.5" fill="currentColor" />
+        <circle cx="12" cy="16" r="1.5" fill="currentColor" />
+        <circle cx="8"  cy="12" r="1.5" fill="currentColor" />
+        <circle cx="16" cy="12" r="1.5" fill="currentColor" />
+        {/* second ring — medium dots r=1 */}
+        <circle cx="8"  cy="8"  r="1" fill="currentColor" />
+        <circle cx="16" cy="8"  r="1" fill="currentColor" />
+        <circle cx="8"  cy="16" r="1" fill="currentColor" />
+        <circle cx="16" cy="16" r="1" fill="currentColor" />
+        <circle cx="4"  cy="12" r="1" fill="currentColor" />
+        <circle cx="20" cy="12" r="1" fill="currentColor" />
+        <circle cx="12" cy="4"  r="1" fill="currentColor" />
+        <circle cx="12" cy="20" r="1" fill="currentColor" />
+        {/* third ring — small dots r=0.75 */}
+        <circle cx="8"  cy="4"  r="0.75" fill="currentColor" />
+        <circle cx="16" cy="4"  r="0.75" fill="currentColor" />
+        <circle cx="4"  cy="8"  r="0.75" fill="currentColor" />
+        <circle cx="20" cy="8"  r="0.75" fill="currentColor" />
+        <circle cx="4"  cy="16" r="0.75" fill="currentColor" />
+        <circle cx="20" cy="16" r="0.75" fill="currentColor" />
+        <circle cx="8"  cy="20" r="0.75" fill="currentColor" />
+        <circle cx="16" cy="20" r="0.75" fill="currentColor" />
+        {/* corners — tiny dots r=0.5 */}
+        <circle cx="4"  cy="4"  r="0.5" fill="currentColor" />
+        <circle cx="20" cy="4"  r="0.5" fill="currentColor" />
+        <circle cx="4"  cy="20" r="0.5" fill="currentColor" />
+        <circle cx="20" cy="20" r="0.5" fill="currentColor" />
+      </svg>
+    );
+  }
+
   if (id === 'liquid') {
     return (
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
