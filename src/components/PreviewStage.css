@@ -132,41 +132,35 @@ button.upload-btn:hover {
   color: var(--accent);
 }
 
-/* ── Mobile play/pause overlay button ── */
+/* ── Play/pause overlay button ── */
 .preview-play-btn {
-  display: none;
+  display: flex;
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #131313;
+  border: 0.5px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 4px 16px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px) saturate(1.8) brightness(1.05);
+  -webkit-backdrop-filter: blur(10px) saturate(1.8) brightness(1.05);
+  color: #d6d6d6;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  cursor: pointer;
 }
 
-@media (max-width: 768px) {
-  .preview-play-btn {
-    display: flex;
-    position: absolute;
-    bottom: 16px;
-    right: 16px;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: #131313;
-    border: 0.5px solid rgba(255, 255, 255, 0.14);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.25),
-      0 4px 16px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(10px) saturate(1.8) brightness(1.05);
-    -webkit-backdrop-filter: blur(10px) saturate(1.8) brightness(1.05);
-    color: #d6d6d6;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-    cursor: pointer;
-  }
-
-  .preview-play-btn.visible,
-  .image-area.has-image:hover ~ .preview-play-btn,
-  .preview-play-btn:hover {
-    opacity: 1;
-    pointer-events: auto;
-  }
+.preview-play-btn.visible,
+.image-area.has-image:hover ~ .preview-play-btn,
+.preview-play-btn:hover {
+  opacity: 1;
+  pointer-events: auto;
 }

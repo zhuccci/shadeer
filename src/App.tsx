@@ -42,9 +42,12 @@ export default function App() {
           ...current,
           image: {
             image,
+            video: null,
             src: image.src,
             aspectRatio: image.naturalWidth / image.naturalHeight,
             hasUserImage: false,
+            isVideo: false,
+            videoPlaying: false,
             isReady: true,
           },
         }));
@@ -55,9 +58,12 @@ export default function App() {
             ...current,
             image: {
               image: fallbackImage,
+              video: null,
               src: fallbackImage.src,
               aspectRatio: fallbackImage.naturalWidth / fallbackImage.naturalHeight || 1,
               hasUserImage: false,
+              isVideo: false,
+              videoPlaying: false,
               isReady: true,
             },
           }));
@@ -102,13 +108,64 @@ export default function App() {
       offsetY: 0,
       image: {
         image,
+        video: null,
         src: objectUrl,
         aspectRatio: image.naturalWidth / image.naturalHeight,
         hasUserImage: true,
+        isVideo: false,
+        videoPlaying: false,
         isReady: true,
       },
     }));
   }, [updateState]);
+
+  const handleVideoFile = useCallback(async (file: File) => {
+    const objectUrl = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    video.src = objectUrl;
+    video.loop = true;
+    video.muted = true;
+    video.playsInline = true;
+    video.autoplay = true;
+    await new Promise<void>((resolve) => {
+      video.addEventListener('canplay', () => resolve(), { once: true });
+      video.load();
+    });
+    let playing = true;
+    try {
+      await video.play();
+    } catch {
+      playing = false;
+    }
+    updateState((current) => ({
+      ...current,
+      fitMode: 'fill',
+      offsetX: 0,
+      offsetY: 0,
+      image: {
+        image: null,
+        video,
+        src: objectUrl,
+        aspectRatio: (video.videoWidth || 1) / (video.videoHeight || 1),
+        hasUserImage: true,
+        isVideo: true,
+        videoPlaying: playing,
+        isReady: true,
+      },
+    }));
+  }, [updateState]);
+
+  const handleVideoTogglePlay = useCallback(() => {
+    const video = editorState.image.video;
+    if (!video) return;
+    if (video.paused) {
+      void video.play();
+      updateState((s) => ({ ...s, image: { ...s.image, videoPlaying: true } }));
+    } else {
+      video.pause();
+      updateState((s) => ({ ...s, image: { ...s.image, videoPlaying: false } }));
+    }
+  }, [editorState.image.video, updateState]);
 
   const handleSave = useCallback(async () => {
     if (!shaderMountRef.current || !previewRef.current) return;
@@ -170,11 +227,14 @@ export default function App() {
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/jpeg,image/png"
+        accept="image/jpeg,image/png,video/mp4,video/webm"
         style={{ display: 'none' }}
         onChange={(event) => {
           const file = event.target.files?.[0];
-          if (file) void handleImageFile(file);
+          if (file) {
+            if (file.type.startsWith('video/')) void handleVideoFile(file);
+            else void handleImageFile(file);
+          }
           event.currentTarget.value = '';
         }}
       />
@@ -196,14 +256,17 @@ export default function App() {
       <div className="preview-wrap">
         <div
           className="preview-glow"
-          style={{ backgroundImage: editorState.image.src ? `url(${editorState.image.src})` : 'none' }}
+          style={{ backgroundImage: editorState.image.src && !editorState.image.isVideo ? `url(${editorState.image.src})` : 'none' }}
         />
         <PreviewStage
           state={editorState}
           isDragging={imageDrag.isDragging}
           previewRef={previewRef}
           onUpload={handleUploadClick}
-          onDropFile={(file) => void handleImageFile(file)}
+          onDropFile={(file) => {
+            if (file.type.startsWith('video/')) void handleVideoFile(file);
+            else void handleImageFile(file);
+          }}
           onFitModeChange={(fitMode) =>
             updateState((current) => ({
               ...current,
@@ -212,7 +275,11 @@ export default function App() {
               offsetY: 0,
             }))
           }
-          onTogglePlaying={() =>
+          onTogglePlaying={() => {
+            if (editorState.image.isVideo) {
+              handleVideoTogglePlay();
+              return;
+            }
             updateState((current) => {
               if (current.activeFilter === 'liquid') {
                 return { ...current, liquid: { ...current.liquid, playing: !current.liquid.playing } };
@@ -221,8 +288,8 @@ export default function App() {
                 return { ...current, glitchy: { ...current.glitchy, playing: !current.glitchy.playing } };
               }
               return current;
-            })
-          }
+            });
+          }}
           onPointerDown={imageDrag.onPointerDown}
           onPointerMove={imageDrag.onPointerMove}
           onPointerUp={imageDrag.onPointerUp}

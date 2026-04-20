@@ -50,9 +50,12 @@ export const defaultEditorState: EditorState = {
   heatmap: defaultHeatmapSettings,
   image: {
     image: null,
+    video: null,
     src: null,
     aspectRatio: 1,
     hasUserImage: false,
+    isVideo: false,
+    videoPlaying: false,
     isReady: false,
   },
 };
@@ -71,7 +74,7 @@ export function sanitizeHex(value: string, fallback: string): string {
 }
 
 export function buildGlassUniforms(
-  image: HTMLImageElement,
+  image: HTMLImageElement | HTMLVideoElement,
   glass: GlassSettings,
   fitMode: FitMode,
   offsetX: number,
@@ -397,7 +400,7 @@ export function buildSymbolEdgesUniforms(
   };
 }
 
-export function getShaderConfig(state: EditorState, image: HTMLImageElement) {
+export function getShaderConfig(state: EditorState, image: HTMLImageElement | HTMLVideoElement) {
   if (state.activeFilter === 'dithering') {
     return {
       fragmentShader: imageDitheringFragmentShader,

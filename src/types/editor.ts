@@ -123,9 +123,12 @@ export interface HeatmapSettings {
 
 export interface EditorImageState {
   image: HTMLImageElement | null;
+  video: HTMLVideoElement | null;
   src: string | null;
   aspectRatio: number;
   hasUserImage: boolean;
+  isVideo: boolean;
+  videoPlaying: boolean;
   isReady: boolean;
 }
 

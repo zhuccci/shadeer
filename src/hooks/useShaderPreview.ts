@@ -10,13 +10,14 @@ interface UseShaderPreviewOptions {
 }
 
 export function useShaderPreview({ editorState, previewRef, shaderMountRef }: UseShaderPreviewOptions) {
+  const media = editorState.image.video ?? editorState.image.image;
+
   useEffect(() => {
     const preview = previewRef.current;
-    const image = editorState.image.image;
-    if (!preview || !image) return;
+    if (!preview || !media) return;
 
     shaderMountRef.current?.dispose();
-    const config = getShaderConfig(editorState, image);
+    const config = getShaderConfig(editorState, media);
     shaderMountRef.current = new ShaderMount(preview, config.fragmentShader, config.uniforms, undefined, config.speed);
     requestAnimationFrame(() => updateFitClip(shaderMountRef.current, editorState.fitMode, editorState.image.aspectRatio));
 
@@ -24,13 +25,12 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
       shaderMountRef.current?.dispose();
       shaderMountRef.current = null;
     };
-  }, [editorState.activeFilter, editorState.fitMode, editorState.image.aspectRatio, editorState.image.image, previewRef, shaderMountRef]);
+  }, [editorState.activeFilter, editorState.fitMode, editorState.image.aspectRatio, editorState.image.image, editorState.image.video, previewRef, shaderMountRef]);
 
   useEffect(() => {
     const mount = shaderMountRef.current;
-    const image = editorState.image.image;
-    if (!mount || !image) return;
-    const config = getShaderConfig(editorState, image);
+    if (!mount || !media) return;
+    const config = getShaderConfig(editorState, media);
     mount.setUniforms(config.uniforms);
     mount.setSpeed(config.speed);
     updateFitClip(mount, editorState.fitMode, editorState.image.aspectRatio);

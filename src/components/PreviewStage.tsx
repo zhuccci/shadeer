@@ -50,12 +50,14 @@ export function PreviewStage({
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
   }, [state.activeFilter]);
 
-  const isAnimated = state.activeFilter === 'liquid' || state.activeFilter === 'glitchy';
-  const isPlaying = state.activeFilter === 'liquid'
-    ? state.liquid.playing
-    : state.activeFilter === 'glitchy'
-      ? state.glitchy.playing
-      : false;
+  const isAnimated = state.image.isVideo || state.activeFilter === 'liquid' || state.activeFilter === 'glitchy';
+  const isPlaying = state.image.isVideo
+    ? state.image.videoPlaying
+    : state.activeFilter === 'liquid'
+      ? state.liquid.playing
+      : state.activeFilter === 'glitchy'
+        ? state.glitchy.playing
+        : false;
 
   const handlePanelTap = useCallback((e: React.TouchEvent) => {
     if ((e.target as HTMLElement).closest('.preview-play-btn')) return;

@@ -4,7 +4,8 @@ type UniformValue =
   | number[]
   | number[][]
   | HTMLImageElement
-  | HTMLCanvasElement;
+  | HTMLCanvasElement
+  | HTMLVideoElement;
 
 export type UniformMap = Record<string, UniformValue>;
 
@@ -1371,6 +1372,7 @@ export class ShaderMount {
   resolutionChanged = true;
   textures = new Map<string, WebGLTexture>();
   textureUnitMap = new Map<string, number>();
+  videoElements = new Map<string, HTMLVideoElement>();
   minPixelRatio: number;
   maxPixelCount: number;
   uniformCache: Record<string, unknown> = {};
@@ -1462,7 +1464,7 @@ export class ShaderMount {
 
     Object.entries(this.providedUniforms).forEach(([key, value]) => {
       locations[key] = this.gl.getUniformLocation(program, key);
-      if (value instanceof HTMLImageElement) {
+      if (value instanceof HTMLImageElement || value instanceof HTMLVideoElement) {
         locations[`${key}AspectRatio`] = this.gl.getUniformLocation(program, `${key}AspectRatio`);
       }
     });
@@ -1553,8 +1555,19 @@ export class ShaderMount {
       this.resolutionChanged = false;
     }
 
+    this.videoElements.forEach((video, name) => {
+      if (video.readyState < 2) return;
+      const unit = this.textureUnitMap.get(name);
+      if (unit === undefined) return;
+      const texture = this.textures.get(name);
+      if (!texture) return;
+      this.gl.activeTexture(this.gl.TEXTURE0 + unit);
+      this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, video);
+    });
+
     this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
-    if (this.currentSpeed !== 0) {
+    if (this.currentSpeed !== 0 || this.videoElements.size > 0) {
       this.requestRender();
     } else {
       this.rafId = null;
@@ -1568,7 +1581,7 @@ export class ShaderMount {
     this.rafId = requestAnimationFrame(this.render);
   };
 
-  setTextureUniform = (name: string, source: HTMLImageElement | HTMLCanvasElement) => {
+  setTextureUniform = (name: string, source: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement) => {
     if (source instanceof HTMLImageElement && (!source.complete || source.naturalWidth === 0)) {
       source.addEventListener('load', () => {
         delete this.uniformCache[name];
@@ -1607,11 +1620,21 @@ export class ShaderMount {
     const location = this.uniformLocations[name];
     if (location) {
       this.gl.uniform1i(location, unit);
-      if (source instanceof HTMLImageElement) {
-        const aspectLocation = this.uniformLocations[`${name}AspectRatio`];
-        if (aspectLocation) {
+      const aspectLocation = this.uniformLocations[`${name}AspectRatio`];
+      if (aspectLocation) {
+        if (source instanceof HTMLImageElement) {
           this.gl.uniform1f(aspectLocation, source.naturalWidth / source.naturalHeight);
+        } else if (source instanceof HTMLVideoElement) {
+          this.gl.uniform1f(aspectLocation, (source.videoWidth || 1) / (source.videoHeight || 1));
         }
+      }
+    }
+
+    if (source instanceof HTMLVideoElement) {
+      this.videoElements.set(name, source);
+      if (this.rafId === null && !this.hasBeenDisposed) {
+        this.lastRenderTime = performance.now();
+        this.rafId = requestAnimationFrame(this.render);
       }
     }
   };
@@ -1632,9 +1655,11 @@ export class ShaderMount {
       const cacheValue =
         value instanceof HTMLImageElement
           ? `${value.src.slice(0, 200)}|${value.naturalWidth}x${value.naturalHeight}`
-          : value instanceof HTMLCanvasElement
+          : value instanceof HTMLVideoElement
             ? value
-            : value;
+            : value instanceof HTMLCanvasElement
+              ? value
+              : value;
 
       if (this.areEqual(this.uniformCache[key], cacheValue)) return;
       this.uniformCache[key] = cacheValue;
@@ -1645,7 +1670,7 @@ export class ShaderMount {
         return;
       }
 
-      if (value instanceof HTMLImageElement || value instanceof HTMLCanvasElement) {
+      if (value instanceof HTMLImageElement || value instanceof HTMLCanvasElement || value instanceof HTMLVideoElement) {
         this.setTextureUniform(key, value);
         return;
       }
@@ -1680,11 +1705,11 @@ export class ShaderMount {
 
   setCurrentSpeed = (speed: number) => {
     this.currentSpeed = speed;
-    if (this.rafId === null && speed !== 0) {
+    if (this.rafId === null && (speed !== 0 || this.videoElements.size > 0)) {
       this.lastRenderTime = performance.now();
       this.rafId = requestAnimationFrame(this.render);
     }
-    if (this.rafId !== null && speed === 0) {
+    if (this.rafId !== null && speed === 0 && this.videoElements.size === 0) {
       cancelAnimationFrame(this.rafId);
       this.rafId = null;
     }
@@ -1703,6 +1728,7 @@ export class ShaderMount {
     if (this.gl && this.program) {
       this.textures.forEach((texture) => this.gl.deleteTexture(texture));
       this.textures.clear();
+      this.videoElements.clear();
       this.gl.deleteProgram(this.program);
       this.program = null;
     }
