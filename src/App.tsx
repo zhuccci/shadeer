@@ -171,13 +171,12 @@ export default function App() {
   }, [editorState.image.video, updateState]);
 
   const handleSave = useCallback(async () => {
-    if (editorState.image.isVideo && editorState.image.video) {
-      const previewWidth = shaderMountRef.current?.parentWidth ?? 0;
+    if (editorState.image.isVideo && editorState.image.video && shaderMountRef.current) {
       setVideoExportProgress(0);
       const blob = await renderVideoToBlob(
         editorState.image.video,
         editorState,
-        previewWidth,
+        shaderMountRef.current,
         (p) => setVideoExportProgress(p),
       );
       setVideoExportProgress(null);

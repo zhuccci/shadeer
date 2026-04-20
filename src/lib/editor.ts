@@ -563,132 +563,23 @@ export function getFillDragBounds(container: HTMLElement, aspectRatio: number) {
 export async function renderVideoToBlob(
   video: HTMLVideoElement,
   editorState: EditorState,
-  previewWidth: number,
+  previewMount: ShaderMount,
   onProgress?: (progress: number) => void,
 ): Promise<Blob | null> {
-  const w = video.videoWidth;
-  const h = video.videoHeight;
-  if (!w || !h || !isFinite(video.duration) || video.duration === 0) return null;
-
+  if (!isFinite(video.duration) || video.duration === 0) return null;
   const duration = video.duration;
 
-  // Clone video for export starting from t=0
-  const exportVideo = document.createElement('video');
-  exportVideo.src = video.src;
-  exportVideo.muted = true;
-  exportVideo.loop = false;
-  exportVideo.playsInline = true;
-  await new Promise<void>((resolve) => {
-    exportVideo.addEventListener('canplay', () => resolve(), { once: true });
-    exportVideo.load();
-  });
-
-  // Size tempDiv in CSS pixels so ShaderMount's ResizeObserver sets canvas to w×h device pixels.
-  // Using dpr as minPixelRatio: renderScale = max(dpr, dpr) = dpr → canvas = cssW*dpr × cssH*dpr = w × h.
-  const dpr = Math.max(1, window.devicePixelRatio);
-  const cssW = w / dpr;
-  const cssH = h / dpr;
-
-  // Keep canvas within viewport and visible to the compositor so captureStream works.
-  const tempDiv = document.createElement('div');
-  tempDiv.style.cssText = `position:fixed;top:0;left:0;width:${cssW}px;height:${cssH}px;overflow:hidden;opacity:0.001;pointer-events:none;z-index:9999`;
-  document.documentElement.appendChild(tempDiv);
-
-  // Use a dummy canvas as initial u_image so ShaderMount doesn't touch RAF during construction.
-  const dummy = document.createElement('canvas');
-  dummy.width = dummy.height = 1;
-  const dummyCtx = dummy.getContext('2d')!;
-  dummyCtx.fillStyle = '#808080';
-  dummyCtx.fillRect(0, 0, 1, 1);
-
-  const config = getShaderConfig(
-    { ...editorState, fitMode: 'fit', offsetX: 0, offsetY: 0 },
-    exportVideo,
-  );
-
-  const mount = new ShaderMount(
-    tempDiv,
-    config.fragmentShader,
-    { ...config.uniforms, u_image: dummy },
-    { preserveDrawingBuffer: true },
-    0,
-    0,
-    dpr,        // minPixelRatio = dpr → canvas exactly w×h pixels
-    w * h + 1,
-  );
-
-  // Wait for ResizeObserver to size the canvas to native resolution (fires async, usually 1-2 frames)
-  const canvas = await new Promise<HTMLCanvasElement | null>((resolve) => {
-    const deadline = Date.now() + 2000;
-    const check = () => {
-      const c = tempDiv.querySelector('canvas');
-      if (c instanceof HTMLCanvasElement && c.width > 0 && c.height > 0) {
-        resolve(c);
-      } else if (Date.now() < deadline) {
-        requestAnimationFrame(check);
-      } else {
-        resolve(tempDiv.querySelector('canvas') as HTMLCanvasElement | null);
-      }
-    };
-    requestAnimationFrame(check);
-  });
-
-  if (!(canvas instanceof HTMLCanvasElement)) {
-    mount.dispose();
-    tempDiv.remove();
-    return null;
-  }
-
-  mount.resizeObserver?.disconnect();
-
-  // Force exact native pixels if DPR rounding left a mismatch
-  if (canvas.width !== w || canvas.height !== h) {
-    canvas.width = w;
-    canvas.height = h;
-    mount.gl.viewport(0, 0, w, h);
-    mount.resolutionChanged = true;
-    mount.renderScale = 1;
-  }
-
-  // Drain any stale GL errors from construction / canvas resize.
-  { let e = mount.gl.getError(); while (e !== mount.gl.NO_ERROR) { e = mount.gl.getError(); } }
-
-  // Set all non-image uniforms (size, angle, colors, etc.)
-  const exportUniforms = { ...config.uniforms, u_image: dummy } as UniformMap & { u_pxSize?: number };
-  if (editorState.activeFilter === 'dithering' && typeof exportUniforms.u_pxSize === 'number' && previewWidth > 0) {
-    exportUniforms.u_pxSize = exportUniforms.u_pxSize * (w / previewWidth);
-  }
-  mount.uniformCache = {};
-  mount.setUniformValues(exportUniforms);
-
-  // Manually set the image texture to the export video, bypassing videoElements tracking.
-  // This is more reliable than relying on setTextureUniform's GL-error guard.
-  const gl = mount.gl;
-  const imageUnit = mount.textureUnitMap.get('u_image');
-  const imageTexture = mount.textures.get('u_image');
-
-  if (imageUnit === undefined || !imageTexture) {
-    mount.dispose();
-    tempDiv.remove();
-    return null;
-  }
-
-  // Prime the texture slot with the first video frame and set aspect ratio.
-  gl.activeTexture(gl.TEXTURE0 + imageUnit);
-  gl.bindTexture(gl.TEXTURE_2D, imageTexture);
-  if (exportVideo.readyState >= 2) {
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, exportVideo);
-  }
-  gl.useProgram(mount.program!);
-  const arLoc = mount.uniformLocations['u_imageAspectRatio'];
-  if (arLoc) gl.uniform1f(arLoc, exportVideo.videoWidth / exportVideo.videoHeight);
+  // Record from the existing preview canvas — it's already rendering the video
+  // with the correct shader and uniforms, so we avoid off-screen GL context issues.
+  const canvas = previewMount.canvasElement;
+  if (!canvas) return null;
 
   const mimeType =
     ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'].find((t) =>
       MediaRecorder.isTypeSupported(t),
     ) ?? 'video/webm';
 
-  const stream = canvas.captureStream(30);
+  const stream = (canvas as HTMLCanvasElement).captureStream(30);
   const chunks: BlobPart[] = [];
   const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 16_000_000 });
   recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
@@ -696,33 +587,35 @@ export async function renderVideoToBlob(
     recorder.onstop = () => resolve(new Blob(chunks, { type: mimeType.split(';')[0] }));
   });
 
+  // Seek to start, disable loop so `ended` fires reliably
+  const wasLooping = video.loop;
+  video.loop = false;
+  video.currentTime = 0;
+  await new Promise<void>((resolve) => {
+    video.addEventListener('seeked', () => resolve(), { once: true });
+  });
+
   if (onProgress) {
-    exportVideo.ontimeupdate = () => onProgress(exportVideo.currentTime / duration);
+    video.ontimeupdate = () => onProgress(video.currentTime / duration);
   }
 
-  // Render loop: upload current video frame then draw. Bypasses RAF entirely.
-  const renderLoop = setInterval(() => {
-    if (exportVideo.readyState >= 2) {
-      gl.activeTexture(gl.TEXTURE0 + imageUnit);
-      gl.bindTexture(gl.TEXTURE_2D, imageTexture);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, exportVideo);
-    }
-    mount.render(performance.now());
-  }, 1000 / 30);
-
   recorder.start(500);
-  try { await exportVideo.play(); } catch { /* muted; play() rejection shouldn't block us */ }
+  if (video.paused) {
+    try { await video.play(); } catch { /* muted */ }
+  }
 
   await new Promise<void>((resolve) => {
     const timeout = setTimeout(resolve, (duration + 5) * 1000);
-    exportVideo.onended = () => { clearTimeout(timeout); resolve(); };
+    video.addEventListener('ended', () => { clearTimeout(timeout); resolve(); }, { once: true });
   });
 
-  clearInterval(renderLoop);
   recorder.stop();
-  mount.dispose();
-  tempDiv.remove();
-  exportVideo.src = '';
+
+  // Restore playback state
+  if (onProgress) video.ontimeupdate = null;
+  video.loop = wasLooping;
+  video.currentTime = 0;
+  try { await video.play(); } catch { /* restore preview playback */ }
 
   return blobReady;
 }
