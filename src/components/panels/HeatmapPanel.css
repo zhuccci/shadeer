@@ -1,44 +1,108 @@
-.heatmap-palette-grid {
+.heatmap-palette-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 16px;
 }
 
-.heatmap-palette-btn {
+.heatmap-palette-item {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--panel-dark);
-  border: 1px solid transparent;
-  border-radius: 8px;
-  padding: 6px 10px;
-  cursor: pointer;
-  transition: border-color 0.15s;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
   width: 100%;
+  background: transparent;
+  border: 0.5px solid transparent;
+  border-radius: 16px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease-out, border-color 0.15s ease-out, box-shadow 0.15s ease-out;
 }
 
-.heatmap-palette-btn:hover {
-  border-color: #555;
+.heatmap-palette-item:hover {
+  background: rgba(20, 20, 20, 0.6);
 }
 
-.heatmap-palette-btn.selected {
+.heatmap-palette-item.selected {
+  background: #141414;
   border-color: var(--accent);
+  box-shadow: 0 0 18.75px 0 rgba(255, 246, 121, 0.2);
+}
+
+.heatmap-palette-label {
+  font-size: 16px;
+  color: var(--text);
+  white-space: nowrap;
 }
 
 .heatmap-palette-swatch {
   display: block;
-  width: 80px;
-  height: 14px;
-  border-radius: 4px;
+  height: 24px;
+  width: 100%;
+  border-radius: 8px;
   flex-shrink: 0;
 }
 
-.heatmap-palette-label {
-  font-size: 12px;
-  color: var(--text-muted);
-  white-space: nowrap;
+.heatmap-right {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.heatmap-palette-btn.selected .heatmap-palette-label {
-  color: var(--text);
+/* ── Custom gradient editor ── */
+
+.heatmap-gradient-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.heatmap-gradient-wrap {
+  position: relative;
+  cursor: crosshair;
+  padding-bottom: 22px;
+}
+
+.heatmap-gradient-bar {
+  height: 24px;
+  border-radius: 8px;
+  width: 100%;
+  pointer-events: none;
+}
+
+.heatmap-gradient-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 14px;
+}
+
+.heatmap-stop-marker {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1.5px solid #6a6a6a;
+  transform: translateX(-50%);
+  cursor: grab;
+  padding: 0;
+  transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out, opacity 0.15s ease-out;
+  top: 0;
+}
+
+.heatmap-stop-marker.selected {
+  border-color: #ffffff;
+  box-shadow: 0 0 8px 0 rgba(255, 255, 255, 0.35);
+  z-index: 1;
+}
+
+.heatmap-stop-marker.delete-pending {
+  opacity: 0.35;
+  border-color: #ff4444;
+}
+
+.heatmap-stop-marker:active {
+  cursor: grabbing;
 }

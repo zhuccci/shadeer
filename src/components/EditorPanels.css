@@ -99,6 +99,7 @@
   .panel-active .controls-left > *,
   .panel-active .dither-right > *,
   .panel-active .halftone-right > *,
+  .panel-active .heatmap-right > *,
   .panel-active .glitchy-top,
   .panel-active .glitchy-scroll-area > *,
   .panel-active .glitchy-right > *,
@@ -179,9 +180,22 @@
 #halftonePanel,
 #liquidPanel,
 #glassPanel,
-#symbolEdgesPanel {
+#symbolEdgesPanel,
+#heatmapPanel {
   gap: 24px;
 }
+
+#heatmapPanel .controls-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.panel-active .heatmap-right > * {
+  animation: panelItemIn 160ms cubic-bezier(0.23, 1, 0.32, 1) backwards;
+}
+.panel-active .heatmap-right > *:nth-child(1) { animation-delay: 20ms; }
+.panel-active .heatmap-right > *:nth-child(2) { animation-delay: 50ms; }
+.panel-active .heatmap-right > *:nth-child(3) { animation-delay: 80ms; }
 
 #liquidPanel {
   flex-direction: column;

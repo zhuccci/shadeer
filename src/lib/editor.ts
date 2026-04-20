@@ -299,6 +299,19 @@ export function buildHeatmapUniforms(
   offsetX: number,
   offsetY: number,
 ) {
+  const MAX_STOPS = 5;
+  const sortedStops = [...heatmap.customStops]
+    .sort((a, b) => a.position - b.position)
+    .slice(0, MAX_STOPS);
+  const padded = [
+    ...sortedStops,
+    ...Array.from({ length: MAX_STOPS - sortedStops.length }, () => ({ color: '#000000', position: 0 })),
+  ];
+  const customStopsData = padded.map((s) => {
+    const [r, g, b] = hexToVec4(s.color);
+    return [r, g, b, s.position] as [number, number, number, number];
+  });
+
   return {
     u_fit: fitMode === 'fill' ? 2 : 1,
     u_scale: 1,
@@ -313,6 +326,9 @@ export function buildHeatmapUniforms(
     u_intensity: heatmap.intensity / 50,
     u_blend: heatmap.blend / 100,
     u_grain: heatmap.grain / 100,
+    u_customGradient: heatmap.customGradient ? 1 : 0,
+    u_customStopCount: sortedStops.length,
+    u_customStops: customStopsData,
   };
 }
 

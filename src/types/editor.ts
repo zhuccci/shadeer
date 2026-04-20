@@ -15,6 +15,11 @@ export type HalftonePattern = 'dots' | 'print' | 'lines' | 'cross' | 'grunge' | 
 
 export type HeatmapPalette = 'thermal' | 'inferno' | 'ice' | 'acid' | 'sunset';
 
+export interface GradientStop {
+  color: string;
+  position: number; // 0–1
+}
+
 export interface GlassSettings {
   size: number;
   grain: number;
@@ -109,6 +114,8 @@ export interface SymbolEdgesSettings {
 
 export interface HeatmapSettings {
   palette: HeatmapPalette;
+  customGradient: boolean;
+  customStops: GradientStop[];
   intensity: number;
   blend: number;
   grain: number;
@@ -214,6 +221,12 @@ export const defaultPaperSettings: PaperSettings = {
 
 export const defaultHeatmapSettings: HeatmapSettings = {
   palette: 'thermal',
+  customGradient: false,
+  customStops: [
+    { color: '#000000', position: 0 },
+    { color: '#808080', position: 0.5 },
+    { color: '#ffffff', position: 1 },
+  ],
   intensity: 50,
   blend: 100,
   grain: 0,

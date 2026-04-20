@@ -1270,6 +1270,9 @@ uniform float u_palette;
 uniform float u_intensity;
 uniform float u_blend;
 uniform float u_grain;
+uniform float u_customGradient;
+uniform float u_customStopCount;
+uniform vec4 u_customStops[8];
 in vec2 v_imageUV;
 out vec4 fragColor;
 
@@ -1279,8 +1282,28 @@ float hmHash(vec2 p) {
   return fract(p.x * p.y);
 }
 
+vec3 customPaletteColor(float t) {
+  t = clamp(t, 0.0, 1.0);
+  int count = int(u_customStopCount);
+  if (count <= 0) return vec3(0.0);
+  if (count == 1) return u_customStops[0].rgb;
+  vec3 lastColor = u_customStops[0].rgb;
+  for (int i = 1; i < 8; i++) {
+    if (i >= count) break;
+    float p0 = u_customStops[i - 1].a;
+    float p1 = u_customStops[i].a;
+    if (t <= p1) {
+      float localT = (p1 > p0) ? (t - p0) / (p1 - p0) : 0.0;
+      return mix(u_customStops[i - 1].rgb, u_customStops[i].rgb, clamp(localT, 0.0, 1.0));
+    }
+    lastColor = u_customStops[i].rgb;
+  }
+  return lastColor;
+}
+
 vec3 paletteColor(float t) {
   t = clamp(t, 0.0, 1.0);
+  if (u_customGradient > 0.5) return customPaletteColor(t);
   if (u_palette < 0.5) {
     if (t < 0.2) return mix(vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), t / 0.2);
     if (t < 0.4) return mix(vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 1.0), (t - 0.2) / 0.2);

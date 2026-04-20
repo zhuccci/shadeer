@@ -175,6 +175,8 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         state={state}
         isActive={state.activeFilter === 'heatmap'}
         onPaletteChange={(palette) => updateState((current) => ({ ...current, heatmap: { ...current.heatmap, palette } }))}
+        onCustomGradientChange={(customGradient) => updateState((current) => ({ ...current, heatmap: { ...current.heatmap, customGradient } }))}
+        onCustomStopsChange={(customStops) => updateState((current) => ({ ...current, heatmap: { ...current.heatmap, customStops } }))}
         onIntensityChange={(intensity) => updateState((current) => ({ ...current, heatmap: { ...current.heatmap, intensity } }))}
         onBlendChange={(blend) => updateState((current) => ({ ...current, heatmap: { ...current.heatmap, blend } }))}
         onGrainChange={(grain) => updateState((current) => ({ ...current, heatmap: { ...current.heatmap, grain } }))}
