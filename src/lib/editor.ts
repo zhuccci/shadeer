@@ -650,14 +650,38 @@ export async function renderVideoToBlob(
     mount.renderScale = 1;
   }
 
-  // Drain any stale GL errors accumulated during construction / canvas resize
-  // so the error check inside setTextureUniform starts clean.
+  // Drain any stale GL errors from construction / canvas resize.
   { let e = mount.gl.getError(); while (e !== mount.gl.NO_ERROR) { e = mount.gl.getError(); } }
 
-  const exportUniforms = { ...config.uniforms, u_image: exportVideo } as UniformMap & { u_pxSize?: number };
+  // Set all non-image uniforms (size, angle, colors, etc.)
+  const exportUniforms = { ...config.uniforms, u_image: dummy } as UniformMap & { u_pxSize?: number };
   if (editorState.activeFilter === 'dithering' && typeof exportUniforms.u_pxSize === 'number' && previewWidth > 0) {
     exportUniforms.u_pxSize = exportUniforms.u_pxSize * (w / previewWidth);
   }
+  mount.uniformCache = {};
+  mount.setUniformValues(exportUniforms);
+
+  // Manually set the image texture to the export video, bypassing videoElements tracking.
+  // This is more reliable than relying on setTextureUniform's GL-error guard.
+  const gl = mount.gl;
+  const imageUnit = mount.textureUnitMap.get('u_image');
+  const imageTexture = mount.textures.get('u_image');
+
+  if (imageUnit === undefined || !imageTexture) {
+    mount.dispose();
+    tempDiv.remove();
+    return null;
+  }
+
+  // Prime the texture slot with the first video frame and set aspect ratio.
+  gl.activeTexture(gl.TEXTURE0 + imageUnit);
+  gl.bindTexture(gl.TEXTURE_2D, imageTexture);
+  if (exportVideo.readyState >= 2) {
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, exportVideo);
+  }
+  gl.useProgram(mount.program!);
+  const arLoc = mount.uniformLocations['u_imageAspectRatio'];
+  if (arLoc) gl.uniform1f(arLoc, exportVideo.videoWidth / exportVideo.videoHeight);
 
   const mimeType =
     ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'].find((t) =>
@@ -676,12 +700,15 @@ export async function renderVideoToBlob(
     exportVideo.ontimeupdate = () => onProgress(exportVideo.currentTime / duration);
   }
 
-  // Set real video uniform → adds to videoElements → kicks RAF
-  mount.uniformCache = {};
-  mount.setUniformValues(exportUniforms);
-
-  // Belt-and-suspenders: also drive rendering manually in case RAF is throttled
-  const renderBackup = setInterval(() => mount.render(performance.now()), 1000 / 30);
+  // Render loop: upload current video frame then draw. Bypasses RAF entirely.
+  const renderLoop = setInterval(() => {
+    if (exportVideo.readyState >= 2) {
+      gl.activeTexture(gl.TEXTURE0 + imageUnit);
+      gl.bindTexture(gl.TEXTURE_2D, imageTexture);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, exportVideo);
+    }
+    mount.render(performance.now());
+  }, 1000 / 30);
 
   recorder.start(500);
   try { await exportVideo.play(); } catch { /* muted; play() rejection shouldn't block us */ }
@@ -691,7 +718,7 @@ export async function renderVideoToBlob(
     exportVideo.onended = () => { clearTimeout(timeout); resolve(); };
   });
 
-  clearInterval(renderBackup);
+  clearInterval(renderLoop);
   recorder.stop();
   mount.dispose();
   tempDiv.remove();
