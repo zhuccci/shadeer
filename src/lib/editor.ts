@@ -572,6 +572,7 @@ export async function renderVideoToBlob(
 
   const duration = video.duration;
 
+  // Clone video for export starting from t=0
   const exportVideo = document.createElement('video');
   exportVideo.src = video.src;
   exportVideo.muted = true;
@@ -582,11 +583,18 @@ export async function renderVideoToBlob(
     exportVideo.load();
   });
 
+  // Size tempDiv in CSS pixels so ShaderMount's ResizeObserver sets canvas to w×h device pixels.
+  // Using dpr as minPixelRatio: renderScale = max(dpr, dpr) = dpr → canvas = cssW*dpr × cssH*dpr = w × h.
+  const dpr = Math.max(1, window.devicePixelRatio);
+  const cssW = w / dpr;
+  const cssH = h / dpr;
+
+  // Keep canvas within viewport and visible to the compositor so captureStream works.
   const tempDiv = document.createElement('div');
-  tempDiv.style.cssText = `position:fixed;left:-99999px;top:0;width:${w}px;height:${h}px;overflow:hidden`;
+  tempDiv.style.cssText = `position:fixed;top:0;left:0;width:${cssW}px;height:${cssH}px;overflow:hidden;opacity:0.001;pointer-events:none;z-index:9999`;
   document.documentElement.appendChild(tempDiv);
 
-  // Dummy 1×1 canvas so ShaderMount doesn't start RAF during construction
+  // Use a dummy canvas as initial u_image so ShaderMount doesn't touch RAF during construction.
   const dummy = document.createElement('canvas');
   dummy.width = dummy.height = 1;
   const dummyCtx = dummy.getContext('2d')!;
@@ -605,23 +613,46 @@ export async function renderVideoToBlob(
     { preserveDrawingBuffer: true },
     0,
     0,
-    1,
+    dpr,        // minPixelRatio = dpr → canvas exactly w×h pixels
     w * h + 1,
   );
 
-  mount.resizeObserver?.disconnect();
-  const canvas = tempDiv.querySelector('canvas');
+  // Wait for ResizeObserver to size the canvas to native resolution (fires async, usually 1-2 frames)
+  const canvas = await new Promise<HTMLCanvasElement | null>((resolve) => {
+    const deadline = Date.now() + 2000;
+    const check = () => {
+      const c = tempDiv.querySelector('canvas');
+      if (c instanceof HTMLCanvasElement && c.width > 0 && c.height > 0) {
+        resolve(c);
+      } else if (Date.now() < deadline) {
+        requestAnimationFrame(check);
+      } else {
+        resolve(tempDiv.querySelector('canvas') as HTMLCanvasElement | null);
+      }
+    };
+    requestAnimationFrame(check);
+  });
+
   if (!(canvas instanceof HTMLCanvasElement)) {
     mount.dispose();
     tempDiv.remove();
     return null;
   }
 
-  canvas.width = w;
-  canvas.height = h;
-  mount.gl.viewport(0, 0, w, h);
-  mount.resolutionChanged = true;
-  mount.renderScale = 1;
+  mount.resizeObserver?.disconnect();
+
+  // Force exact native pixels if DPR rounding left a mismatch
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w;
+    canvas.height = h;
+    mount.gl.viewport(0, 0, w, h);
+    mount.resolutionChanged = true;
+    mount.renderScale = 1;
+  }
+
+  // Drain any stale GL errors accumulated during construction / canvas resize
+  // so the error check inside setTextureUniform starts clean.
+  { let e = mount.gl.getError(); while (e !== mount.gl.NO_ERROR) { e = mount.gl.getError(); } }
 
   const exportUniforms = { ...config.uniforms, u_image: exportVideo } as UniformMap & { u_pxSize?: number };
   if (editorState.activeFilter === 'dithering' && typeof exportUniforms.u_pxSize === 'number' && previewWidth > 0) {
@@ -645,19 +676,22 @@ export async function renderVideoToBlob(
     exportVideo.ontimeupdate = () => onProgress(exportVideo.currentTime / duration);
   }
 
-  // Set real video uniform → starts RAF → canvas renders video frames
+  // Set real video uniform → adds to videoElements → kicks RAF
   mount.uniformCache = {};
   mount.setUniformValues(exportUniforms);
 
-  // Start recorder then start playback
+  // Belt-and-suspenders: also drive rendering manually in case RAF is throttled
+  const renderBackup = setInterval(() => mount.render(performance.now()), 1000 / 30);
+
   recorder.start(500);
-  try { await exportVideo.play(); } catch { /* muted autoplay blocked */ }
+  try { await exportVideo.play(); } catch { /* muted; play() rejection shouldn't block us */ }
 
   await new Promise<void>((resolve) => {
     const timeout = setTimeout(resolve, (duration + 5) * 1000);
     exportVideo.onended = () => { clearTimeout(timeout); resolve(); };
   });
 
+  clearInterval(renderBackup);
   recorder.stop();
   mount.dispose();
   tempDiv.remove();
