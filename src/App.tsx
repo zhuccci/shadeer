@@ -11,6 +11,7 @@ import {
   loadImage,
   makeFallbackImage,
   renderShaderToBlob,
+  renderVideoToBlob,
 } from './lib/editor';
 import { ShaderMount } from './lib/shaders';
 import { useImageDrag } from './hooks/useImageDrag';
@@ -22,6 +23,8 @@ const baseUrl = import.meta.env.BASE_URL;
 export default function App() {
   const [editorState, setEditorState] = useState<EditorState>(defaultEditorState);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [downloadFilename, setDownloadFilename] = useState('neuropic.png');
+  const [videoExportProgress, setVideoExportProgress] = useState<number | null>(null);
   const [copyToastVisible, setCopyToastVisible] = useState(false);
   const [flashKey, setFlashKey] = useState(0);
   const previewRef = useRef<HTMLDivElement | null>(null);
@@ -168,11 +171,28 @@ export default function App() {
   }, [editorState.image.video, updateState]);
 
   const handleSave = useCallback(async () => {
+    if (editorState.image.isVideo && editorState.image.video) {
+      const previewWidth = shaderMountRef.current?.parentWidth ?? 0;
+      setVideoExportProgress(0);
+      const blob = await renderVideoToBlob(
+        editorState.image.video,
+        editorState,
+        previewWidth,
+        (p) => setVideoExportProgress(p),
+      );
+      setVideoExportProgress(null);
+      if (!blob) return;
+      const ext = blob.type.includes('mp4') ? 'mp4' : 'webm';
+      setDownloadFilename(`neuropic.${ext}`);
+      setDownloadUrl(URL.createObjectURL(blob));
+      return;
+    }
     if (!shaderMountRef.current || !previewRef.current) return;
     const blob = await renderShaderToBlob(previewRef.current, shaderMountRef.current, editorState);
     if (!blob) return;
+    setDownloadFilename('neuropic.png');
     setDownloadUrl(URL.createObjectURL(blob));
-  }, [editorState]);
+  }, [editorState, shaderMountRef]);
 
   useEffect(() => {
     const handleCopy = (event: KeyboardEvent) => {
@@ -241,7 +261,7 @@ export default function App() {
       <a
         ref={downloadLinkRef}
         href={downloadUrl ?? undefined}
-        download="neuropic.png"
+        download={downloadFilename}
         style={{ display: 'none' }}
       >
         Download
@@ -250,7 +270,7 @@ export default function App() {
       <div className="sidebar">
 <FilterStrip activeFilter={editorState.activeFilter} onSelect={handleFilterSelect} />
         <EditorPanels state={editorState} updateState={updateState} />
-        <ActionBar visible={editorState.image.hasUserImage} onUpload={handleUploadClick} onSave={() => void handleSave()} />
+        <ActionBar visible={editorState.image.hasUserImage} onUpload={handleUploadClick} onSave={() => void handleSave()} savingProgress={videoExportProgress} />
       </div>
 
       <div className="preview-wrap">
@@ -306,6 +326,7 @@ export default function App() {
         onUpload={handleUploadClick}
         onSave={() => void handleSave()}
         onFilterSelect={handleFilterSelect}
+        savingProgress={videoExportProgress}
       />
       <PullToRefresh />
     </div>

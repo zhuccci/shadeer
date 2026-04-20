@@ -560,6 +560,112 @@ export function getFillDragBounds(container: HTMLElement, aspectRatio: number) {
   };
 }
 
+export async function renderVideoToBlob(
+  video: HTMLVideoElement,
+  editorState: EditorState,
+  previewWidth: number,
+  onProgress?: (progress: number) => void,
+): Promise<Blob | null> {
+  const w = video.videoWidth;
+  const h = video.videoHeight;
+  if (!w || !h || !isFinite(video.duration) || video.duration === 0) return null;
+
+  const duration = video.duration;
+
+  const exportVideo = document.createElement('video');
+  exportVideo.src = video.src;
+  exportVideo.muted = true;
+  exportVideo.loop = false;
+  exportVideo.playsInline = true;
+  await new Promise<void>((resolve) => {
+    exportVideo.addEventListener('canplay', () => resolve(), { once: true });
+    exportVideo.load();
+  });
+
+  const tempDiv = document.createElement('div');
+  tempDiv.style.cssText = `position:fixed;left:-99999px;top:0;width:${w}px;height:${h}px;overflow:hidden`;
+  document.documentElement.appendChild(tempDiv);
+
+  // Dummy 1×1 canvas so ShaderMount doesn't start RAF during construction
+  const dummy = document.createElement('canvas');
+  dummy.width = dummy.height = 1;
+  const dummyCtx = dummy.getContext('2d')!;
+  dummyCtx.fillStyle = '#808080';
+  dummyCtx.fillRect(0, 0, 1, 1);
+
+  const config = getShaderConfig(
+    { ...editorState, fitMode: 'fit', offsetX: 0, offsetY: 0 },
+    exportVideo,
+  );
+
+  const mount = new ShaderMount(
+    tempDiv,
+    config.fragmentShader,
+    { ...config.uniforms, u_image: dummy },
+    { preserveDrawingBuffer: true },
+    0,
+    0,
+    1,
+    w * h + 1,
+  );
+
+  mount.resizeObserver?.disconnect();
+  const canvas = tempDiv.querySelector('canvas');
+  if (!(canvas instanceof HTMLCanvasElement)) {
+    mount.dispose();
+    tempDiv.remove();
+    return null;
+  }
+
+  canvas.width = w;
+  canvas.height = h;
+  mount.gl.viewport(0, 0, w, h);
+  mount.resolutionChanged = true;
+  mount.renderScale = 1;
+
+  const exportUniforms = { ...config.uniforms, u_image: exportVideo } as UniformMap & { u_pxSize?: number };
+  if (editorState.activeFilter === 'dithering' && typeof exportUniforms.u_pxSize === 'number' && previewWidth > 0) {
+    exportUniforms.u_pxSize = exportUniforms.u_pxSize * (w / previewWidth);
+  }
+
+  const mimeType =
+    ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'].find((t) =>
+      MediaRecorder.isTypeSupported(t),
+    ) ?? 'video/webm';
+
+  const stream = canvas.captureStream(30);
+  const chunks: BlobPart[] = [];
+  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 16_000_000 });
+  recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+  const blobReady = new Promise<Blob>((resolve) => {
+    recorder.onstop = () => resolve(new Blob(chunks, { type: mimeType.split(';')[0] }));
+  });
+
+  if (onProgress) {
+    exportVideo.ontimeupdate = () => onProgress(exportVideo.currentTime / duration);
+  }
+
+  // Set real video uniform → starts RAF → canvas renders video frames
+  mount.uniformCache = {};
+  mount.setUniformValues(exportUniforms);
+
+  // Start recorder then start playback
+  recorder.start(500);
+  try { await exportVideo.play(); } catch { /* muted autoplay blocked */ }
+
+  await new Promise<void>((resolve) => {
+    const timeout = setTimeout(resolve, (duration + 5) * 1000);
+    exportVideo.onended = () => { clearTimeout(timeout); resolve(); };
+  });
+
+  recorder.stop();
+  mount.dispose();
+  tempDiv.remove();
+  exportVideo.src = '';
+
+  return blobReady;
+}
+
 export async function renderShaderToBlob(
   container: HTMLElement,
   shaderMount: ShaderMount,

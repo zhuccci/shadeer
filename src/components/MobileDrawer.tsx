@@ -40,6 +40,7 @@ interface MobileDrawerProps {
   onUpload: () => void;
   onSave: () => void;
   onFilterSelect: (filter: ActiveFilter) => void;
+  savingProgress?: number | null;
 }
 
 function SettingsIcon() {
@@ -766,7 +767,7 @@ function PaperPanelContent({ state, updateState, tab }: PanelContentProps) {
 
 type MobileColorPickerState = { label: string; value: string; onChange: (v: string) => void; originX: string; originY: string } | null;
 
-export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSelect }: MobileDrawerProps) {
+export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSelect, savingProgress }: MobileDrawerProps) {
   const [expanded, setExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<MobileTab>('sliders');
   const [slideDir, setSlideDir] = useState<'forward' | 'back'>('forward');
@@ -854,13 +855,13 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
         {/* Action bar — hidden when color picker is open */}
         {!mobileColorPicker && state.image.hasUserImage && (
           <div className="sheet-action-bar">
-            <button className="btn btn-secondary sheet-action-btn" onClick={onUpload}>
+            <button className="btn btn-secondary sheet-action-btn" onClick={onUpload} disabled={savingProgress != null}>
               <UploadIcon />
               Upload New
             </button>
-            <button className="btn btn-primary sheet-action-btn" onClick={onSave}>
+            <button className="btn btn-primary sheet-action-btn" onClick={onSave} disabled={savingProgress != null}>
               <SaveIcon />
-              Save
+              {savingProgress != null ? `${Math.round(savingProgress * 100)}%` : 'Save'}
             </button>
           </div>
         )}
