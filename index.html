@@ -10,6 +10,20 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Register service worker that injects COOP/COEP headers so
+      // SharedArrayBuffer is available (required by ffmpeg.wasm).
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/neuroshade/coi-serviceworker.js").then(
+          function (reg) {
+            // First activation requires a reload so the SW can intercept all fetches.
+            if (!navigator.serviceWorker.controller) {
+              window.location.reload();
+            }
+          }
+        );
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

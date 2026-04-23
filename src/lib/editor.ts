@@ -560,6 +560,201 @@ export function getFillDragBounds(container: HTMLElement, aspectRatio: number) {
   };
 }
 
+async function detectVideoFps(video: HTMLVideoElement): Promise<number> {
+  type RVFC = (now: number, meta: { mediaTime: number }) => void;
+  type VideoWithRVFC = HTMLVideoElement & { requestVideoFrameCallback: (cb: RVFC) => void };
+  if (!('requestVideoFrameCallback' in video)) return 60;
+
+  if (video.paused) {
+    try { await video.play(); } catch { return 60; }
+  }
+
+  return new Promise((resolve) => {
+    const times: number[] = [];
+    // 1.5 s fallback — if frames don't arrive (autoplay blocked, very short clip, etc.)
+    const timeout = setTimeout(() => resolve(60), 1500);
+
+    const probe: RVFC = (_now, meta) => {
+      times.push(meta.mediaTime);
+      if (times.length < 8) {
+        (video as VideoWithRVFC).requestVideoFrameCallback(probe);
+      } else {
+        clearTimeout(timeout);
+        const intervals = times.slice(1).map((t, i) => t - times[i]);
+        const avg = intervals.reduce((a, b) => a + b) / intervals.length;
+        const fps = Math.round(1 / avg);
+        resolve(fps >= 1 && fps <= 240 ? fps : 60);
+      }
+    };
+    (video as VideoWithRVFC).requestVideoFrameCallback(probe);
+  });
+}
+
+async function convertViaWebCodecs(
+  webmBlob: Blob,
+  onProgress?: (progress: number) => void,
+): Promise<Blob> {
+  const { Muxer, ArrayBufferTarget } = await import('mp4-muxer');
+
+  const url = URL.createObjectURL(webmBlob);
+  const videoEl = document.createElement('video');
+  videoEl.muted = true;
+  videoEl.playsInline = true;
+  videoEl.style.cssText = 'position:fixed;opacity:0;pointer-events:none;width:1px;height:1px;top:0;left:0;';
+  document.body.appendChild(videoEl);
+  videoEl.src = url;
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const t = setTimeout(() => reject(new Error('Timed out loading recorded video')), 15_000);
+      videoEl.addEventListener('loadeddata', () => { clearTimeout(t); resolve(); }, { once: true });
+      videoEl.addEventListener('error', () => { clearTimeout(t); reject(new Error(`Video load failed (code ${videoEl.error?.code ?? '?'})`)); }, { once: true });
+      videoEl.load();
+    });
+
+    const { videoWidth: width, videoHeight: height } = videoEl;
+    if (!width || !height) throw new Error('no dimensions');
+
+    const profiles = ['avc1.42E01E', 'avc1.42001E', 'avc1.4D001E', 'avc1.640028'];
+    let chosenCodec = '';
+    for (const p of profiles) {
+      try {
+        const { supported } = await VideoEncoder.isConfigSupported({ codec: p, width, height, bitrate: 16_000_000, framerate: 30 });
+        if (supported) { chosenCodec = p; break; }
+      } catch { /* try next */ }
+    }
+    if (!chosenCodec) throw new Error('H.264 not available');
+
+    const rawDuration = videoEl.duration;
+    const knownDuration = isFinite(rawDuration) && rawDuration > 0 ? rawDuration : null;
+
+    const target = new ArrayBufferTarget();
+    const muxer = new Muxer({ target, video: { codec: 'avc', width, height }, fastStart: 'in-memory' });
+
+    let encodeError: Error | null = null;
+    const encoder = new VideoEncoder({
+      output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+      error: (e) => { encodeError = e; },
+    });
+    encoder.configure({ codec: chosenCodec, width, height, bitrate: 16_000_000, framerate: 30 });
+
+    videoEl.currentTime = 0;
+    await new Promise<void>((r) => videoEl.addEventListener('seeked', () => r(), { once: true }));
+
+    type RVFC = (now: number, meta: { mediaTime: number }) => void;
+    type WithRVFC = HTMLVideoElement & { requestVideoFrameCallback: (cb: RVFC) => number };
+
+    let frameIndex = 0;
+    let done = false;
+
+    await new Promise<void>((resolve, reject) => {
+      const finish = () => { if (!done) { done = true; resolve(); } };
+      videoEl.addEventListener('ended', finish, { once: true });
+      videoEl.addEventListener('error', () => reject(new Error('Playback error')), { once: true });
+
+      const processFrame: RVFC = (_now, meta) => {
+        if (done) return;
+        if (encodeError) { reject(encodeError); return; }
+        try {
+          const frame = new VideoFrame(videoEl, { timestamp: Math.round(meta.mediaTime * 1_000_000) });
+          encoder.encode(frame, { keyFrame: frameIndex % 120 === 0 });
+          frame.close();
+          frameIndex++;
+          if (knownDuration) onProgress?.(Math.min(meta.mediaTime / knownDuration, 1));
+          const pastEnd = knownDuration != null && meta.mediaTime >= knownDuration - 0.05;
+          if (!pastEnd) {
+            (videoEl as WithRVFC).requestVideoFrameCallback(processFrame);
+          } else {
+            finish();
+          }
+        } catch (err) { reject(err as Error); }
+      };
+
+      (videoEl as WithRVFC).requestVideoFrameCallback(processFrame);
+      videoEl.play().catch(reject);
+    });
+
+    if (frameIndex === 0) throw new Error('no frames captured');
+    await encoder.flush();
+    if (encodeError) throw encodeError;
+    muxer.finalize();
+    const blob = new Blob([target.buffer], { type: 'video/mp4' });
+    if (blob.size === 0) throw new Error('mp4-muxer produced empty output');
+    return blob;
+  } finally {
+    URL.revokeObjectURL(url);
+    document.body.removeChild(videoEl);
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type FFmpegV11 = any;
+let ffmpegV11: FFmpegV11 | null = null;
+let ffmpegV11LoadPromise: Promise<void> | null = null;
+let ffmpegV11Progress: ((ratio: number) => void) | null = null;
+
+async function convertViaFFmpeg(
+  webmBlob: Blob,
+  onProgress?: (progress: number) => void,
+): Promise<Blob> {
+  // Load @ffmpeg/ffmpeg@0.11 from CDN — no bundler/worker involved, no PnP issues
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const win = window as any;
+  if (!win.FFmpeg?.createFFmpeg) {
+    await new Promise<void>((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js';
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('Failed to load FFmpeg from CDN'));
+      document.head.appendChild(s);
+    });
+  }
+
+  const { createFFmpeg, fetchFile } = win.FFmpeg;
+
+  if (!ffmpegV11) {
+    ffmpegV11 = createFFmpeg({
+      corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+      log: false,
+      progress: ({ ratio }: { ratio: number }) => ffmpegV11Progress?.(Math.min(ratio, 1)),
+    });
+    ffmpegV11LoadPromise = ffmpegV11.load();
+  }
+  // Always await the load promise — concurrent calls wait for the same load
+  await ffmpegV11LoadPromise;
+
+  ffmpegV11Progress = onProgress ?? null;
+
+  for (const name of ['input.webm', 'output.mp4']) {
+    try { ffmpegV11.FS('unlink', name); } catch { /* not present */ }
+  }
+
+  ffmpegV11.FS('writeFile', 'input.webm', await fetchFile(webmBlob));
+  await ffmpegV11.run('-y', '-i', 'input.webm', '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '23', '-an', '-movflags', '+faststart', 'output.mp4');
+
+  const data: Uint8Array = ffmpegV11.FS('readFile', 'output.mp4');
+  try { ffmpegV11.FS('unlink', 'input.webm'); } catch { /* ignore */ }
+  try { ffmpegV11.FS('unlink', 'output.mp4'); } catch { /* ignore */ }
+
+  return new Blob([data.buffer as ArrayBuffer], { type: 'video/mp4' });
+}
+
+export async function convertWebmToMp4(
+  webmBlob: Blob,
+  onProgress?: (progress: number) => void,
+): Promise<Blob> {
+  // Try native WebCodecs H.264 first (instant, hardware-accelerated)
+  if (typeof VideoEncoder !== 'undefined') {
+    try {
+      return await convertViaWebCodecs(webmBlob, onProgress);
+    } catch {
+      // H.264 encoding not available on this device — fall through to FFmpeg
+    }
+  }
+  // Fall back to FFmpeg.wasm (software libx264, downloads ~30 MB once)
+  return await convertViaFFmpeg(webmBlob, onProgress);
+}
+
 export async function renderVideoToBlob(
   video: HTMLVideoElement,
   editorState: EditorState,
@@ -579,7 +774,18 @@ export async function renderVideoToBlob(
       MediaRecorder.isTypeSupported(t),
     ) ?? 'video/webm';
 
-  const stream = (canvas as HTMLCanvasElement).captureStream(30);
+  // Detect the video's native frame rate before starting the recorder.
+  // Seek to beginning first so RVFC fires on real content.
+  const wasLooping = video.loop;
+  video.loop = false;
+  video.currentTime = 0;
+  await new Promise<void>((resolve) => {
+    video.addEventListener('seeked', () => resolve(), { once: true });
+  });
+
+  const fps = await detectVideoFps(video);
+
+  const stream = (canvas as HTMLCanvasElement).captureStream(fps);
   const chunks: BlobPart[] = [];
   const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 16_000_000 });
   recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
@@ -587,9 +793,7 @@ export async function renderVideoToBlob(
     recorder.onstop = () => resolve(new Blob(chunks, { type: mimeType.split(';')[0] }));
   });
 
-  // Seek to start, disable loop so `ended` fires reliably
-  const wasLooping = video.loop;
-  video.loop = false;
+  // Seek back to start after FPS probe (probe may have advanced currentTime slightly)
   video.currentTime = 0;
   await new Promise<void>((resolve) => {
     video.addEventListener('seeked', () => resolve(), { once: true });

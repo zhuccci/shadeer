@@ -22,3 +22,61 @@
   opacity: 1;
   pointer-events: auto;
 }
+
+.save-btn-wrap {
+  position: relative;
+  display: flex;
+}
+
+.format-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  background: var(--panel-mid);
+  border: 1px solid var(--panel-light);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-width: 148px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+
+.format-menu button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s ease;
+  text-align: left;
+}
+
+.format-menu button:hover {
+  background: var(--panel-light);
+}
+
+.format-menu button:not(:last-child) {
+  border-bottom: 1px solid var(--panel-light);
+}
+
+.format-hint {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.export-error {
+  font-size: 12px;
+  color: #ff6b6b;
+  flex: 1;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

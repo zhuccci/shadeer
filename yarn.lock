@@ -703,6 +703,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/dom-webcodecs@npm:^0.1.6":
+  version: 0.1.18
+  resolution: "@types/dom-webcodecs@npm:0.1.18"
+  checksum: 10c0/dcf0a36869bddb6ec1534039911bd5517985c03503da6d6cfea4ef26480c763f91b2ef4f03dcc7b3c8a68740efc1ed93b0f63a865823877eb8675f98a772f67d
+  languageName: node
+  linkType: hard
+
 "@types/estree@npm:1.0.8":
   version: 1.0.8
   resolution: "@types/estree@npm:1.0.8"
@@ -725,6 +732,13 @@ __metadata:
   dependencies:
     csstype: "npm:^3.2.2"
   checksum: 10c0/7d25bf41b57719452d86d2ac0570b659210402707313a36ee612666bf11275a1c69824f8c3ee1fdca077ccfe15452f6da8f1224529b917050eb2d861e52b59b7
+  languageName: node
+  linkType: hard
+
+"@types/wicg-file-system-access@npm:^2020.9.5":
+  version: 2020.9.8
+  resolution: "@types/wicg-file-system-access@npm:2020.9.8"
+  checksum: 10c0/baa8ca664b4ebc89b4d39f8ee98fa81b887009b0dc99008f9e69b35e6ddb286018b6309232ed3970666c543ce85e7f447c9cdd20152d92b1ff810d29d5895a36
   languageName: node
   linkType: hard
 
@@ -1234,6 +1248,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mp4-muxer@npm:^5.2.2":
+  version: 5.2.2
+  resolution: "mp4-muxer@npm:5.2.2"
+  dependencies:
+    "@types/dom-webcodecs": "npm:^0.1.6"
+    "@types/wicg-file-system-access": "npm:^2020.9.5"
+  checksum: 10c0/c74f43437875f7da82eebfc760569ee3f00716bc6c6800a5e96f5bf678a787150ad00ed83244b6e11a20d11cbcb78f9421e669b0dbdec7cffaaf46723511c753
+  languageName: node
+  linkType: hard
+
 "ms@npm:^2.1.3":
   version: 2.1.3
   resolution: "ms@npm:2.1.3"
@@ -1264,6 +1288,7 @@ __metadata:
     "@types/react": "npm:^19.2.2"
     "@types/react-dom": "npm:^19.2.2"
     "@vitejs/plugin-react": "npm:^5.0.4"
+    mp4-muxer: "npm:^5.2.2"
     react: "npm:^19.2.0"
     react-dom: "npm:^19.2.0"
     typescript: "npm:^5.9.3"

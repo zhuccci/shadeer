@@ -31,6 +31,7 @@ const RAW_RUNTIME_STATE =
           ["@types/react", "npm:19.2.14"],\
           ["@types/react-dom", "virtual:4e32bd5e05e8207446d7cc4425422d25b7648f31ad7ceff7e8df2e9c892bc127a9dfe2a08168aff6333812615becb2d37eb8321da27c348d913670799e83f697#npm:19.2.3"],\
           ["@vitejs/plugin-react", "virtual:4e32bd5e05e8207446d7cc4425422d25b7648f31ad7ceff7e8df2e9c892bc127a9dfe2a08168aff6333812615becb2d37eb8321da27c348d913670799e83f697#npm:5.2.0"],\
+          ["mp4-muxer", "npm:5.2.2"],\
           ["neuroshade", "workspace:."],\
           ["react", "npm:19.2.4"],\
           ["react-dom", "virtual:4e32bd5e05e8207446d7cc4425422d25b7648f31ad7ceff7e8df2e9c892bc127a9dfe2a08168aff6333812615becb2d37eb8321da27c348d913670799e83f697#npm:19.2.4"],\
@@ -916,6 +917,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["@types/dom-webcodecs", [\
+      ["npm:0.1.18", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@types-dom-webcodecs-npm-0.1.18-088777365d-10c0.zip/node_modules/@types/dom-webcodecs/",\
+        "packageDependencies": [\
+          ["@types/dom-webcodecs", "npm:0.1.18"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["@types/estree", [\
       ["npm:1.0.8", {\
         "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@types-estree-npm-1.0.8-2195bac6d6-10c0.zip/node_modules/@types/estree/",\
@@ -951,6 +961,15 @@ const RAW_RUNTIME_STATE =
         ],\
         "packagePeers": [\
           "@types/react"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@types/wicg-file-system-access", [\
+      ["npm:2020.9.8", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@types-wicg-file-system-access-npm-2020.9.8-797b66aec3-10c0.zip/node_modules/@types/wicg-file-system-access/",\
+        "packageDependencies": [\
+          ["@types/wicg-file-system-access", "npm:2020.9.8"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -1478,6 +1497,17 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["mp4-muxer", [\
+      ["npm:5.2.2", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/mp4-muxer-npm-5.2.2-cace06de31-10c0.zip/node_modules/mp4-muxer/",\
+        "packageDependencies": [\
+          ["@types/dom-webcodecs", "npm:0.1.18"],\
+          ["@types/wicg-file-system-access", "npm:2020.9.8"],\
+          ["mp4-muxer", "npm:5.2.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["ms", [\
       ["npm:2.1.3", {\
         "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/ms-npm-2.1.3-81ff3cfac1-10c0.zip/node_modules/ms/",\
@@ -1512,6 +1542,7 @@ const RAW_RUNTIME_STATE =
           ["@types/react", "npm:19.2.14"],\
           ["@types/react-dom", "virtual:4e32bd5e05e8207446d7cc4425422d25b7648f31ad7ceff7e8df2e9c892bc127a9dfe2a08168aff6333812615becb2d37eb8321da27c348d913670799e83f697#npm:19.2.3"],\
           ["@vitejs/plugin-react", "virtual:4e32bd5e05e8207446d7cc4425422d25b7648f31ad7ceff7e8df2e9c892bc127a9dfe2a08168aff6333812615becb2d37eb8321da27c348d913670799e83f697#npm:5.2.0"],\
+          ["mp4-muxer", "npm:5.2.2"],\
           ["neuroshade", "workspace:."],\
           ["react", "npm:19.2.4"],\
           ["react-dom", "virtual:4e32bd5e05e8207446d7cc4425422d25b7648f31ad7ceff7e8df2e9c892bc127a9dfe2a08168aff6333812615becb2d37eb8321da27c348d913670799e83f697#npm:19.2.4"],\

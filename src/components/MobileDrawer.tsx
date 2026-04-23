@@ -38,9 +38,11 @@ interface MobileDrawerProps {
   state: EditorState;
   updateState: (updater: (state: EditorState) => EditorState) => void;
   onUpload: () => void;
-  onSave: () => void;
+  onSave: (videoFormat?: 'webm' | 'mp4') => void;
   onFilterSelect: (filter: ActiveFilter) => void;
+  isVideo?: boolean;
   savingProgress?: number | null;
+  savingPhase?: 'recording' | 'converting' | null;
 }
 
 function SettingsIcon() {
@@ -767,7 +769,7 @@ function PaperPanelContent({ state, updateState, tab }: PanelContentProps) {
 
 type MobileColorPickerState = { label: string; value: string; onChange: (v: string) => void; originX: string; originY: string } | null;
 
-export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSelect, savingProgress }: MobileDrawerProps) {
+export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSelect, isVideo, savingProgress, savingPhase }: MobileDrawerProps) {
   const [expanded, setExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<MobileTab>('sliders');
   const [slideDir, setSlideDir] = useState<'forward' | 'back'>('forward');
@@ -859,10 +861,23 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
               <UploadIcon />
               Upload New
             </button>
-            <button className="btn btn-primary sheet-action-btn" onClick={onSave} disabled={savingProgress != null}>
-              <SaveIcon />
-              {savingProgress != null ? `${Math.round(savingProgress * 100)}%` : 'Save'}
-            </button>
+            {isVideo && savingProgress == null ? (
+              <>
+                <button className="btn btn-primary sheet-action-btn" onClick={() => onSave('webm')}>
+                  <SaveIcon />
+                  WebM
+                </button>
+                <button className="btn btn-primary sheet-action-btn" onClick={() => onSave('mp4')}>
+                  <SaveIcon />
+                  MP4
+                </button>
+              </>
+            ) : (
+              <button className={`btn btn-primary sheet-action-btn${savingProgress != null ? ' btn-saving' : ''}`} disabled={savingProgress != null} onClick={() => onSave()}>
+                <SaveIcon />
+                {savingProgress != null ? `${Math.round((savingProgress ?? 0) * 100)}%` : 'Save'}
+              </button>
+            )}
           </div>
         )}
 

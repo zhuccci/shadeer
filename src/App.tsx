@@ -7,6 +7,7 @@ import { MobileDrawer } from './components/MobileDrawer';
 import { PreviewStage } from './components/PreviewStage';
 import { PullToRefresh } from './components/PullToRefresh';
 import {
+  convertWebmToMp4,
   defaultEditorState,
   loadImage,
   makeFallbackImage,
@@ -25,6 +26,8 @@ export default function App() {
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [downloadFilename, setDownloadFilename] = useState('neuropic.png');
   const [videoExportProgress, setVideoExportProgress] = useState<number | null>(null);
+  const [savingPhase, setSavingPhase] = useState<'recording' | 'converting' | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
   const [copyToastVisible, setCopyToastVisible] = useState(false);
   const [flashKey, setFlashKey] = useState(0);
   const previewRef = useRef<HTMLDivElement | null>(null);
@@ -32,6 +35,7 @@ export default function App() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const downloadLinkRef = useRef<HTMLAnchorElement | null>(null);
   const copyToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fakeProgressRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const updateState = useCallback((updater: (state: EditorState) => EditorState) => {
     setEditorState((current) => updater(current));
@@ -170,20 +174,46 @@ export default function App() {
     }
   }, [editorState.image.video, updateState]);
 
-  const handleSave = useCallback(async () => {
+  const handleSave = useCallback(async (videoFormat?: 'webm' | 'mp4') => {
     if (editorState.image.isVideo && editorState.image.video && shaderMountRef.current) {
+      const isMp4 = videoFormat === 'mp4';
+      setSavingPhase('recording');
       setVideoExportProgress(0);
-      const blob = await renderVideoToBlob(
-        editorState.image.video,
-        editorState,
-        shaderMountRef.current,
-        (p) => setVideoExportProgress(p),
-      );
-      setVideoExportProgress(null);
-      if (!blob) return;
-      const ext = blob.type.includes('mp4') ? 'mp4' : 'webm';
-      setDownloadFilename(`neuropic.${ext}`);
-      setDownloadUrl(URL.createObjectURL(blob));
+      try {
+        const blob = await renderVideoToBlob(
+          editorState.image.video,
+          editorState,
+          shaderMountRef.current,
+          (p) => setVideoExportProgress(isMp4 ? p * 0.65 : p),
+        );
+        if (!blob) return;
+        if (isMp4) {
+          setSavingPhase('converting');
+          // Slowly creep from 65% so the button never looks frozen during WASM download
+          fakeProgressRef.current = setInterval(() => {
+            setVideoExportProgress((p) => (p !== null && p < 0.96 ? p + 0.0015 : p));
+          }, 300);
+          const mp4Blob = await convertWebmToMp4(
+            blob,
+            // Real FFmpeg progress only advances — never lets it jump backward past the fake ticker
+            (p) => setVideoExportProgress((prev) => Math.max(prev ?? 0, 0.65 + p * 0.35)),
+          );
+          setDownloadFilename('neuropic.mp4');
+          setDownloadUrl(URL.createObjectURL(mp4Blob));
+        } else {
+          setDownloadFilename('neuropic.webm');
+          setDownloadUrl(URL.createObjectURL(blob));
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error('Video export failed:', err);
+        setExportError(msg);
+        setTimeout(() => setExportError(null), 6000);
+      } finally {
+        if (fakeProgressRef.current) { clearInterval(fakeProgressRef.current); fakeProgressRef.current = null; }
+        setVideoExportProgress(null);
+        setSavingPhase(null);
+      }
       return;
     }
     if (!shaderMountRef.current || !previewRef.current) return;
@@ -269,7 +299,7 @@ export default function App() {
       <div className="sidebar">
 <FilterStrip activeFilter={editorState.activeFilter} onSelect={handleFilterSelect} />
         <EditorPanels state={editorState} updateState={updateState} />
-        <ActionBar visible={editorState.image.hasUserImage} onUpload={handleUploadClick} onSave={() => void handleSave()} savingProgress={videoExportProgress} />
+        <ActionBar visible={editorState.image.hasUserImage} onUpload={handleUploadClick} onSave={(fmt) => void handleSave(fmt)} isVideo={editorState.image.isVideo} savingProgress={videoExportProgress} savingPhase={savingPhase} exportError={exportError} />
       </div>
 
       <div className="preview-wrap">
@@ -323,9 +353,11 @@ export default function App() {
         state={editorState}
         updateState={updateState}
         onUpload={handleUploadClick}
-        onSave={() => void handleSave()}
+        onSave={(fmt) => void handleSave(fmt)}
         onFilterSelect={handleFilterSelect}
+        isVideo={editorState.image.isVideo}
         savingProgress={videoExportProgress}
+        savingPhase={savingPhase}
       />
       <PullToRefresh />
     </div>
