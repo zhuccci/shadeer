@@ -945,12 +945,12 @@ export async function renderShaderToBlob(
   state: EditorState,
 ): Promise<Blob | null> {
   const sourceImage = shaderMount.providedUniforms.u_image;
-  if (!(sourceImage instanceof HTMLImageElement)) {
+  if (!(sourceImage instanceof HTMLImageElement) && !(sourceImage instanceof HTMLVideoElement)) {
     return null;
   }
 
-  const outputWidth = sourceImage.naturalWidth;
-  const outputHeight = sourceImage.naturalHeight;
+  const outputWidth = sourceImage instanceof HTMLVideoElement ? sourceImage.videoWidth : sourceImage.naturalWidth;
+  const outputHeight = sourceImage instanceof HTMLVideoElement ? sourceImage.videoHeight : sourceImage.naturalHeight;
   const tempDiv = document.createElement('div');
   tempDiv.style.cssText = `position:fixed;left:-99999px;top:0;width:${outputWidth}px;height:${outputHeight}px;overflow:hidden`;
   document.documentElement.appendChild(tempDiv);
@@ -969,7 +969,8 @@ export async function renderShaderToBlob(
   if (
     state.activeFilter === 'dithering' &&
     typeof exportUniforms.u_pxSize === 'number' &&
-    shaderMount.parentWidth > 0
+    shaderMount.parentWidth > 0 &&
+    sourceImage instanceof HTMLImageElement
   ) {
     exportUniforms.u_pxSize = exportUniforms.u_pxSize * (outputWidth / shaderMount.parentWidth);
   }
