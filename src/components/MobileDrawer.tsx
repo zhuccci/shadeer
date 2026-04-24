@@ -775,8 +775,20 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
   const [slideDir, setSlideDir] = useState<'forward' | 'back'>('forward');
   const [mobileColorPicker, setMobileColorPicker] = useState<MobileColorPickerState>(null);
   const [colorPickerClosing, setColorPickerClosing] = useState(false);
+  const [showFormatMenu, setShowFormatMenu] = useState(false);
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
   const panelRef   = useRef<HTMLDivElement>(null);
+  const saveWrapRef = useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    if (!showFormatMenu) return;
+    const close = (e: MouseEvent) => {
+      if (saveWrapRef.current?.contains(e.target as Node)) return;
+      setShowFormatMenu(false);
+    };
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [showFormatMenu]);
 
   const closeColorPicker = () => {
     setColorPickerClosing(true);
@@ -859,25 +871,34 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
           <div className="sheet-action-bar">
             <button className="btn btn-secondary sheet-action-btn" onClick={onUpload} disabled={savingProgress != null}>
               <UploadIcon />
-              Upload New
+              Upload new
             </button>
-            {isVideo && savingProgress == null ? (
-              <>
-                <button className="btn btn-primary sheet-action-btn" onClick={() => onSave('webm')}>
-                  <SaveIcon />
-                  WebM
-                </button>
-                <button className="btn btn-primary sheet-action-btn" onClick={() => onSave('mp4')}>
-                  <SaveIcon />
-                  MP4
-                </button>
-              </>
-            ) : (
-              <button className={`btn btn-primary sheet-action-btn${savingProgress != null ? ' btn-saving' : ''}`} disabled={savingProgress != null} onClick={() => onSave()}>
+            <div className="sheet-save-wrap" ref={saveWrapRef}>
+              {showFormatMenu && (
+                <div className="sheet-format-menu">
+                  <button onClick={() => { setShowFormatMenu(false); onSave('webm'); }}>
+                    <span>WebM</span>
+                    <span className="format-hint">fast</span>
+                  </button>
+                  <button onClick={() => { setShowFormatMenu(false); onSave('mp4'); }}>
+                    <span>MP4</span>
+                    <span className="format-hint">H.264</span>
+                  </button>
+                </div>
+              )}
+              <button
+                className={`btn btn-primary sheet-action-btn${savingProgress != null ? ' btn-saving' : ''}`}
+                disabled={savingProgress != null}
+                onClick={() => {
+                  if (savingProgress != null) return;
+                  if (isVideo) { setShowFormatMenu((v) => !v); return; }
+                  onSave();
+                }}
+              >
                 <SaveIcon />
                 {savingProgress != null ? `${Math.round((savingProgress ?? 0) * 100)}%` : 'Save'}
               </button>
-            )}
+            </div>
           </div>
         )}
 

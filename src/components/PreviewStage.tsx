@@ -84,7 +84,7 @@ export function PreviewStage({
         {!state.image.hasUserImage ? (
           <button className="btn btn-primary upload-btn" onClick={onUpload}>
             <UploadIcon />
-            Upload image
+            Upload media
           </button>
         ) : null}
 

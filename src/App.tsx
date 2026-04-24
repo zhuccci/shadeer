@@ -184,18 +184,21 @@ export default function App() {
           editorState.image.video,
           editorState,
           shaderMountRef.current,
-          (p) => setVideoExportProgress(isMp4 ? p * 0.65 : p),
+          (p) => setVideoExportProgress(p),
         );
         if (!blob) return;
-        if (isMp4) {
+        // VideoEncoder path already returns MP4 — skip conversion
+        if (blob.type === 'video/mp4') {
+          setDownloadFilename('neuropic.mp4');
+          setDownloadUrl(URL.createObjectURL(blob));
+        } else if (isMp4) {
+          // MediaRecorder fallback returned WebM — convert to MP4
           setSavingPhase('converting');
-          // Slowly creep from 65% so the button never looks frozen during WASM download
           fakeProgressRef.current = setInterval(() => {
             setVideoExportProgress((p) => (p !== null && p < 0.96 ? p + 0.0015 : p));
           }, 300);
           const mp4Blob = await convertWebmToMp4(
             blob,
-            // Real FFmpeg progress only advances — never lets it jump backward past the fake ticker
             (p) => setVideoExportProgress((prev) => Math.max(prev ?? 0, 0.65 + p * 0.35)),
           );
           setDownloadFilename('neuropic.mp4');
@@ -276,7 +279,7 @@ export default function App() {
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/jpeg,image/png,video/mp4,video/webm"
+        accept="image/jpeg,image/png,video/mp4,video/webm,video/quicktime"
         style={{ display: 'none' }}
         onChange={(event) => {
           const file = event.target.files?.[0];
