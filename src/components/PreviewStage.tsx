@@ -111,7 +111,7 @@ export function PreviewStage({
         <button
           type="button"
           className={`preview-play-btn${controlsVisible ? ' visible' : ''}`}
-          onTouchEnd={(e) => { e.stopPropagation(); onTogglePlaying(); showControls(); }}
+          onTouchEnd={(e) => { e.stopPropagation(); e.preventDefault(); onTogglePlaying(); showControls(); }}
           onClick={(e) => { e.stopPropagation(); onTogglePlaying(); }}
         >
           {isPlaying ? <PauseIcon /> : <PlayIcon />}

@@ -217,3 +217,67 @@
   text-shadow: 0 0 4px rgba(255, 246, 121, 0.25);
 }
 
+/* ── Filter card wrapper (needed so add button isn't clipped by overflow:hidden) ── */
+.filter-btn-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* ── Add-as-layer "+" button ── */
+.filter-add-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(20, 20, 20, 0.85);
+  border: 0.5px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #d6d6d6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .filter-add-btn:not(:disabled):hover {
+    background: #fff679;
+    color: #000;
+    border-color: transparent;
+  }
+}
+
+.filter-add-btn--added {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* tooltip */
+.filter-add-btn::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e1e1e;
+  color: #d6d6d6;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 0.5px solid #3a3a3a;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.filter-add-btn:hover::before {
+  opacity: 1;
+}
+

@@ -134,6 +134,7 @@ export interface EditorImageState {
 
 export interface EditorState {
   activeFilter: ActiveFilter;
+  layers: ActiveFilter[];
   fitMode: FitMode;
   offsetX: number;
   offsetY: number;

@@ -1,4 +1,5 @@
 import type {
+  ActiveFilter,
   DitheringSettings,
   EditorState,
   FitMode,
@@ -37,6 +38,7 @@ import {
 
 export const defaultEditorState: EditorState = {
   activeFilter: 'glass',
+  layers: [],
   fitMode: 'fill',
   offsetX: 0,
   offsetY: 0,
@@ -400,6 +402,13 @@ export function buildSymbolEdgesUniforms(
   };
 }
 
+export function getRenderStack(state: EditorState): ActiveFilter[] {
+  const { activeFilter, layers } = state;
+  if (layers.length === 0) return [activeFilter];
+  const bottomToTop = [...layers].reverse();
+  return layers.includes(activeFilter) ? bottomToTop : [...bottomToTop, activeFilter];
+}
+
 export function getShaderConfig(state: EditorState, image: HTMLImageElement | HTMLVideoElement) {
   if (state.activeFilter === 'dithering') {
     return {
@@ -750,66 +759,80 @@ export async function renderVideoToBlob(
   video.currentTime = 0;
   await new Promise<void>((resolve) => video.addEventListener('seeked', () => resolve(), { once: true }));
 
-  // Off-screen canvas at native video resolution
-  const tempDiv = document.createElement('div');
-  tempDiv.style.cssText = `position:fixed;left:-99999px;top:0;width:${width}px;height:${height}px;overflow:hidden`;
-  document.documentElement.appendChild(tempDiv);
+  // Build an off-screen chain of ShaderMounts mirroring the preview layer stack
+  const renderStack = getRenderStack(editorState);
+  const chainDivs: HTMLDivElement[] = [];
+  const chainMounts: ShaderMount[] = [];
+  let prevCanvas: HTMLCanvasElement | null = null;
 
-  const shaderConfig = getShaderConfig(
-    { ...editorState, fitMode: 'fit', offsetX: 0, offsetY: 0 },
-    video,
-  );
-  const exportUniforms = { ...shaderConfig.uniforms } as UniformMap & { u_pxSize?: number };
-  if (
-    editorState.activeFilter === 'dithering' &&
-    typeof exportUniforms.u_pxSize === 'number' &&
-    previewMount.parentWidth > 0
-  ) {
-    exportUniforms.u_pxSize = exportUniforms.u_pxSize * (width / previewMount.parentWidth);
+  for (let i = 0; i < renderStack.length; i++) {
+    const filter = renderStack[i];
+    const stateForPass: EditorState = { ...editorState, activeFilter: filter, fitMode: 'fit', offsetX: 0, offsetY: 0 };
+    const config = getShaderConfig(stateForPass, video);
+    const passUniforms = { ...config.uniforms } as UniformMap & { u_pxSize?: number };
+
+    if (filter === 'dithering' && typeof passUniforms.u_pxSize === 'number' && previewMount.parentWidth > 0) {
+      passUniforms.u_pxSize = passUniforms.u_pxSize * (width / previewMount.parentWidth);
+    }
+
+    const div = document.createElement('div');
+    div.style.cssText = `position:fixed;left:-99999px;top:0;width:${width}px;height:${height}px;overflow:hidden`;
+    document.documentElement.appendChild(div);
+    chainDivs.push(div);
+
+    const mount = new ShaderMount(
+      div,
+      config.fragmentShader,
+      passUniforms,
+      { preserveDrawingBuffer: true },
+      config.speed,
+      previewMount.currentFrame,
+      1,
+    );
+    mount.resizeObserver?.disconnect();
+    chainMounts.push(mount);
+
+    const canvas = div.querySelector('canvas') as HTMLCanvasElement;
+    canvas.width = width;
+    canvas.height = height;
+    mount.gl.viewport(0, 0, width, height);
+    mount.resolutionChanged = true;
+    mount.renderScale = 1;
+    mount.uniformCache = {};
+
+    if (prevCanvas) mount.setTextureUniform('u_image', prevCanvas);
+
+    if (mount.rafId !== null) { cancelAnimationFrame(mount.rafId); mount.rafId = null; }
+    mount.lastRenderTime = 0;
+
+    prevCanvas = canvas;
   }
 
-  const offMount = new ShaderMount(
-    tempDiv,
-    shaderConfig.fragmentShader,
-    exportUniforms,
-    { preserveDrawingBuffer: true },
-    shaderConfig.speed,
-    previewMount.currentFrame,
-    1,
-  );
-  offMount.resizeObserver?.disconnect();
-  const offCanvas = tempDiv.querySelector('canvas') as HTMLCanvasElement | null;
+  // offMount is the last mount in the chain — its canvas is captured for encoding
+  const offMount = chainMounts[chainMounts.length - 1];
+  const offCanvas = prevCanvas;
 
   const cleanup = async () => {
-    offMount.dispose();
-    tempDiv.remove();
+    chainMounts.forEach((m) => m.dispose());
+    chainDivs.forEach((d) => d.remove());
     video.loop = wasLooping;
     video.playbackRate = 1;
     video.currentTime = 0;
     try { await video.play(); } catch {}
   };
 
-  if (!offCanvas) { await cleanup(); return null; }
-
-  offCanvas.width = width;
-  offCanvas.height = height;
-  offMount.gl.viewport(0, 0, width, height);
-  offMount.resolutionChanged = true;
-  offMount.renderScale = 1;
-  offMount.uniformCache = {};
-
-  // Stop the RAF loop the constructor started — we drive rendering manually via RVFC
-  if (offMount.rafId !== null) { cancelAnimationFrame(offMount.rafId); offMount.rafId = null; }
-  offMount.lastRenderTime = 0;
+  if (!offCanvas || !offMount) { await cleanup(); return null; }
 
   type RVFCFN = (now: number, meta: { mediaTime: number }) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const videoAny = video as any;
 
   const renderOffScreen = (mediaTime: number) => {
-    offMount.render(mediaTime * 1000);
-    // Cancel the RAF render() schedules so it doesn't race with RVFC callbacks
-    if (offMount.rafId !== null) { cancelAnimationFrame(offMount.rafId); offMount.rafId = null; }
+    // Render each mount in chain order — each reads from the previous mount's canvas
+    for (const mount of chainMounts) {
+      mount.render(mediaTime * 1000);
+      if (mount.rafId !== null) { cancelAnimationFrame(mount.rafId); mount.rafId = null; }
+    }
   };
 
   // ── VideoEncoder path ───────────────────────────────────────────────────────
@@ -951,65 +974,71 @@ export async function renderShaderToBlob(
 
   const outputWidth = sourceImage instanceof HTMLVideoElement ? sourceImage.videoWidth : sourceImage.naturalWidth;
   const outputHeight = sourceImage instanceof HTMLVideoElement ? sourceImage.videoHeight : sourceImage.naturalHeight;
-  const tempDiv = document.createElement('div');
-  tempDiv.style.cssText = `position:fixed;left:-99999px;top:0;width:${outputWidth}px;height:${outputHeight}px;overflow:hidden`;
-  document.documentElement.appendChild(tempDiv);
 
-  const config = getShaderConfig(
-    {
-      ...state,
-      fitMode: 'fit',
-      offsetX: 0,
-      offsetY: 0,
-    },
-    sourceImage,
-  );
+  const renderStack = getRenderStack(state);
+  const allDivs: HTMLDivElement[] = [];
+  const allMounts: ShaderMount[] = [];
+  let prevCanvas: HTMLCanvasElement | null = null;
 
-  const exportUniforms = { ...config.uniforms } as UniformMap & { u_pxSize?: number };
-  if (
-    state.activeFilter === 'dithering' &&
-    typeof exportUniforms.u_pxSize === 'number' &&
-    shaderMount.parentWidth > 0 &&
-    sourceImage instanceof HTMLImageElement
-  ) {
-    exportUniforms.u_pxSize = exportUniforms.u_pxSize * (outputWidth / shaderMount.parentWidth);
+  for (let i = 0; i < renderStack.length; i++) {
+    const filter = renderStack[i];
+    const stateForPass: EditorState = { ...state, activeFilter: filter, fitMode: 'fit', offsetX: 0, offsetY: 0 };
+    const config = getShaderConfig(stateForPass, sourceImage);
+    const passUniforms = { ...config.uniforms } as UniformMap & { u_pxSize?: number };
+
+    if (
+      filter === 'dithering' &&
+      typeof passUniforms.u_pxSize === 'number' &&
+      shaderMount.parentWidth > 0 &&
+      sourceImage instanceof HTMLImageElement
+    ) {
+      passUniforms.u_pxSize = passUniforms.u_pxSize * (outputWidth / shaderMount.parentWidth);
+    }
+
+    const div = document.createElement('div');
+    div.style.cssText = `position:fixed;left:-99999px;top:0;width:${outputWidth}px;height:${outputHeight}px;overflow:hidden`;
+    document.documentElement.appendChild(div);
+    allDivs.push(div);
+
+    const mount = new ShaderMount(
+      div,
+      config.fragmentShader,
+      passUniforms,
+      { preserveDrawingBuffer: true },
+      0,
+      shaderMount.currentFrame,
+      1,
+      outputWidth * outputHeight + 1,
+    );
+    mount.resizeObserver?.disconnect();
+    allMounts.push(mount);
+
+    const canvas = div.querySelector('canvas') as HTMLCanvasElement | null;
+    if (!canvas) break;
+
+    canvas.width = outputWidth;
+    canvas.height = outputHeight;
+    mount.gl.viewport(0, 0, outputWidth, outputHeight);
+    mount.resolutionChanged = true;
+    mount.renderScale = 1;
+    mount.uniformCache = {};
+    mount.setUniformValues(passUniforms);
+
+    if (prevCanvas) mount.setTextureUniform('u_image', prevCanvas);
+
+    mount.render(performance.now());
+    if (mount.rafId !== null) { cancelAnimationFrame(mount.rafId); mount.rafId = null; }
+
+    prevCanvas = canvas;
   }
 
-  const tempMount = new ShaderMount(
-    tempDiv,
-    config.fragmentShader,
-    exportUniforms,
-    { preserveDrawingBuffer: true },
-    0,
-    shaderMount.currentFrame,
-    1,
-    outputWidth * outputHeight + 1,
-  );
+  const finalCanvas = prevCanvas;
+  const blob = finalCanvas
+    ? await new Promise<Blob | null>((resolve) => finalCanvas.toBlob((b) => resolve(b), 'image/png'))
+    : null;
 
-  tempMount.resizeObserver?.disconnect();
-  const tempCanvas = tempDiv.querySelector('canvas');
-  if (!(tempCanvas instanceof HTMLCanvasElement)) {
-    tempMount.dispose();
-    tempDiv.remove();
-    return null;
-  }
-
-  tempCanvas.width = outputWidth;
-  tempCanvas.height = outputHeight;
-  tempMount.gl.viewport(0, 0, outputWidth, outputHeight);
-  tempMount.resolutionChanged = true;
-  tempMount.renderScale = 1;
-  // Canvas resize may flush texture bindings on some GPUs — clear cache to force re-upload.
-  tempMount.uniformCache = {};
-  tempMount.setUniformValues(exportUniforms);
-  tempMount.render(performance.now());
-
-  const blob = await new Promise<Blob | null>((resolve) => {
-    tempCanvas.toBlob((canvasBlob) => resolve(canvasBlob), 'image/png');
-  });
-
-  tempMount.dispose();
-  tempDiv.remove();
+  allMounts.forEach((m) => m.dispose());
+  allDivs.forEach((d) => d.remove());
   updateFitClip(shaderMount, state.fitMode, state.image.aspectRatio);
 
   return blob;

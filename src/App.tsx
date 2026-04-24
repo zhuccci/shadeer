@@ -3,6 +3,7 @@ import { ActionBar } from './components/ActionBar';
 import { CopyToast } from './components/CopyToast';
 import { EditorPanels } from './components/EditorPanels';
 import { FilterStrip } from './components/FilterStrip';
+import { LayersPanel } from './components/LayersPanel';
 import { MobileDrawer } from './components/MobileDrawer';
 import { PreviewStage } from './components/PreviewStage';
 import { PullToRefresh } from './components/PullToRefresh';
@@ -103,6 +104,24 @@ export default function App() {
       offsetX: 0,
       offsetY: 0,
     }));
+  }, [updateState]);
+
+  const handleAddLayer = useCallback((filterId: ActiveFilter) => {
+    updateState((current) => {
+      if (current.layers.includes(filterId)) return current;
+      return { ...current, layers: [filterId, ...current.layers] };
+    });
+  }, [updateState]);
+
+  const handleRemoveLayer = useCallback((filterId: ActiveFilter) => {
+    updateState((current) => ({
+      ...current,
+      layers: current.layers.filter((l) => l !== filterId),
+    }));
+  }, [updateState]);
+
+  const handleReorderLayers = useCallback((layers: ActiveFilter[]) => {
+    updateState((current) => ({ ...current, layers }));
   }, [updateState]);
 
   const handleImageFile = useCallback(async (file: File) => {
@@ -300,8 +319,18 @@ export default function App() {
       </a>
 
       <div className="sidebar">
-<FilterStrip activeFilter={editorState.activeFilter} onSelect={handleFilterSelect} />
+        <FilterStrip
+          activeFilter={editorState.activeFilter}
+          layers={editorState.layers}
+          onSelect={handleFilterSelect}
+          onAddLayer={handleAddLayer}
+        />
         <EditorPanels state={editorState} updateState={updateState} />
+        <LayersPanel
+          layers={editorState.layers}
+          onRemove={handleRemoveLayer}
+          onReorder={handleReorderLayers}
+        />
         <ActionBar visible={editorState.image.hasUserImage} onUpload={handleUploadClick} onSave={(fmt) => void handleSave(fmt)} isVideo={editorState.image.isVideo} savingProgress={videoExportProgress} savingPhase={savingPhase} exportError={exportError} />
       </div>
 
