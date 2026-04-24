@@ -560,35 +560,6 @@ export function getFillDragBounds(container: HTMLElement, aspectRatio: number) {
   };
 }
 
-async function detectVideoFps(video: HTMLVideoElement): Promise<number> {
-  type RVFC = (now: number, meta: { mediaTime: number }) => void;
-  type VideoWithRVFC = HTMLVideoElement & { requestVideoFrameCallback: (cb: RVFC) => void };
-  if (!('requestVideoFrameCallback' in video)) return 60;
-
-  if (video.paused) {
-    try { await video.play(); } catch { return 60; }
-  }
-
-  return new Promise((resolve) => {
-    const times: number[] = [];
-    // 1.5 s fallback — if frames don't arrive (autoplay blocked, very short clip, etc.)
-    const timeout = setTimeout(() => resolve(60), 1500);
-
-    const probe: RVFC = (_now, meta) => {
-      times.push(meta.mediaTime);
-      if (times.length < 8) {
-        (video as VideoWithRVFC).requestVideoFrameCallback(probe);
-      } else {
-        clearTimeout(timeout);
-        const intervals = times.slice(1).map((t, i) => t - times[i]);
-        const avg = intervals.reduce((a, b) => a + b) / intervals.length;
-        const fps = Math.round(1 / avg);
-        resolve(fps >= 1 && fps <= 240 ? fps : 60);
-      }
-    };
-    (video as VideoWithRVFC).requestVideoFrameCallback(probe);
-  });
-}
 
 async function convertViaWebCodecs(
   webmBlob: Blob,
@@ -629,7 +600,7 @@ async function convertViaWebCodecs(
     const knownDuration = isFinite(rawDuration) && rawDuration > 0 ? rawDuration : null;
 
     const target = new ArrayBufferTarget();
-    const muxer = new Muxer({ target, video: { codec: 'avc', width, height }, fastStart: 'in-memory' });
+    const muxer = new Muxer({ target, video: { codec: 'avc', width, height }, fastStart: 'in-memory', firstTimestampBehavior: 'offset' });
 
     let encodeError: Error | null = null;
     const encoder = new VideoEncoder({
@@ -763,64 +734,208 @@ export async function renderVideoToBlob(
 ): Promise<Blob | null> {
   if (!isFinite(video.duration) || video.duration === 0) return null;
   const duration = video.duration;
+  if (!video.videoWidth || !video.videoHeight) return null;
 
-  // Record from the existing preview canvas — it's already rendering the video
-  // with the correct shader and uniforms, so we avoid off-screen GL context issues.
-  const canvas = previewMount.canvasElement;
-  if (!canvas) return null;
+  // Cap export to 1920px on the longest side — 4K sources would OOM the GPU
+  // and make VideoEncoder fail, falling back to slow FFmpeg conversion.
+  const MAX_PX = 1920;
+  const scale = Math.min(1, MAX_PX / Math.max(video.videoWidth, video.videoHeight));
+  // H.264 requires even dimensions
+  const width = Math.floor(video.videoWidth * scale / 2) * 2;
+  const height = Math.floor(video.videoHeight * scale / 2) * 2;
 
-  const mimeType =
-    ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'].find((t) =>
-      MediaRecorder.isTypeSupported(t),
-    ) ?? 'video/webm';
-
-  // Detect the video's native frame rate before starting the recorder.
-  // Seek to beginning first so RVFC fires on real content.
   const wasLooping = video.loop;
   video.loop = false;
+  video.pause();
   video.currentTime = 0;
-  await new Promise<void>((resolve) => {
-    video.addEventListener('seeked', () => resolve(), { once: true });
-  });
+  await new Promise<void>((resolve) => video.addEventListener('seeked', () => resolve(), { once: true }));
 
-  const fps = await detectVideoFps(video);
+  // Off-screen canvas at native video resolution
+  const tempDiv = document.createElement('div');
+  tempDiv.style.cssText = `position:fixed;left:-99999px;top:0;width:${width}px;height:${height}px;overflow:hidden`;
+  document.documentElement.appendChild(tempDiv);
 
-  const stream = (canvas as HTMLCanvasElement).captureStream(fps);
+  const shaderConfig = getShaderConfig(
+    { ...editorState, fitMode: 'fit', offsetX: 0, offsetY: 0 },
+    video,
+  );
+  const exportUniforms = { ...shaderConfig.uniforms } as UniformMap & { u_pxSize?: number };
+  if (
+    editorState.activeFilter === 'dithering' &&
+    typeof exportUniforms.u_pxSize === 'number' &&
+    previewMount.parentWidth > 0
+  ) {
+    exportUniforms.u_pxSize = exportUniforms.u_pxSize * (width / previewMount.parentWidth);
+  }
+
+  const offMount = new ShaderMount(
+    tempDiv,
+    shaderConfig.fragmentShader,
+    exportUniforms,
+    { preserveDrawingBuffer: true },
+    shaderConfig.speed,
+    previewMount.currentFrame,
+    1,
+  );
+  offMount.resizeObserver?.disconnect();
+  const offCanvas = tempDiv.querySelector('canvas') as HTMLCanvasElement | null;
+
+  const cleanup = async () => {
+    offMount.dispose();
+    tempDiv.remove();
+    video.loop = wasLooping;
+    video.playbackRate = 1;
+    video.currentTime = 0;
+    try { await video.play(); } catch {}
+  };
+
+  if (!offCanvas) { await cleanup(); return null; }
+
+  offCanvas.width = width;
+  offCanvas.height = height;
+  offMount.gl.viewport(0, 0, width, height);
+  offMount.resolutionChanged = true;
+  offMount.renderScale = 1;
+  offMount.uniformCache = {};
+
+  // Stop the RAF loop the constructor started — we drive rendering manually via RVFC
+  if (offMount.rafId !== null) { cancelAnimationFrame(offMount.rafId); offMount.rafId = null; }
+  offMount.lastRenderTime = 0;
+
+  type RVFCFN = (now: number, meta: { mediaTime: number }) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const videoAny = video as any;
+
+  const renderOffScreen = (mediaTime: number) => {
+    offMount.render(mediaTime * 1000);
+    // Cancel the RAF render() schedules so it doesn't race with RVFC callbacks
+    if (offMount.rafId !== null) { cancelAnimationFrame(offMount.rafId); offMount.rafId = null; }
+  };
+
+  // ── VideoEncoder path ───────────────────────────────────────────────────────
+  if (typeof VideoEncoder !== 'undefined' && videoAny.requestVideoFrameCallback) {
+    const bitrate = 12_000_000;
+    const fps = 30;
+
+    const profiles = ['avc1.42E01E', 'avc1.42001E', 'avc1.4D001E', 'avc1.640028'];
+    let codec = '';
+    for (const p of profiles) {
+      try {
+        const { supported } = await VideoEncoder.isConfigSupported({ codec: p, width, height, bitrate, framerate: fps });
+        if (supported) { codec = p; break; }
+      } catch { /* try next */ }
+    }
+
+    if (codec) {
+      try {
+        const { Muxer, ArrayBufferTarget } = await import('mp4-muxer');
+        const target = new ArrayBufferTarget();
+        const muxer = new Muxer({ target, video: { codec: 'avc', width, height }, fastStart: 'in-memory', firstTimestampBehavior: 'offset' });
+        let encodeErr: Error | null = null;
+        const encoder = new VideoEncoder({
+          output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+          error: (e) => { encodeErr = e; },
+        });
+        const baseCfg: VideoEncoderConfig = { codec, width, height, bitrate, framerate: fps, latencyMode: 'quality' };
+        try { encoder.configure({ ...baseCfg, bitrateMode: 'constant' } as VideoEncoderConfig); }
+        catch { encoder.configure(baseCfg); }
+
+        // RVFC at 1× — browser delivers every frame in real-time, no drops.
+        // Faster than seek-based (no per-frame seek latency) and accurate.
+        let frameIndex = 0;
+        let done = false;
+
+        await new Promise<void>((resolve, reject) => {
+          const finish = () => { if (!done) { done = true; resolve(); } };
+          video.addEventListener('ended', finish, { once: true });
+          video.addEventListener('error', () => reject(new Error('video error during export')), { once: true });
+
+          const process: RVFCFN = (_now, meta) => {
+            if (done) return;
+            if (encodeErr) { reject(encodeErr); return; }
+            try {
+              renderOffScreen(meta.mediaTime);
+              const vf = new VideoFrame(offCanvas, { timestamp: Math.round(meta.mediaTime * 1_000_000) });
+              encoder.encode(vf, { keyFrame: frameIndex % 60 === 0 });
+              vf.close();
+              frameIndex++;
+              onProgress?.(Math.min(meta.mediaTime / duration, 0.99));
+              if (meta.mediaTime < duration - 0.05) {
+                videoAny.requestVideoFrameCallback(process);
+              } else {
+                finish();
+              }
+            } catch (e) { reject(e as Error); }
+          };
+
+          video.playbackRate = 1;
+          videoAny.requestVideoFrameCallback(process);
+          void video.play().catch(reject);
+        });
+
+        if (frameIndex > 0) {
+          await encoder.flush();
+          if (encodeErr) throw encodeErr;
+          muxer.finalize();
+          const blob = new Blob([target.buffer], { type: 'video/mp4' });
+          if (blob.size > 0) { onProgress?.(1); await cleanup(); return blob; }
+        }
+      } catch (e) {
+        console.error('[export] VideoEncoder failed:', e);
+      }
+      video.pause();
+      video.playbackRate = 1;
+      video.currentTime = 0;
+      await new Promise<void>((r) => video.addEventListener('seeked', () => r(), { once: true }));
+      offMount.lastRenderTime = 0;
+      if (offMount.rafId !== null) { cancelAnimationFrame(offMount.rafId); offMount.rafId = null; }
+    }
+  }
+
+  // ── MediaRecorder fallback (Firefox / no WebCodecs) ────────────────────────
+  const mimeType =
+    ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].find((t) =>
+      MediaRecorder.isTypeSupported(t),
+    ) ?? 'video/webm';
+  const stream = offCanvas.captureStream(60);
   const chunks: BlobPart[] = [];
-  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 16_000_000 });
+  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 4_000_000 });
   recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
-  const blobReady = new Promise<Blob>((resolve) => {
-    recorder.onstop = () => resolve(new Blob(chunks, { type: mimeType.split(';')[0] }));
+  const blobReady = new Promise<Blob>((r) => { recorder.onstop = () => r(new Blob(chunks, { type: mimeType.split(';')[0] })); });
+
+  if (onProgress) video.ontimeupdate = () => onProgress(video.currentTime / duration);
+
+  void video.play().catch(() => {});
+
+  // Wait for first decoded frame, render it, then start recorder
+  await new Promise<void>((resolve) => {
+    if (videoAny.requestVideoFrameCallback) {
+      videoAny.requestVideoFrameCallback((_now: number, meta: { mediaTime: number }) => {
+        renderOffScreen(meta.mediaTime);
+        requestAnimationFrame(() => resolve());
+      });
+    } else {
+      video.addEventListener('timeupdate', () => requestAnimationFrame(() => resolve()), { once: true });
+    }
   });
 
-  // Seek back to start after FPS probe (probe may have advanced currentTime slightly)
-  video.currentTime = 0;
-  await new Promise<void>((resolve) => {
-    video.addEventListener('seeked', () => resolve(), { once: true });
-  });
-
-  if (onProgress) {
-    video.ontimeupdate = () => onProgress(video.currentTime / duration);
-  }
-
-  recorder.start(500);
-  if (video.paused) {
-    try { await video.play(); } catch { /* muted */ }
-  }
+  recorder.start(100);
 
   await new Promise<void>((resolve) => {
-    const timeout = setTimeout(resolve, (duration + 5) * 1000);
-    video.addEventListener('ended', () => { clearTimeout(timeout); resolve(); }, { once: true });
+    const t = setTimeout(resolve, (duration + 5) * 1000);
+    video.addEventListener('ended', () => { clearTimeout(t); resolve(); }, { once: true });
+    if (videoAny.requestVideoFrameCallback) {
+      const loop = (_now: number, meta: { mediaTime: number }) => {
+        renderOffScreen(meta.mediaTime);
+        if (meta.mediaTime < duration - 0.04) videoAny.requestVideoFrameCallback(loop);
+      };
+      videoAny.requestVideoFrameCallback(loop);
+    }
   });
 
   recorder.stop();
-
-  // Restore playback state
   if (onProgress) video.ontimeupdate = null;
-  video.loop = wasLooping;
-  video.currentTime = 0;
-  try { await video.play(); } catch { /* restore preview playback */ }
-
+  await cleanup();
   return blobReady;
 }
 

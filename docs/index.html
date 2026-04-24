@@ -7,10 +7,24 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="/neuroshade/assets/index-ChGq76uA.js"></script>
-    <link rel="stylesheet" crossorigin href="/neuroshade/assets/index-CMPyPRxO.css">
+    <script type="module" crossorigin src="/neuroshade/assets/index-B1SIO9G1.js"></script>
+    <link rel="stylesheet" crossorigin href="/neuroshade/assets/index-O73Nyrgh.css">
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"></div>
+    <script>
+      // Register service worker that injects COOP/COEP headers so
+      // SharedArrayBuffer is available (required by ffmpeg.wasm).
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/neuroshade/coi-serviceworker.js").then(
+          function (reg) {
+            // First activation requires a reload so the SW can intercept all fetches.
+            if (!navigator.serviceWorker.controller) {
+              window.location.reload();
+            }
+          }
+        );
+      }
+    </script>
   </body>
 </html>
