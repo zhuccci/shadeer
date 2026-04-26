@@ -10,6 +10,8 @@ interface GlassPanelProps {
   onGrainChange: (grain: number) => void;
   onAngleChange: (angle: number) => void;
   onShapeChange: (shape: EditorState['glass']['shape']) => void;
+  onShadowChange: (shadow: number) => void;
+  onDistortionChange: (distortion: number) => void;
 }
 
 export function GlassPanel({
@@ -19,12 +21,16 @@ export function GlassPanel({
   onGrainChange,
   onAngleChange,
   onShapeChange,
+  onShadowChange,
+  onDistortionChange,
 }: GlassPanelProps) {
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="glassPanel">
       <div className="controls-left">
         <ShapeSelector label="Shape" value={state.glass.shape} onChange={onShapeChange} />
         <SliderControl label="Size" value={state.glass.size} onChange={onSizeChange} />
+        <SliderControl label="Distortion" value={state.glass.distortion} onChange={onDistortionChange} />
+        <SliderControl label="Shadow" value={state.glass.shadow} onChange={onShadowChange} />
         <SliderControl label="Grain" value={state.glass.grain} onChange={onGrainChange} />
       </div>
       <div className="panel-divider" />

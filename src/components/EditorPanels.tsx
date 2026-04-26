@@ -25,17 +25,19 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         onSizeChange={(size) => updateState((current) => ({ ...current, glass: { ...current.glass, size } }))}
         onGrainChange={(grain) => updateState((current) => ({ ...current, glass: { ...current.glass, grain } }))}
         onAngleChange={(angle) => updateState((current) => ({ ...current, glass: { ...current.glass, angle } }))}
+        onShadowChange={(shadow) => updateState((current) => ({ ...current, glass: { ...current.glass, shadow } }))}
+        onDistortionChange={(distortion) => updateState((current) => ({ ...current, glass: { ...current.glass, distortion } }))}
       />
 
       <DitheringPanel
         state={state}
         isActive={state.activeFilter === 'dithering'}
-        onBackgroundColorChange={(backgroundColor) =>
+        onShadowColorChange={(shadowColor) =>
           updateState((current) => ({
             ...current,
             dithering: {
               ...current.dithering,
-              backgroundColor: sanitizeHex(backgroundColor, current.dithering.backgroundColor),
+              shadowColor: sanitizeHex(shadowColor, current.dithering.shadowColor),
             },
           }))
         }
@@ -45,6 +47,15 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
             dithering: {
               ...current.dithering,
               frontColor: sanitizeHex(frontColor, current.dithering.frontColor),
+            },
+          }))
+        }
+        onLightColorChange={(lightColor) =>
+          updateState((current) => ({
+            ...current,
+            dithering: {
+              ...current.dithering,
+              lightColor: sanitizeHex(lightColor, current.dithering.lightColor),
             },
           }))
         }
@@ -180,6 +191,7 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         onIntensityChange={(intensity) => updateState((current) => ({ ...current, heatmap: { ...current.heatmap, intensity } }))}
         onBlendChange={(blend) => updateState((current) => ({ ...current, heatmap: { ...current.heatmap, blend } }))}
         onGrainChange={(grain) => updateState((current) => ({ ...current, heatmap: { ...current.heatmap, grain } }))}
+        onBlurChange={(blur) => updateState((current) => ({ ...current, heatmap: { ...current.heatmap, blur } }))}
       />
 
       <SymbolEdgesPanel

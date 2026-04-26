@@ -15,6 +15,7 @@ import { SliderControl } from './SliderControl';
 import { SaveIcon, UploadIcon } from './icons/AppIcons';
 import { filterOptions } from './filterOptions';
 import { sanitizeHex } from '../lib/editor';
+import { DITHER_PRESETS, ditherSwatchStyle } from './panels/DitheringPanel';
 import type { ActiveFilter, EditorState, GradientStop, HeatmapPalette } from '../types/editor';
 
 type MobileTab = 'sliders' | 'colors';
@@ -22,6 +23,7 @@ type MobileTab = 'sliders' | 'colors';
 function getFirstTabLabel(filter: ActiveFilter): string {
   if (filter === 'symbolEdges') return 'Symbol';
   if (filter === 'heatmap') return 'Palette';
+  if (filter === 'dithering') return 'Types';
   return 'Sliders';
 }
 
@@ -38,9 +40,10 @@ interface MobileDrawerProps {
   state: EditorState;
   updateState: (updater: (state: EditorState) => EditorState) => void;
   onUpload: () => void;
-  onSave: (videoFormat?: 'webm' | 'mp4') => void;
+  onSave: (format: 'png' | 'mp4' | 'webm') => void;
   onFilterSelect: (filter: ActiveFilter) => void;
   isVideo?: boolean;
+  canExportVideo?: boolean;
   savingProgress?: number | null;
   savingPhase?: 'recording' | 'converting' | null;
 }
@@ -101,6 +104,16 @@ function GlassPanelContent({ state, updateState, tab, openColor: _openColor }: P
         onChange={(size) => updateState((s) => ({ ...s, glass: { ...s.glass, size } }))}
       />
       <SliderControl
+        label="Distortion"
+        value={state.glass.distortion}
+        onChange={(distortion) => updateState((s) => ({ ...s, glass: { ...s.glass, distortion } }))}
+      />
+      <SliderControl
+        label="Shadow"
+        value={state.glass.shadow}
+        onChange={(shadow) => updateState((s) => ({ ...s, glass: { ...s.glass, shadow } }))}
+      />
+      <SliderControl
         label="Grain"
         value={state.glass.grain}
         onChange={(grain) => updateState((s) => ({ ...s, glass: { ...s.glass, grain } }))}
@@ -110,6 +123,8 @@ function GlassPanelContent({ state, updateState, tab, openColor: _openColor }: P
 }
 
 function DitheringPanelContent({ state, updateState, tab, openColor }: PanelContentProps) {
+  const [colorTab, setColorTab] = useState<'custom' | 'presets'>('custom');
+
   if (tab === 'sliders') {
     return (
       <div className="mobile-panel-section">
@@ -132,49 +147,86 @@ function DitheringPanelContent({ state, updateState, tab, openColor }: PanelCont
       </div>
     );
   }
+
+  const d = state.dithering;
+
   return (
     <div className="mobile-panel-section">
-      <ColorSelectorControl
-        label="Background Color"
-        value={state.dithering.backgroundColor}
-        onChange={(v) =>
-          updateState((s) => ({
-            ...s,
-            dithering: { ...s.dithering, backgroundColor: sanitizeHex(v, s.dithering.backgroundColor) },
-          }))
-        }
-        onMobileOpen={openColor}
-      />
-      <ColorSelectorControl
-        label="Front Color"
-        value={state.dithering.frontColor}
-        onChange={(v) =>
-          updateState((s) => ({
-            ...s,
-            dithering: { ...s.dithering, frontColor: sanitizeHex(v, s.dithering.frontColor) },
-          }))
-        }
-        onMobileOpen={openColor}
-      />
-      <ColorSelectorControl
-        label="Highlight"
-        value={state.dithering.highlightColor}
-        onChange={(v) =>
-          updateState((s) => ({
-            ...s,
-            dithering: { ...s.dithering, highlightColor: sanitizeHex(v, s.dithering.highlightColor) },
-          }))
-        }
-        onMobileOpen={openColor}
-      />
       <CheckboxControl
         label="Original Colors"
-        checked={state.dithering.originalColors}
+        checked={d.originalColors}
         onChange={(v) => updateState((s) => ({ ...s, dithering: { ...s.dithering, originalColors: v } }))}
       />
+      {!d.originalColors && (
+        <>
+          <div className="dither-color-tabs">
+            <button type="button" className="dither-color-tab" onClick={() => setColorTab('custom')}>Custom</button>
+            <button type="button" className="dither-color-tab" onClick={() => setColorTab('presets')}>Presets</button>
+            <div
+              className="dither-color-tabs-overlay"
+              style={{ clipPath: colorTab === 'custom' ? 'inset(0 50% 0 0)' : 'inset(0 0 0 50%)' }}
+              aria-hidden="true"
+            >
+              <button type="button" className="dither-color-tab" tabIndex={-1}>Custom</button>
+              <button type="button" className="dither-color-tab" tabIndex={-1}>Presets</button>
+            </div>
+          </div>
+          {colorTab === 'custom' && (
+            <>
+              <ColorSelectorControl
+                label="Shadow"
+                value={d.shadowColor}
+                onChange={(v) => updateState((s) => ({ ...s, dithering: { ...s.dithering, shadowColor: sanitizeHex(v, s.dithering.shadowColor) } }))}
+                onMobileOpen={openColor}
+              />
+              <ColorSelectorControl
+                label="Front"
+                value={d.frontColor}
+                onChange={(v) => updateState((s) => ({ ...s, dithering: { ...s.dithering, frontColor: sanitizeHex(v, s.dithering.frontColor) } }))}
+                onMobileOpen={openColor}
+              />
+              <ColorSelectorControl
+                label="Light"
+                value={d.lightColor}
+                onChange={(v) => updateState((s) => ({ ...s, dithering: { ...s.dithering, lightColor: sanitizeHex(v, s.dithering.lightColor) } }))}
+                onMobileOpen={openColor}
+              />
+              <ColorSelectorControl
+                label="Highlight"
+                value={d.highlightColor}
+                onChange={(v) => updateState((s) => ({ ...s, dithering: { ...s.dithering, highlightColor: sanitizeHex(v, s.dithering.highlightColor) } }))}
+                onMobileOpen={openColor}
+              />
+            </>
+          )}
+          {colorTab === 'presets' && (
+            <div className="dither-preset-list">
+              {DITHER_PRESETS.map((p) => {
+                const active = p.shadow === d.shadowColor && p.front === d.frontColor && p.light === d.lightColor && p.highlight === d.highlightColor;
+                return (
+                  <button
+                    key={p.label}
+                    type="button"
+                    className={`dither-preset-item${active ? ' selected' : ''}`}
+                    onClick={() => {
+                      updateState((s) => ({
+                        ...s,
+                        dithering: { ...s.dithering, shadowColor: p.shadow, frontColor: p.front, lightColor: p.light, highlightColor: p.highlight },
+                      }));
+                    }}
+                  >
+                    <span className="dither-preset-label">{p.label}</span>
+                    <span className="dither-preset-swatch" style={ditherSwatchStyle(p)} />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
       <CheckboxControl
         label="Invert"
-        checked={state.dithering.invert}
+        checked={d.invert}
         onChange={(v) => updateState((s) => ({ ...s, dithering: { ...s.dithering, invert: v } }))}
       />
     </div>
@@ -304,16 +356,7 @@ function GlitchyPanelContent({ state, updateState, tab, openColor: _openColor }:
 }
 
 function HalftonePanelContent({ state, updateState, tab, openColor }: PanelContentProps) {
-  const segRef = useRef<HTMLDivElement>(null);
-  const segDragging = useRef(false);
   const bw = state.halftone.blackAndWhite;
-
-  function pickFromX(clientX: number) {
-    if (!segRef.current) return;
-    const { left, width } = segRef.current.getBoundingClientRect();
-    const blackAndWhite = clientX - left < width / 2;
-    updateState((s) => ({ ...s, halftone: { ...s.halftone, blackAndWhite } }));
-  }
 
   if (tab === 'sliders') {
     return (
@@ -389,28 +432,17 @@ function HalftonePanelContent({ state, updateState, tab, openColor }: PanelConte
       />
       {!state.halftone.originalColors && (
         <>
-          <div
-            ref={segRef}
-            className="halftone-segment"
-            style={{ cursor: 'ew-resize' }}
-            onPointerDown={(e) => {
-              segRef.current?.setPointerCapture(e.pointerId);
-              segDragging.current = true;
-              pickFromX(e.clientX);
-            }}
-            onPointerMove={(e) => {
-              if (segDragging.current) pickFromX(e.clientX);
-            }}
-            onPointerUp={() => {
-              segDragging.current = false;
-            }}
-          >
-            <button type="button" className={`halftone-seg-btn${bw ? ' selected' : ''}`}>
-              2 Colors
-            </button>
-            <button type="button" className={`halftone-seg-btn${!bw ? ' selected' : ''}`}>
-              4 Colors
-            </button>
+          <div className="dither-color-tabs">
+            <button type="button" className="dither-color-tab" onClick={() => updateState((s) => ({ ...s, halftone: { ...s.halftone, blackAndWhite: true } }))}>Single Color</button>
+            <button type="button" className="dither-color-tab" onClick={() => updateState((s) => ({ ...s, halftone: { ...s.halftone, blackAndWhite: false } }))}>4 Colors</button>
+            <div
+              className="dither-color-tabs-overlay"
+              style={{ clipPath: bw ? 'inset(0 50% 0 0)' : 'inset(0 0 0 50%)' }}
+              aria-hidden="true"
+            >
+              <button type="button" className="dither-color-tab" tabIndex={-1}>Single Color</button>
+              <button type="button" className="dither-color-tab" tabIndex={-1}>4 Colors</button>
+            </div>
           </div>
           <ColorSelectorControl
             label={bw ? 'Color' : 'Light'}
@@ -564,8 +596,42 @@ const HEATMAP_PALETTES: { id: HeatmapPalette; label: string; gradient: string }[
   { id: 'sunset',  label: 'Sunset',  gradient: 'linear-gradient(to right, #0d0020, #9c1b5a 33%, #f0622a 66%, #fce5a3)' },
 ];
 
-const MOBILE_MAX_STOPS = 5;
+const MOBILE_MAX_STOPS = 6;
 const MOBILE_DELETE_THRESHOLD = 40;
+
+const HEATMAP_PALETTE_STOPS: Record<string, { color: string; position: number }[]> = {
+  thermal: [
+    { color: '#000000', position: 0.0 },
+    { color: '#0000ff', position: 0.2 },
+    { color: '#00ffff', position: 0.4 },
+    { color: '#ffff00', position: 0.6 },
+    { color: '#ff0000', position: 0.8 },
+    { color: '#ffffff', position: 1.0 },
+  ],
+  inferno: [
+    { color: '#000000', position: 0.0 },
+    { color: '#5900a6', position: 0.33 },
+    { color: '#e65900', position: 0.66 },
+    { color: '#faf233', position: 1.0 },
+  ],
+  ice: [
+    { color: '#000026', position: 0.0 },
+    { color: '#004de6', position: 0.5 },
+    { color: '#00ccff', position: 0.75 },
+    { color: '#ccffff', position: 1.0 },
+  ],
+  acid: [
+    { color: '#0d001a', position: 0.0 },
+    { color: '#00b31a', position: 0.5 },
+    { color: '#b3ff00', position: 1.0 },
+  ],
+  sunset: [
+    { color: '#0d0020', position: 0.0 },
+    { color: '#9c1b5a', position: 0.33 },
+    { color: '#f0622a', position: 0.66 },
+    { color: '#fce5a3', position: 1.0 },
+  ],
+};
 
 function mobileHmLerpHex(a: string, b: string, t: number): string {
   const parse = (h: string) => { const s = h.replace('#', '').padEnd(6, '0'); return [parseInt(s.slice(0, 2), 16), parseInt(s.slice(2, 4), 16), parseInt(s.slice(4, 6), 16)]; };
@@ -635,8 +701,11 @@ function HeatmapPanelContent({ state, updateState, tab, openColor }: PanelConten
 
     const now = Date.now();
     if (lastTapRef.current && lastTapRef.current.index === index && now - lastTapRef.current.time < 300) {
-      removeStop(index);
       lastTapRef.current = null;
+      const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
+      openColor?.('Stop Color', stops[index]?.color ?? '#000000', (color) => {
+        updateStops(stops.map((s, i) => i === index ? { ...s, color } : s));
+      }, rect);
       return;
     }
     lastTapRef.current = { index, time: now };
@@ -669,6 +738,7 @@ function HeatmapPanelContent({ state, updateState, tab, openColor }: PanelConten
       <div className="mobile-panel-section">
         <SliderControl label="Intensity" value={state.heatmap.intensity} onChange={(v) => updateState((s) => ({ ...s, heatmap: { ...s.heatmap, intensity: v } }))} />
         <SliderControl label="Blend" value={state.heatmap.blend} onChange={(v) => updateState((s) => ({ ...s, heatmap: { ...s.heatmap, blend: v } }))} />
+        <SliderControl label="Blur" value={state.heatmap.blur} onChange={(v) => updateState((s) => ({ ...s, heatmap: { ...s.heatmap, blur: v } }))} />
         <SliderControl label="Grain" value={state.heatmap.grain} onChange={(v) => updateState((s) => ({ ...s, heatmap: { ...s.heatmap, grain: v } }))} />
       </div>
     );
@@ -679,7 +749,17 @@ function HeatmapPanelContent({ state, updateState, tab, openColor }: PanelConten
       <CheckboxControl
         label="Custom Gradient"
         checked={customGradient}
-        onChange={(v) => updateState((s) => ({ ...s, heatmap: { ...s.heatmap, customGradient: v } }))}
+        onChange={(v) => {
+          if (v && !customGradient) {
+            const seed = HEATMAP_PALETTE_STOPS[state.heatmap.palette];
+            updateState((s) => ({
+              ...s,
+              heatmap: { ...s.heatmap, customGradient: true, ...(seed ? { customStops: seed } : {}) },
+            }));
+          } else {
+            updateState((s) => ({ ...s, heatmap: { ...s.heatmap, customGradient: v } }));
+          }
+        }}
       />
       <div className="mobile-heatmap-divider" />
       {!customGradient && (
@@ -710,7 +790,7 @@ function HeatmapPanelContent({ state, updateState, tab, openColor }: PanelConten
                   style={{ left: `${stop.position * 100}%`, background: stop.color }}
                   onPointerDown={(e) => handleMarkerPointerDown(e, i)}
                   onClick={(e) => { e.stopPropagation(); setSelectedStop(i); }}
-                  onDoubleClick={(e) => { e.stopPropagation(); removeStop(i); }}
+                  onDoubleClick={(e) => { e.stopPropagation(); }}
                 />
               ))}
             </div>
@@ -769,7 +849,7 @@ function PaperPanelContent({ state, updateState, tab }: PanelContentProps) {
 
 type MobileColorPickerState = { label: string; value: string; onChange: (v: string) => void; originX: string; originY: string } | null;
 
-export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSelect, isVideo, savingProgress, savingPhase }: MobileDrawerProps) {
+export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSelect, isVideo, canExportVideo, savingProgress, savingPhase }: MobileDrawerProps) {
   const [expanded, setExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<MobileTab>('sliders');
   const [slideDir, setSlideDir] = useState<'forward' | 'back'>('forward');
@@ -876,14 +956,29 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
             <div className="sheet-save-wrap" ref={saveWrapRef}>
               {showFormatMenu && (
                 <div className="sheet-format-menu">
-                  <button onClick={() => { setShowFormatMenu(false); onSave('webm'); }}>
-                    <span>WebM</span>
-                    <span className="format-hint">fast</span>
-                  </button>
-                  <button onClick={() => { setShowFormatMenu(false); onSave('mp4'); }}>
-                    <span>MP4</span>
-                    <span className="format-hint">H.264</span>
-                  </button>
+                  {isVideo ? (
+                    <>
+                      <button onClick={() => { setShowFormatMenu(false); onSave('webm'); }}>
+                        <span>WebM</span>
+                        <span className="format-hint">fast</span>
+                      </button>
+                      <button onClick={() => { setShowFormatMenu(false); onSave('mp4'); }}>
+                        <span>MP4</span>
+                        <span className="format-hint">H.264</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button onClick={() => { setShowFormatMenu(false); onSave('png'); }}>
+                        <span>PNG</span>
+                        <span className="format-hint">image</span>
+                      </button>
+                      <button onClick={() => { setShowFormatMenu(false); onSave('mp4'); }}>
+                        <span>MP4</span>
+                        <span className="format-hint">15s video</span>
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
               <button
@@ -891,12 +986,15 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
                 disabled={savingProgress != null}
                 onClick={() => {
                   if (savingProgress != null) return;
-                  if (isVideo) { setShowFormatMenu((v) => !v); return; }
-                  onSave();
+                  if (!isVideo && !canExportVideo) { onSave('png'); return; }
+                  setShowFormatMenu((v) => !v);
                 }}
               >
-                <SaveIcon />
-                {savingProgress != null ? `${Math.round((savingProgress ?? 0) * 100)}%` : 'Save'}
+                <span className="save-btn-ghost" aria-hidden><SaveIcon />Save</span>
+                <span className="save-btn-content">
+                  {savingProgress == null && <SaveIcon />}
+                  {savingProgress != null ? `${Math.round((savingProgress ?? 0) * 100)}%` : 'Save'}
+                </span>
               </button>
             </div>
           </div>

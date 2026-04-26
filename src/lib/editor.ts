@@ -97,9 +97,9 @@ export function buildGlassUniforms(
           : glass.shape === 'circles'
             ? GlassGridShapes.circles
             : GlassGridShapes.wave,
-    u_shadows: 0.7,
+    u_shadows: glass.shadow / 100,
     u_highlights: 0,
-    u_distortion: 0.5,
+    u_distortion: glass.distortion / 100,
     u_distortionShape: 4,
     u_colorBack: [0, 0, 0, 0],
     u_colorShadow: [0, 0, 0, 0.6],
@@ -130,8 +130,9 @@ export function buildDitheringUniforms(
   offsetY: number,
 ) {
   return {
-    u_colorBack: hexToVec4(dithering.backgroundColor),
+    u_colorShadow: hexToVec4(dithering.shadowColor),
     u_colorFront: hexToVec4(dithering.frontColor),
+    u_colorLight: hexToVec4(dithering.lightColor),
     u_colorHighlight: hexToVec4(dithering.highlightColor),
     u_type: DitheringTypes[dithering.type],
     u_pxSize: Math.max(1, dithering.size / 10),
@@ -331,6 +332,7 @@ export function buildHeatmapUniforms(
     u_intensity: heatmap.intensity / 50,
     u_blend: heatmap.blend / 100,
     u_grain: heatmap.grain / 100,
+    u_blur: heatmap.blur / 100,
     u_customGradient: heatmap.customGradient ? 1 : 0,
     u_customStopCount: sortedStops.length,
     u_customStops: customStopsData,
@@ -400,6 +402,12 @@ export function buildSymbolEdgesUniforms(
     u_hideImage: se.hideImage ? 1 : 0,
     u_seGlow: se.glow / 100,
   };
+}
+
+const ANIMATED_FILTERS = new Set<ActiveFilter>(['liquid', 'glitchy']);
+
+export function hasAnimatedEffect(state: EditorState): boolean {
+  return ANIMATED_FILTERS.has(state.activeFilter) || state.layers.some((f) => ANIMATED_FILTERS.has(f));
 }
 
 export function getRenderStack(state: EditorState): ActiveFilter[] {
@@ -1042,4 +1050,108 @@ export async function renderShaderToBlob(
   updateFitClip(shaderMount, state.fitMode, state.image.aspectRatio);
 
   return blob;
+}
+
+export async function renderImageAsVideoToBlob(
+  container: HTMLElement,
+  shaderMount: ShaderMount,
+  state: EditorState,
+  durationSec = 15,
+  fps = 30,
+  onProgress?: (progress: number) => void,
+): Promise<Blob | null> {
+  const sourceImage = shaderMount.providedUniforms.u_image;
+  if (!(sourceImage instanceof HTMLImageElement)) return null;
+
+  // captureStream() on a WebGL canvas requires preserveDrawingBuffer: true —
+  // without it the buffer is swapped before the stream can read it (0-byte output).
+  // Build a small off-screen chain at 1280px max. No manual frame pumping —
+  // each mount runs its own natural RAF loop, so memory stays flat.
+  const MAX_PX = 1280;
+  const scale = Math.min(1, MAX_PX / Math.max(sourceImage.naturalWidth, sourceImage.naturalHeight));
+  const width = Math.floor(sourceImage.naturalWidth * scale / 2) * 2 || 2;
+  const height = Math.floor(sourceImage.naturalHeight * scale / 2) * 2 || 2;
+
+  const renderStack = getRenderStack(state);
+  const allDivs: HTMLDivElement[] = [];
+  const allMounts: ShaderMount[] = [];
+  let prevCanvas: HTMLCanvasElement | null = null;
+
+  for (let i = 0; i < renderStack.length; i++) {
+    const filter = renderStack[i];
+    const stateForPass: EditorState = { ...state, activeFilter: filter, fitMode: 'fit', offsetX: 0, offsetY: 0 };
+    const config = getShaderConfig(stateForPass, sourceImage);
+    const passUniforms = { ...config.uniforms } as UniformMap & { u_pxSize?: number };
+
+    if (filter === 'dithering' && typeof passUniforms.u_pxSize === 'number' && shaderMount.parentWidth > 0) {
+      passUniforms.u_pxSize = passUniforms.u_pxSize * (width / shaderMount.parentWidth);
+    }
+
+    const div = document.createElement('div');
+    div.style.cssText = `position:fixed;left:-99999px;top:0;width:${width}px;height:${height}px;overflow:hidden`;
+    document.documentElement.appendChild(div);
+    allDivs.push(div);
+
+    const mount = new ShaderMount(
+      div, config.fragmentShader, passUniforms,
+      { preserveDrawingBuffer: true }, config.speed, shaderMount.currentFrame, 1,
+    );
+    mount.resizeObserver?.disconnect();
+    allMounts.push(mount);
+
+    const canvas = div.querySelector('canvas') as HTMLCanvasElement;
+    canvas.width = width;
+    canvas.height = height;
+    mount.gl.viewport(0, 0, width, height);
+    mount.resolutionChanged = true;
+    mount.renderScale = 1;
+    mount.uniformCache = {};
+
+    if (prevCanvas) mount.setTextureUniform('u_image', prevCanvas);
+    prevCanvas = canvas;
+  }
+
+  const finalCanvas = prevCanvas;
+  const cleanup = () => {
+    allMounts.forEach((m) => m.dispose());
+    allDivs.forEach((d) => d.remove());
+  };
+
+  if (!finalCanvas) { cleanup(); return null; }
+
+  // Wait for two animation frames so the canvas has content before recording starts.
+  await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+
+  type CapturableCanvas = HTMLCanvasElement & { captureStream(fps?: number): MediaStream };
+  const stream = (finalCanvas as CapturableCanvas).captureStream(fps);
+
+  const mimeType = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].find((t) =>
+    MediaRecorder.isTypeSupported(t),
+  ) ?? 'video/webm';
+
+  const chunks: Blob[] = [];
+  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 8_000_000 });
+  recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+  const blobReady = new Promise<Blob>((r) => {
+    recorder.onstop = () => r(new Blob(chunks, { type: mimeType.split(';')[0] }));
+  });
+
+  recorder.start(100);
+
+  await new Promise<void>((resolve) => {
+    const startTime = performance.now();
+    const tick = () => {
+      const elapsed = performance.now() - startTime;
+      onProgress?.(Math.min(elapsed / (durationSec * 1000) * 0.92, 0.92));
+      if (elapsed >= durationSec * 1000) { resolve(); return; }
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+
+  recorder.stop();
+  const webmBlob = await blobReady;
+  cleanup();
+
+  return convertWebmToMp4(webmBlob, (p) => onProgress?.(0.92 + p * 0.08));
 }

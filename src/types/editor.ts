@@ -25,11 +25,14 @@ export interface GlassSettings {
   grain: number;
   angle: number;
   shape: GlassShape;
+  shadow: number;
+  distortion: number;
 }
 
 export interface DitheringSettings {
-  backgroundColor: string;
+  shadowColor: string;
   frontColor: string;
+  lightColor: string;
   highlightColor: string;
   originalColors: boolean;
   invert: boolean;
@@ -119,6 +122,7 @@ export interface HeatmapSettings {
   intensity: number;
   blend: number;
   grain: number;
+  blur: number;
 }
 
 export interface EditorImageState {
@@ -154,11 +158,14 @@ export const defaultGlassSettings: GlassSettings = {
   grain: 0,
   angle: 0,
   shape: 'lines',
+  shadow: 70,
+  distortion: 50,
 };
 
 export const defaultDitheringSettings: DitheringSettings = {
-  backgroundColor: '#000000',
+  shadowColor: '#3D3D7A',
   frontColor: '#798FFF',
+  lightColor: '#FFB380',
   highlightColor: '#FA4F29',
   originalColors: false,
   invert: false,
@@ -234,6 +241,7 @@ export const defaultHeatmapSettings: HeatmapSettings = {
   intensity: 50,
   blend: 100,
   grain: 0,
+  blur: 0,
 };
 
 export const defaultHalftoneSettings: HalftoneSettings = {
