@@ -5,14 +5,15 @@ import { SaveIcon, UploadIcon } from './icons/AppIcons';
 interface ActionBarProps {
   visible: boolean;
   onUpload: () => void;
-  onSave: (videoFormat?: 'webm' | 'mp4') => void;
+  onSave: (format: 'png' | 'mp4' | 'webm') => void;
   isVideo?: boolean;
+  canExportVideo?: boolean;
   savingProgress?: number | null;
   savingPhase?: 'recording' | 'converting' | null;
   exportError?: string | null;
 }
 
-export function ActionBar({ visible, onUpload, onSave, isVideo, savingProgress, savingPhase, exportError }: ActionBarProps) {
+export function ActionBar({ visible, onUpload, onSave, isVideo, canExportVideo, savingProgress, savingPhase, exportError }: ActionBarProps) {
   const [showMenu, setShowMenu] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const isSaving = savingProgress != null;
@@ -29,11 +30,11 @@ export function ActionBar({ visible, onUpload, onSave, isVideo, savingProgress, 
 
   const handleSaveClick = () => {
     if (isSaving) return;
-    if (isVideo) { setShowMenu((v) => !v); return; }
-    onSave();
+    if (!isVideo && !canExportVideo) { onSave('png'); return; }
+    setShowMenu((v) => !v);
   };
 
-  const handleFormat = (format: 'webm' | 'mp4') => {
+  const handleFormat = (format: 'png' | 'mp4' | 'webm') => {
     setShowMenu(false);
     onSave(format);
   };
@@ -50,19 +51,37 @@ export function ActionBar({ visible, onUpload, onSave, isVideo, savingProgress, 
       <div className="save-btn-wrap" ref={wrapRef}>
         {showMenu && (
           <div className="format-menu">
-            <button onClick={() => handleFormat('webm')}>
-              <span>WebM</span>
-              <span className="format-hint">fast</span>
-            </button>
-            <button onClick={() => handleFormat('mp4')}>
-              <span>MP4</span>
-              <span className="format-hint">H.264</span>
-            </button>
+            {isVideo ? (
+              <>
+                <button onClick={() => handleFormat('webm')}>
+                  <span>WebM</span>
+                  <span className="format-hint">fast</span>
+                </button>
+                <button onClick={() => handleFormat('mp4')}>
+                  <span>MP4</span>
+                  <span className="format-hint">H.264</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => handleFormat('png')}>
+                  <span>PNG</span>
+                  <span className="format-hint">image</span>
+                </button>
+                <button onClick={() => handleFormat('mp4')}>
+                  <span>MP4</span>
+                  <span className="format-hint">15s video</span>
+                </button>
+              </>
+            )}
           </div>
         )}
         <button className={`btn btn-primary${isSaving ? ' btn-saving' : ''}`} onClick={handleSaveClick} disabled={isSaving}>
-          <SaveIcon />
-          {saveLabel}
+          <span className="save-btn-ghost" aria-hidden><SaveIcon />Save</span>
+          <span className="save-btn-content">
+            {!isSaving && <SaveIcon />}
+            {saveLabel}
+          </span>
         </button>
       </div>
     </div>

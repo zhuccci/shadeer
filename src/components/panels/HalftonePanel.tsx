@@ -1,4 +1,3 @@
-import { useRef } from 'react';
 import { CheckboxControl } from '../CheckboxControl';
 import { ColorSelectorControl } from '../ColorSelectorControl';
 import { HalftonePatternSelector } from '../HalftonePatternSelector';
@@ -47,14 +46,6 @@ export function HalftonePanel({
   onBlobThresholdChange,
 }: HalftonePanelProps) {
   const bw = state.halftone.blackAndWhite;
-  const segRef = useRef<HTMLDivElement>(null);
-  const segDragging = useRef(false);
-
-  function pickFromX(clientX: number) {
-    if (!segRef.current) return;
-    const { left, width } = segRef.current.getBoundingClientRect();
-    onBlackAndWhiteChange(clientX - left < width / 2);
-  }
 
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="halftonePanel">
@@ -81,26 +72,17 @@ export function HalftonePanel({
 
         <div className={`ht-section${state.halftone.originalColors ? ' ht-hidden' : ''}`}>
           <div className="ht-section-inner">
-            <div className="halftone-seg-wrapper">
-            <div
-              ref={segRef}
-              className="halftone-segment"
-              style={{ cursor: 'ew-resize' }}
-              onPointerDown={(e) => { segRef.current?.setPointerCapture(e.pointerId); segDragging.current = true; pickFromX(e.clientX); }}
-              onPointerMove={(e) => { if (segDragging.current) pickFromX(e.clientX); }}
-              onPointerUp={() => { segDragging.current = false; }}
-            >
-              <span
-                className="halftone-seg-pill"
-                style={{ transform: bw ? 'translateX(0)' : 'translateX(100%)' }}
-              />
-              <button type="button" className={`halftone-seg-btn${bw ? ' selected' : ''}`}>
-                2 Colors
-              </button>
-              <button type="button" className={`halftone-seg-btn${!bw ? ' selected' : ''}`}>
-                4 Colors
-              </button>
-            </div>
+            <div className="dither-color-tabs">
+              <button type="button" className="dither-color-tab" onClick={() => onBlackAndWhiteChange(true)}>Single Color</button>
+              <button type="button" className="dither-color-tab" onClick={() => onBlackAndWhiteChange(false)}>4 Colors</button>
+              <div
+                className="dither-color-tabs-overlay"
+                style={{ clipPath: bw ? 'inset(0 50% 0 0)' : 'inset(0 0 0 50%)' }}
+                aria-hidden="true"
+              >
+                <button type="button" className="dither-color-tab" tabIndex={-1}>Single Color</button>
+                <button type="button" className="dither-color-tab" tabIndex={-1}>4 Colors</button>
+              </div>
             </div>
             <ColorSelectorControl label={bw ? 'Color' : 'Light'} value={state.halftone.color1} onChange={onColor1Change} />
             <div className={`ht-extra${bw ? ' ht-hidden' : ''}`}>

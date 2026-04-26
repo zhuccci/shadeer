@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { SliderControl } from '../SliderControl';
 import { CheckboxControl } from '../CheckboxControl';
 import { ColorSelectorControl } from '../ColorSelectorControl';
+import { ColorPicker } from '../ColorPicker';
 import type { EditorState, GradientStop, HeatmapPalette } from '../../types/editor';
 import './HeatmapPanel.css';
 
@@ -14,6 +15,7 @@ interface HeatmapPanelProps {
   onIntensityChange: (value: number) => void;
   onBlendChange: (value: number) => void;
   onGrainChange: (value: number) => void;
+  onBlurChange: (value: number) => void;
 }
 
 const PALETTES: { id: HeatmapPalette; label: string; gradient: string }[] = [
@@ -24,8 +26,42 @@ const PALETTES: { id: HeatmapPalette; label: string; gradient: string }[] = [
   { id: 'sunset',  label: 'Sunset',  gradient: 'linear-gradient(to right, #0d0020, #9c1b5a 33%, #f0622a 66%, #fce5a3)' },
 ];
 
-const MAX_STOPS = 5;
+const MAX_STOPS = 6;
 const DELETE_THRESHOLD = 40;
+
+const PALETTE_STOPS: Record<string, { color: string; position: number }[]> = {
+  thermal: [
+    { color: '#000000', position: 0.0 },
+    { color: '#0000ff', position: 0.2 },
+    { color: '#00ffff', position: 0.4 },
+    { color: '#ffff00', position: 0.6 },
+    { color: '#ff0000', position: 0.8 },
+    { color: '#ffffff', position: 1.0 },
+  ],
+  inferno: [
+    { color: '#000000', position: 0.0 },
+    { color: '#5900a6', position: 0.33 },
+    { color: '#e65900', position: 0.66 },
+    { color: '#faf233', position: 1.0 },
+  ],
+  ice: [
+    { color: '#000026', position: 0.0 },
+    { color: '#004de6', position: 0.5 },
+    { color: '#00ccff', position: 0.75 },
+    { color: '#ccffff', position: 1.0 },
+  ],
+  acid: [
+    { color: '#0d001a', position: 0.0 },
+    { color: '#00b31a', position: 0.5 },
+    { color: '#b3ff00', position: 1.0 },
+  ],
+  sunset: [
+    { color: '#0d0020', position: 0.0 },
+    { color: '#9c1b5a', position: 0.33 },
+    { color: '#f0622a', position: 0.66 },
+    { color: '#fce5a3', position: 1.0 },
+  ],
+};
 
 function lerpHex(a: string, b: string, t: number): string {
   const parse = (h: string) => {
@@ -60,11 +96,14 @@ export function HeatmapPanel({
   onIntensityChange,
   onBlendChange,
   onGrainChange,
+  onBlurChange,
 }: HeatmapPanelProps) {
   const [selectedStop, setSelectedStop] = useState(0);
   const [deletePendingIdx, setDeletePendingIdx] = useState<number | null>(null);
+  const [pickerStopIdx, setPickerStopIdx] = useState<number | null>(null);
+  const [pickerAnchorRect, setPickerAnchorRect] = useState<DOMRect | null>(null);
   const barRef = useRef<HTMLDivElement>(null);
-  const lastTapRef = useRef<{ index: number; time: number } | null>(null);
+  const markerRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const { customGradient, customStops: stops } = state.heatmap;
   const safeIdx = Math.max(0, Math.min(selectedStop, stops.length - 1));
@@ -101,20 +140,18 @@ export function HeatmapPanel({
     const bar = barRef.current;
     if (!bar) return;
 
-    // Double-tap detection for touch
-    const now = Date.now();
-    if (
-      lastTapRef.current &&
-      lastTapRef.current.index === index &&
-      now - lastTapRef.current.time < 300
-    ) {
-      removeStop(index);
-      lastTapRef.current = null;
-      return;
-    }
-    lastTapRef.current = { index, time: now };
+    const startX = e.clientX;
+    const startY = e.clientY;
+    let hasMoved = false;
 
     function onMove(ev: PointerEvent) {
+      if (!hasMoved) {
+        if (Math.abs(ev.clientX - startX) > 4 || Math.abs(ev.clientY - startY) > 4) {
+          hasMoved = true;
+        } else {
+          return;
+        }
+      }
       const rect = bar!.getBoundingClientRect();
       const outside =
         ev.clientY < rect.top - DELETE_THRESHOLD ||
@@ -136,7 +173,15 @@ export function HeatmapPanel({
       const outside =
         ev.clientY < rect.top - DELETE_THRESHOLD ||
         ev.clientY > rect.bottom + DELETE_THRESHOLD;
-      if (outside && stops.length > 2) removeStop(index);
+      if (outside && stops.length > 2) {
+        removeStop(index);
+      } else if (!hasMoved) {
+        const markerRect = markerRefs.current[index]?.getBoundingClientRect();
+        if (markerRect) {
+          setPickerStopIdx(index);
+          setPickerAnchorRect(markerRect);
+        }
+      }
       setDeletePendingIdx(null);
     }
 
@@ -147,7 +192,17 @@ export function HeatmapPanel({
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="heatmapPanel">
       <div className="controls-left">
-        <CheckboxControl label="Custom Gradient" checked={customGradient} onChange={onCustomGradientChange} />
+        <CheckboxControl
+          label="Custom Gradient"
+          checked={customGradient}
+          onChange={(val) => {
+            if (val && !customGradient) {
+              const seed = PALETTE_STOPS[state.heatmap.palette];
+              if (seed) onCustomStopsChange(seed);
+            }
+            onCustomGradientChange(val);
+          }}
+        />
         <div className="paper-divider-h" />
         {!customGradient && (
           <div className="heatmap-palette-list">
@@ -172,12 +227,12 @@ export function HeatmapPanel({
                 {stops.map((stop, i) => (
                   <button
                     key={i}
+                    ref={(el) => { markerRefs.current[i] = el; }}
                     type="button"
                     className={`heatmap-stop-marker${safeIdx === i ? ' selected' : ''}${deletePendingIdx === i ? ' delete-pending' : ''}`}
                     style={{ left: `${stop.position * 100}%`, background: stop.color }}
                     onPointerDown={(e) => handleMarkerPointerDown(e, i)}
-                    onClick={(e) => { e.stopPropagation(); setSelectedStop(i); }}
-                    onDoubleClick={(e) => { e.stopPropagation(); removeStop(i); }}
+                    onClick={(e) => e.stopPropagation()}
                   />
                 ))}
               </div>
@@ -194,8 +249,18 @@ export function HeatmapPanel({
       <div className="heatmap-right">
         <SliderControl label="Intensity" value={state.heatmap.intensity} onChange={onIntensityChange} />
         <SliderControl label="Blend" value={state.heatmap.blend} onChange={onBlendChange} />
+        <SliderControl label="Blur" value={state.heatmap.blur} onChange={onBlurChange} />
         <SliderControl label="Grain" value={state.heatmap.grain} onChange={onGrainChange} />
       </div>
+
+      {pickerStopIdx !== null && pickerAnchorRect && (
+        <ColorPicker
+          value={stops[pickerStopIdx]?.color ?? '#000000'}
+          anchorRect={pickerAnchorRect}
+          onClose={() => setPickerStopIdx(null)}
+          onChange={(color) => onCustomStopsChange(stops.map((s, i) => i === pickerStopIdx ? { ...s, color } : s))}
+        />
+      )}
     </div>
   );
 }

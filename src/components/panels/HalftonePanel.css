@@ -29,59 +29,6 @@
   align-self: center;
 }
 
-.halftone-seg-wrapper {
-  background: #141414;
-  border-radius: 10px;
-  padding: 4px;
-  width: 100%;
-}
-
-.halftone-segment {
-  position: relative;
-  display: flex;
-  background: #101010;
-  border-radius: 8px;
-  padding: 4px;
-  width: 100%;
-}
-
-/* Sliding pill indicator */
-.halftone-seg-pill {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  bottom: 4px;
-  width: calc(50% - 4px);
-  background: #262626;
-  border-radius: 4px;
-  pointer-events: none;
-  z-index: 0;
-  transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
-  will-change: transform;
-}
-
-.halftone-seg-btn {
-  flex: 1;
-  padding: 8px;
-  border-radius: 4px;
-  font-size: 16px;
-  color: #d6d6d6;
-  background: transparent;
-  cursor: pointer;
-  position: relative;
-  z-index: 1;
-  transition: color 0.15s ease, text-shadow 0.15s ease, transform 100ms ease-out;
-  white-space: nowrap;
-}
-
-.halftone-seg-btn:active {
-  transform: scale(0.97);
-}
-
-.halftone-seg-btn.selected {
-  color: var(--accent);
-  text-shadow: 0 0 18.75px rgba(255, 246, 121, 0.2);
-}
 
 .ht-section {
   display: grid;

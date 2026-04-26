@@ -1,0 +1,75 @@
+.dither-color-tabs {
+  position: relative;
+  display: flex;
+}
+
+.dither-color-tab {
+  flex: 1;
+  padding: 12px 0;
+  background: none;
+  border: none;
+  border-bottom: 1.5px solid transparent;
+  color: #ffffff;
+  font-size: 16px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+}
+
+.dither-color-tabs-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  pointer-events: none;
+  transition: clip-path 220ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.dither-color-tabs-overlay .dither-color-tab {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  cursor: default;
+}
+
+.dither-preset-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dither-preset-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  width: 100%;
+  background: transparent;
+  border: 0.5px solid transparent;
+  border-radius: 16px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease-out, border-color 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.dither-preset-item:hover {
+  background: rgba(20, 20, 20, 0.6);
+}
+
+.dither-preset-item.selected {
+  background: #141414;
+  border-color: var(--accent);
+  box-shadow: 0 0 18.75px 0 rgba(255, 246, 121, 0.2);
+}
+
+.dither-preset-label {
+  font-size: 16px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.dither-preset-swatch {
+  display: block;
+  height: 24px;
+  width: 100%;
+  border-radius: 8px;
+  flex-shrink: 0;
+}

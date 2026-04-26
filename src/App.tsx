@@ -10,8 +10,10 @@ import { PullToRefresh } from './components/PullToRefresh';
 import {
   convertWebmToMp4,
   defaultEditorState,
+  hasAnimatedEffect,
   loadImage,
   makeFallbackImage,
+  renderImageAsVideoToBlob,
   renderShaderToBlob,
   renderVideoToBlob,
 } from './lib/editor';
@@ -193,9 +195,9 @@ export default function App() {
     }
   }, [editorState.image.video, updateState]);
 
-  const handleSave = useCallback(async (videoFormat?: 'webm' | 'mp4') => {
+  const handleSave = useCallback(async (format: 'png' | 'mp4' | 'webm' = 'png') => {
     if (editorState.image.isVideo && editorState.image.video && shaderMountRef.current) {
-      const isMp4 = videoFormat === 'mp4';
+      const isMp4 = format === 'mp4';
       setSavingPhase('recording');
       setVideoExportProgress(0);
       try {
@@ -238,7 +240,36 @@ export default function App() {
       }
       return;
     }
+
     if (!shaderMountRef.current || !previewRef.current) return;
+
+    if (format === 'mp4') {
+      setSavingPhase('recording');
+      setVideoExportProgress(0);
+      try {
+        const blob = await renderImageAsVideoToBlob(
+          previewRef.current,
+          shaderMountRef.current,
+          editorState,
+          15,
+          30,
+          (p) => setVideoExportProgress(p),
+        );
+        if (!blob) return;
+        setDownloadFilename('neuropic.mp4');
+        setDownloadUrl(URL.createObjectURL(blob));
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error('Image-to-video export failed:', err);
+        setExportError(msg);
+        setTimeout(() => setExportError(null), 6000);
+      } finally {
+        setVideoExportProgress(null);
+        setSavingPhase(null);
+      }
+      return;
+    }
+
     const blob = await renderShaderToBlob(previewRef.current, shaderMountRef.current, editorState);
     if (!blob) return;
     setDownloadFilename('neuropic.png');
@@ -331,7 +362,7 @@ export default function App() {
           onRemove={handleRemoveLayer}
           onReorder={handleReorderLayers}
         />
-        <ActionBar visible={editorState.image.hasUserImage} onUpload={handleUploadClick} onSave={(fmt) => void handleSave(fmt)} isVideo={editorState.image.isVideo} savingProgress={videoExportProgress} savingPhase={savingPhase} exportError={exportError} />
+        <ActionBar visible={editorState.image.hasUserImage} onUpload={handleUploadClick} onSave={(fmt) => void handleSave(fmt)} isVideo={editorState.image.isVideo} canExportVideo={hasAnimatedEffect(editorState)} savingProgress={videoExportProgress} savingPhase={savingPhase} exportError={exportError} />
       </div>
 
       <div className="preview-wrap">
@@ -388,6 +419,7 @@ export default function App() {
         onSave={(fmt) => void handleSave(fmt)}
         onFilterSelect={handleFilterSelect}
         isVideo={editorState.image.isVideo}
+        canExportVideo={hasAnimatedEffect(editorState)}
         savingProgress={videoExportProgress}
         savingPhase={savingPhase}
       />

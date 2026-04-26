@@ -305,11 +305,12 @@ void main() {
   uv = mix(v_imageUV, uv, smoothstep(0., .7, mask));
   float blur = mix(0., 50., u_blur) * smoothstep(.5, 1., mask);
   float edgeDistortion = (mix(.0, .04, u_edges) + .06 * frameFade * u_edges) * mask;
-  float frame = getUvFrame(uv, edgeDistortion);
+  float inBounds = step(0.0, v_imageUV.x) * step(v_imageUV.x, 1.0) * step(0.0, v_imageUV.y) * step(v_imageUV.y, 1.0);
+  float frame = max(getUvFrame(uv, edgeDistortion), inBounds);
   float stretch = pow(1. - smoothstep(0., .5, xNonSmooth) * smoothstep(1., .5, xNonSmooth), 2.) * mask;
   stretch *= getUvFrame(uv, .1 + .05 * mask * frameFade);
   uv.y = mix(uv.y, .5, u_stretch * stretch);
-  vec4 image = getBlur(u_image, uv, 1. / u_resolution / u_pixelRatio, vec2(0., 1.), blur);
+  vec4 image = getBlur(u_image, clamp(uv, vec2(0.0), vec2(1.0)), 1. / u_resolution / u_pixelRatio, vec2(0., 1.), blur);
   image.rgb *= image.a;
   vec4 backColor = u_colorBack; backColor.rgb *= backColor.a;
   vec4 highlightColor = u_colorHighlight; highlightColor.rgb *= highlightColor.a;
@@ -657,8 +658,9 @@ uniform float u_scale;
 uniform float u_rotation;
 uniform float u_offsetX;
 uniform float u_offsetY;
+uniform vec4 u_colorShadow;
 uniform vec4 u_colorFront;
-uniform vec4 u_colorBack;
+uniform vec4 u_colorLight;
 uniform vec4 u_colorHighlight;
 uniform sampler2D u_image;
 uniform float u_imageAspectRatio;
@@ -743,16 +745,13 @@ void main() {
     color = (image.rgb / max(lum, 0.001)) * quantLum;
     opacity = mix(quantLum, 1., floor(image.a * colorSteps + 0.5) / colorSteps);
   } else {
-    vec3 fgColor = u_colorFront.rgb * u_colorFront.a;
-    float fgOpacity = u_colorFront.a;
-    vec3 bgColor = u_colorBack.rgb * u_colorBack.a;
-    float bgOpacity = u_colorBack.a;
-    vec3 hlColor = u_colorHighlight.rgb * u_colorHighlight.a;
-    float hlOpacity = u_colorHighlight.a;
-    fgColor   = mix(fgColor,   hlColor,   step(1.02 - .02 * u_colorSteps, brightness));
-    fgOpacity = mix(fgOpacity, hlOpacity, step(1.02 - .02 * u_colorSteps, brightness));
-    color   = fgColor * quantLum + bgColor * (1.0 - fgOpacity * quantLum);
-    opacity = fgOpacity * quantLum + bgOpacity * (1.0 - fgOpacity * quantLum);
+    vec4 fgVec;
+    if      (quantLum >= 0.75) fgVec = u_colorHighlight;
+    else if (quantLum >= 0.50) fgVec = u_colorLight;
+    else if (quantLum >= 0.25) fgVec = u_colorFront;
+    else                        fgVec = u_colorShadow;
+    color   = fgVec.rgb;
+    opacity = fgVec.a;
   }
   fragColor = vec4(color, opacity) * image.a * frame;
 }`;
@@ -1271,6 +1270,7 @@ uniform float u_palette;
 uniform float u_intensity;
 uniform float u_blend;
 uniform float u_grain;
+uniform float u_blur;
 uniform float u_customGradient;
 uniform float u_customStopCount;
 uniform vec4 u_customStops[8];
@@ -1336,7 +1336,28 @@ void main() {
   float inBounds = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
   if (inBounds < 0.5) { fragColor = vec4(0.0); return; }
 
-  vec4 tex = texture(u_image, uv);
+  vec4 tex;
+  if (u_blur > 0.001) {
+    // 17×17 separable-style Gaussian — 289 taps.
+    // Step adapts so samples never exceed ~2.5 px apart → no visible grid.
+    float r = u_blur * 20.0;
+    float stepPx = max(1.0, r / 8.0);
+    vec2 texelSize = 1.0 / vec2(textureSize(u_image, 0));
+    float sigma2 = 2.0 * (r * 0.5) * (r * 0.5); // 2σ², σ = r/2
+    vec4 blurred = vec4(0.0);
+    float wTotal = 0.0;
+    for (int xi = -8; xi <= 8; xi++) {
+      for (int yi = -8; yi <= 8; yi++) {
+        float dpx2 = float(xi * xi + yi * yi) * stepPx * stepPx;
+        float w = exp(-dpx2 / sigma2);
+        blurred += texture(u_image, uv + vec2(float(xi), float(yi)) * stepPx * texelSize) * w;
+        wTotal += w;
+      }
+    }
+    tex = blurred / wTotal;
+  } else {
+    tex = texture(u_image, uv);
+  }
   if (tex.a < 0.01) { fragColor = vec4(0.0); return; }
 
   float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));

@@ -28,6 +28,24 @@
   display: flex;
 }
 
+.save-btn-ghost {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.save-btn-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
 .format-menu {
   position: absolute;
   bottom: calc(100% + 4px);

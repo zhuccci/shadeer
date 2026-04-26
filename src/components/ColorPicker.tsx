@@ -176,18 +176,27 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
   }, []);
 
   // ── Hex input ─────────────────────────────────────────────────────────────────
-  const handleHexInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.toUpperCase().replace(/[^0-9A-F]/g, '').slice(0, 6);
-    setHexText(raw);
-    if (raw.length === 6) {
-      const rgb = hexToRgb(`#${raw}`);
+  const applyHexString = useCallback((raw: string) => {
+    const clean = raw.toUpperCase().replace(/[^0-9A-F]/g, '').slice(0, 6);
+    setHexText(clean);
+    if (clean.length === 6) {
+      const rgb = hexToRgb(`#${clean}`);
       if (rgb) {
         const [h, s, v] = rgbToHsv(...rgb);
         setColor({ h, s, v });
-        onChange(`#${raw}`);
+        onChange(`#${clean}`);
       }
     }
   }, [onChange]);
+
+  const handleHexInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    applyHexString(e.target.value);
+  }, [applyHexString]);
+
+  const handleHexPaste = useCallback((e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    applyHexString(e.clipboardData.getData('text'));
+  }, [applyHexString]);
 
   // ── Eyedropper ────────────────────────────────────────────────────────────────
   const handleEyedropper = useCallback(async () => {
@@ -266,6 +275,7 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
             className="picker-hex-input"
             value={hexText}
             onChange={handleHexInput}
+            onPaste={handleHexPaste}
             maxLength={6}
             spellCheck={false}
           />
