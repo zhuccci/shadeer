@@ -760,6 +760,7 @@ export const halftoneFragmentShader = `#version 300 es
 precision mediump float;
 uniform sampler2D u_image;
 uniform vec2 u_resolution;
+uniform vec2 u_imageSize;
 uniform float u_time;
 uniform float u_dotScale;
 uniform float u_bw;
@@ -787,22 +788,27 @@ void main() {
   float inBounds = float(v_imageUV.x >= 0.0 && v_imageUV.x <= 1.0 &&
                          v_imageUV.y >= 0.0 && v_imageUV.y <= 1.0);
   int iPattern = int(u_pattern);
-  float cellPx = u_resolution.x / u_dotScale;
+  // Cell size in image pixels — grid is anchored to image space, not screen space.
+  // This keeps dots consistent regardless of zoom/fit mode and matches export output.
+  float cellPx = u_imageSize.x / u_dotScale;
   const float C45 = 0.70711;
 
-  // Grid rotation — rotate fragment coords by u_angle before snapping to grid.
-  // cosA/sinA unrotate standard-grid localShape back to screen space for UV sampling.
+  // Work in image-pixel coordinates so the grid is tied to image content.
+  vec2 imgCoord = v_imageUV * u_imageSize;
+
+  // Grid rotation — rotate image coords by u_angle before snapping to grid.
+  // cosA/sinA unrotate localShape back to image space for UV sampling.
   // cosT/sinT unrotate the combined (45° + u_angle) space used by print/lines.
   float cosA = cos(u_angle);
   float sinA = sin(u_angle);
-  vec2 rotCoord = vec2(cosA * gl_FragCoord.x - sinA * gl_FragCoord.y,
-                       sinA * gl_FragCoord.x + cosA * gl_FragCoord.y);
+  vec2 rotCoord = vec2(cosA * imgCoord.x - sinA * imgCoord.y,
+                       sinA * imgCoord.x + cosA * imgCoord.y);
   float cosT = cos(0.7853982 - u_angle);
   float sinT = sin(0.7853982 - u_angle);
 
-  // localPx  — offset from cell center in screen space (used for UV extrapolation)
+  // localImg  — offset from cell center in image space (used for UV sampling)
   // localShape — offset in pattern space (used for the shape test)
-  vec2 localPx;
+  vec2 localImg;
   vec2 localShape;
 
   if (iPattern == 1) {
@@ -811,22 +817,22 @@ void main() {
                    -C45 * rotCoord.x + C45 * rotCoord.y);
     vec2 lr = (fract(rc / cellPx) - 0.5) * cellPx;
     localShape = lr;
-    localPx = vec2(cosT * lr.x - sinT * lr.y,   // unrotate by R(45° − u_angle)
-                   sinT * lr.x + cosT * lr.y);
+    localImg = vec2(cosT * lr.x - sinT * lr.y,   // unrotate by R(45° − u_angle)
+                    sinT * lr.x + cosT * lr.y);
   } else if (iPattern == 2) {
     // Lines: vertical at 0°, horizontal at 90°
     float localRX = (fract(rotCoord.x / cellPx) - 0.5) * cellPx;
     localShape = vec2(0.0, localRX);
-    localPx    = vec2(cosA * localRX, -sinA * localRX);
+    localImg   = vec2(cosA * localRX, -sinA * localRX);
   } else {
     // Dots, Cross, Grunge, Blob: rotated square grid
     localShape = (fract(rotCoord / cellPx) - 0.5) * cellPx;
-    localPx    = vec2( cosA * localShape.x + sinA * localShape.y,
+    localImg   = vec2( cosA * localShape.x + sinA * localShape.y,
                       -sinA * localShape.x + cosA * localShape.y);
   }
 
-  // Sample image at the cell center
-  vec2 cellImageUV = v_imageUV - dFdx(v_imageUV) * localPx.x - dFdy(v_imageUV) * localPx.y;
+  // Sample image at the cell center (offset in image pixels → divide by imageSize for UV)
+  vec2 cellImageUV = v_imageUV - localImg / u_imageSize;
   bool cellInBounds = cellImageUV.x >= 0.0 && cellImageUV.x <= 1.0 &&
                       cellImageUV.y >= 0.0 && cellImageUV.y <= 1.0;
   vec4 tex = texture(u_image, clamp(cellImageUV, 0.0, 1.0));
@@ -877,11 +883,11 @@ void main() {
       for (int dy = -2; dy <= 2; dy++) {
         vec2 nIdx = cellIdx + vec2(float(dx), float(dy));
         vec2 nCenter = (nIdx + 0.5) * cellPx;
-        // nOffset is in rotated grid space — unrotate to screen space for UV sampling
+        // nOffset is in rotated grid space — unrotate to image space for UV sampling
         vec2 nOffset = nCenter - blobCellCenter;
-        vec2 nOffsetScreen = vec2( cosA * nOffset.x + sinA * nOffset.y,
-                                  -sinA * nOffset.x + cosA * nOffset.y);
-        vec2 nUV = clamp(cellImageUV + dFdx(v_imageUV) * nOffsetScreen.x + dFdy(v_imageUV) * nOffsetScreen.y, 0.0, 1.0);
+        vec2 nOffsetImg = vec2( cosA * nOffset.x + sinA * nOffset.y,
+                               -sinA * nOffset.x + cosA * nOffset.y);
+        vec2 nUV = clamp(cellImageUV + nOffsetImg / u_imageSize, 0.0, 1.0);
         vec4 nTex = texture(u_image, nUV);
         if (u_inverted > 0.5) nTex.rgb = 1.0 - nTex.rgb;
         nTex.rgb = clamp(nTex.rgb + u_brightness, 0.0, 1.0);

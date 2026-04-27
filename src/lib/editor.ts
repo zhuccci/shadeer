@@ -183,6 +183,8 @@ export function buildHalftoneUniforms(
   fitMode: FitMode,
   offsetX: number,
   offsetY: number,
+  imageWidth: number,
+  imageHeight: number,
 ) {
   return {
     u_fit: fitMode === 'fill' ? 2 : 1,
@@ -194,6 +196,7 @@ export function buildHalftoneUniforms(
     u_worldHeight: 0,
     u_offsetX: offsetX,
     u_offsetY: offsetY,
+    u_imageSize: [imageWidth, imageHeight],
     u_dotScale: 65475 / (90 + 6.375 * halftone.scale),
     u_bw: halftone.blackAndWhite ? 1 : 0,
     u_originalColors: halftone.originalColors ? 1 : 0,
@@ -452,11 +455,13 @@ export function getShaderConfig(state: EditorState, image: HTMLImageElement | HT
   }
 
   if (state.activeFilter === 'halftone') {
+    const imgW = image instanceof HTMLVideoElement ? image.videoWidth : image.naturalWidth;
+    const imgH = image instanceof HTMLVideoElement ? image.videoHeight : image.naturalHeight;
     return {
       fragmentShader: halftoneFragmentShader,
       uniforms: {
         u_image: image,
-        ...buildHalftoneUniforms(state.halftone, state.fitMode, state.offsetX, state.offsetY),
+        ...buildHalftoneUniforms(state.halftone, state.fitMode, state.offsetX, state.offsetY, imgW, imgH),
       },
       speed: 0,
     };
