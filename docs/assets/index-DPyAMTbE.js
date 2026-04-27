@@ -811,15 +811,26 @@ void main() {
   // Cell index for per-cell randomness (in rotated grid space)
   vec2 cellIdx = floor(rotCoord / cellPx);
 
-  float dotRadius = pow(1.0 - lum, u_curve) * cellPx * 0.5;
+  float t = pow(1.0 - lum, u_curve);
   float insideDot;
   if (iPattern == 0 || iPattern == 1) {
-    insideDot = step(length(localShape), dotRadius);
+    // Halftone inversion: below ~50% cell coverage grow a black dot;
+    // above it switch to a white hole on solid black shrinking toward 0.
+    // This eliminates the white corner gaps that circular dots leave at
+    // maximum size (corner distance = cellPx*0.707 > max radius cellPx*0.5).
+    // Threshold t=0.798 ≈ sqrt(2/π), the t where a circle covers 50% of the cell.
+    float dist = length(localShape);
+    if (t <= 0.7979) {
+      insideDot = step(dist, t * cellPx * 0.5);
+    } else {
+      float holeR = (1.0 - t) * 1.975 * cellPx;
+      insideDot = step(holeR, dist);
+    }
   } else if (iPattern == 2) {
-    float lineH = pow(1.0 - lum, u_curve) * cellPx * 0.5;
+    float lineH = t * cellPx * 0.5;
     insideDot = step(abs(localShape.y), lineH);
   } else if (iPattern == 3) {
-    float arm = pow(1.0 - lum, u_curve) * cellPx * 0.35;
+    float arm = t * cellPx * 0.35;
     insideDot = max(step(abs(localShape.x), arm), step(abs(localShape.y), arm));
   } else if (iPattern == 4) {
     // Blob — metaball dots: nearby dots merge into organic blob shapes.
