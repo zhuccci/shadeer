@@ -777,6 +777,7 @@ uniform vec4 u_color4;
 uniform float u_angle;
 uniform float u_blobThreshold;
 uniform float u_grainOverlay;
+uniform float u_curve;
 in vec2 v_imageUV;
 out vec4 fragColor;
 float hash21(vec2 p) {
@@ -845,33 +846,26 @@ void main() {
   // Cell index for per-cell randomness (in rotated grid space)
   vec2 cellIdx = floor(rotCoord / cellPx);
 
-  // Shape test
-  float dotRadius = sqrt(1.0 - lum) * cellPx * 0.5; // perceptual coverage for round shapes
+  // Shape test — smoothstep+fwidth for subpixel-accurate antialiased edges
+  float dotRadius = pow(1.0 - lum, u_curve) * cellPx * 0.5;
   float insideDot;
   if (iPattern == 0 || iPattern == 1) {
     // Dots / Print — circular dot
-    insideDot = step(length(localShape), dotRadius);
+    float d = length(localShape) - dotRadius;
+    insideDot = 1.0 - smoothstep(-fwidth(d), fwidth(d), d);
   } else if (iPattern == 2) {
-    // Lines — perpendicular thickness, linear (not sqrt) for clean line feel
-    float lineH = (1.0 - lum) * cellPx * 0.5;
-    insideDot = step(abs(localShape.y), lineH);
+    // Lines — perpendicular thickness
+    float lineH = pow(1.0 - lum, u_curve) * cellPx * 0.5;
+    float d = abs(localShape.y) - lineH;
+    insideDot = 1.0 - smoothstep(-fwidth(d), fwidth(d), d);
   } else if (iPattern == 3) {
     // Cross — two perpendicular arms growing with darkness
-    float arm = (1.0 - lum) * cellPx * 0.35;
-    insideDot = max(step(abs(localShape.x), arm), step(abs(localShape.y), arm));
+    float arm = pow(1.0 - lum, u_curve) * cellPx * 0.35;
+    float dx = abs(localShape.x) - arm;
+    float dy = abs(localShape.y) - arm;
+    insideDot = max(1.0 - smoothstep(-fwidth(dx), fwidth(dx), dx),
+                    1.0 - smoothstep(-fwidth(dy), fwidth(dy), dy));
   } else if (iPattern == 4) {
-    // Grunge — noisy, malformed dots: warped center + angular boundary noise
-    float r1 = hash21(cellIdx + 1.1);
-    float r2 = hash21(cellIdx + 5.3);
-    // Domain warp: shift the dot center randomly within ~45% of cell
-    vec2 warpedShape = localShape - vec2((r1 - 0.5), (r2 - 0.5)) * cellPx * 0.45;
-    float grungeAngle = atan(warpedShape.y, warpedShape.x);
-    float bumps = 5.0 + floor(r1 * 3.0); // 5, 6, or 7 lobes per dot
-    // Roughen the boundary with angular oscillation (stronger on darker cells)
-    float roughness = sin(grungeAngle * bumps + r1 * 6.2832) * cellPx * 0.13 * (1.0 - lum);
-    float gr = sqrt(1.0 - lum) * cellPx * 0.5 + roughness;
-    insideDot = step(length(warpedShape), max(gr, 0.0));
-  } else if (iPattern == 5) {
     // Blob — metaball dots: nearby dots merge into organic blob shapes.
     // Each dot radiates an influence field (r²/d²); where the summed field
     // exceeds u_blobThreshold the pixel is "inside" the blob.
@@ -893,7 +887,7 @@ void main() {
         nTex.rgb = clamp(nTex.rgb + u_brightness, 0.0, 1.0);
         nTex.rgb = clamp((nTex.rgb - 0.5) * u_contrast + 0.5, 0.0, 1.0);
         float nLum = dot(nTex.rgb, vec3(0.299, 0.587, 0.114));
-        float nr = sqrt(1.0 - nLum) * cellPx * 0.5;
+        float nr = pow(1.0 - nLum, u_curve) * cellPx * 0.5;
         float dist = max(length(rotCoord - nCenter), 0.001);
         float contrib = (nr * nr) / (dist * dist);
         metaSum += contrib;
@@ -903,7 +897,8 @@ void main() {
         }
       }
     }
-    insideDot = step(u_blobThreshold, metaSum);
+    float aa = fwidth(metaSum);
+    insideDot = smoothstep(u_blobThreshold - aa, u_blobThreshold + aa, metaSum);
     lum = dominantLum; // color follows the nearest/darkest contributing dot
   }
 
