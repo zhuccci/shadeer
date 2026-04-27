@@ -760,8 +760,6 @@ export const halftoneFragmentShader = `#version 300 es
 precision mediump float;
 uniform sampler2D u_image;
 uniform vec2 u_resolution;
-uniform vec2 u_imageSize;
-uniform float u_fit;
 uniform float u_time;
 uniform float u_dotScale;
 uniform float u_bw;
@@ -791,14 +789,10 @@ void main() {
                          v_imageUV.y >= 0.0 && v_imageUV.y <= 1.0);
   int iPattern = int(u_pattern);
 
-  // Compute the image's screen-pixel width (accounts for fit/fill letterboxing).
-  // Using this — rather than u_resolution.x — anchors dots to image content so
-  // a scale-5 dot is the same physical size regardless of zoom or canvas size.
-  // gl_FragCoord is highp by spec, so the grid has full float precision.
-  float imageAspect = u_imageSize.x / u_imageSize.y;
-  float imageBoxWidth = (u_fit < 1.5)
-    ? min(u_resolution.x / imageAspect, u_resolution.y) * imageAspect  // fit
-    : max(u_resolution.x / imageAspect, u_resolution.y) * imageAspect; // fill
+  // Derive how many screen pixels span the full image width from the UV derivative.
+  // This is automatically correct for any DPR, fit/fill mode, and zoom level,
+  // so dots stay anchored to image content regardless of display or canvas size.
+  float imageBoxWidth = abs(1.0 / dFdx(v_imageUV.x));
   float cellPx = imageBoxWidth / u_dotScale;
   const float C45 = 0.70711;
 
