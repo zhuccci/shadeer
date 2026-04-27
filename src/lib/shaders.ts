@@ -844,30 +844,32 @@ void main() {
   // Cell index for per-cell randomness (in rotated grid space)
   vec2 cellIdx = floor(rotCoord / cellPx);
 
-  // Area-proportional halftone: ink coverage = 1 - lum.
-  // For a circular dot: coverage = π*r²/cell² → r = cell * sqrt(coverage/π) = cell * 0.5642 * sqrt(1-lum).
-  // Inversion at lum=0.5 (50% coverage): switch from growing dot to shrinking hole so
-  // dark areas stay solid without leaving white corner gaps (corner = 0.707*cell > max r = 0.564*cell).
-  // At crossover both radius formulas give the same value for a seamless transition.
+  // Area-proportional halftone: dotR = cell / sqrt(π) * sqrt(inkCoverage).
+  // fwidth-based AA (learned from paper-design) gives exactly 1-pixel smooth edges at
+  // any scale, avoiding both jagged step() edges and the halo artifacts of fixed-epsilon AA.
+  // No hole-mode — dots simply touch/overlap at maximum darkness; the overlapping AA
+  // transitions fill corners naturally without the rectangular block artifacts that
+  // an abrupt dot→hole mode-switch causes at the lum=0.5 boundary.
   float inkCoverage = 1.0 - lum;
   float insideDot;
   if (iPattern == 0 || iPattern == 1) {
     float dist = length(localShape);
-    if (lum >= 0.5) {
-      // Light area: small dot growing as image darkens
-      float dotR = cellPx * 0.5642 * sqrt(inkCoverage);
-      insideDot = step(dist, dotR);
-    } else {
-      // Dark area: solid field with shrinking hole as image lightens
-      float holeR = cellPx * 0.5642 * sqrt(lum);
-      insideDot = step(holeR, dist);
-    }
+    float dotR = cellPx * 0.5642 * sqrt(inkCoverage);
+    float aa = fwidth(dist);
+    insideDot = 1.0 - smoothstep(dotR - aa, dotR + aa, dist);
   } else if (iPattern == 2) {
     float lineH = cellPx * 0.5 * inkCoverage;
-    insideDot = step(abs(localShape.y), lineH);
+    float d = abs(localShape.y);
+    float aa = fwidth(d);
+    insideDot = 1.0 - smoothstep(lineH - aa, lineH + aa, d);
   } else if (iPattern == 3) {
     float arm = cellPx * 0.35 * inkCoverage;
-    insideDot = max(step(abs(localShape.x), arm), step(abs(localShape.y), arm));
+    float dx = abs(localShape.x);
+    float dy = abs(localShape.y);
+    insideDot = max(
+      1.0 - smoothstep(arm - fwidth(dx), arm + fwidth(dx), dx),
+      1.0 - smoothstep(arm - fwidth(dy), arm + fwidth(dy), dy)
+    );
   } else if (iPattern == 4) {
     // Blob — metaball dots: nearby dots merge into organic blob shapes.
     vec2 blobCellCenter = (cellIdx + 0.5) * cellPx;
@@ -897,7 +899,8 @@ void main() {
         }
       }
     }
-    insideDot = step(u_blobThreshold, metaSum);
+    float blobAa = fwidth(metaSum);
+    insideDot = smoothstep(u_blobThreshold - blobAa, u_blobThreshold + blobAa, metaSum);
     lum = dominantLum;
   }
 

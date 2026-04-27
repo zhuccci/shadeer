@@ -28,6 +28,7 @@ const RAW_RUNTIME_STATE =
       [null, {\
         "packageLocation": "./",\
         "packageDependencies": [\
+          ["@paper-design/shaders", "npm:0.0.76"],\
           ["@types/react", "npm:19.2.14"],\
           ["@types/react-dom", "virtual:4e32bd5e05e8207446d7cc4425422d25b7648f31ad7ceff7e8df2e9c892bc127a9dfe2a08168aff6333812615becb2d37eb8321da27c348d913670799e83f697#npm:19.2.3"],\
           ["@vitejs/plugin-react", "virtual:4e32bd5e05e8207446d7cc4425422d25b7648f31ad7ceff7e8df2e9c892bc127a9dfe2a08168aff6333812615becb2d37eb8321da27c348d913670799e83f697#npm:5.2.0"],\
@@ -634,6 +635,15 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@npmcli-redact-npm-4.0.0-b3e2eeb8d8-10c0.zip/node_modules/@npmcli/redact/",\
         "packageDependencies": [\
           ["@npmcli/redact", "npm:4.0.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@paper-design/shaders", [\
+      ["npm:0.0.76", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@paper-design-shaders-npm-0.0.76-44fcb56042-10c0.zip/node_modules/@paper-design/shaders/",\
+        "packageDependencies": [\
+          ["@paper-design/shaders", "npm:0.0.76"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -1539,6 +1549,7 @@ const RAW_RUNTIME_STATE =
       ["workspace:.", {\
         "packageLocation": "./",\
         "packageDependencies": [\
+          ["@paper-design/shaders", "npm:0.0.76"],\
           ["@types/react", "npm:19.2.14"],\
           ["@types/react-dom", "virtual:4e32bd5e05e8207446d7cc4425422d25b7648f31ad7ceff7e8df2e9c892bc127a9dfe2a08168aff6333812615becb2d37eb8321da27c348d913670799e83f697#npm:19.2.3"],\
           ["@vitejs/plugin-react", "virtual:4e32bd5e05e8207446d7cc4425422d25b7648f31ad7ceff7e8df2e9c892bc127a9dfe2a08168aff6333812615becb2d37eb8321da27c348d913670799e83f697#npm:5.2.0"],\
