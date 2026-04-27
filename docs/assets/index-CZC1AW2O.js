@@ -811,25 +811,16 @@ void main() {
   // Cell index for per-cell randomness (in rotated grid space)
   vec2 cellIdx = floor(rotCoord / cellPx);
 
-  // Shape test — smoothstep+fwidth for subpixel-accurate antialiased edges
   float dotRadius = pow(1.0 - lum, u_curve) * cellPx * 0.5;
   float insideDot;
   if (iPattern == 0 || iPattern == 1) {
-    // Dots / Print — circular dot
-    float d = length(localShape) - dotRadius;
-    insideDot = 1.0 - smoothstep(-fwidth(d), fwidth(d), d);
+    insideDot = step(length(localShape), dotRadius);
   } else if (iPattern == 2) {
-    // Lines — perpendicular thickness
     float lineH = pow(1.0 - lum, u_curve) * cellPx * 0.5;
-    float d = abs(localShape.y) - lineH;
-    insideDot = 1.0 - smoothstep(-fwidth(d), fwidth(d), d);
+    insideDot = step(abs(localShape.y), lineH);
   } else if (iPattern == 3) {
-    // Cross — two perpendicular arms growing with darkness
     float arm = pow(1.0 - lum, u_curve) * cellPx * 0.35;
-    float dx = abs(localShape.x) - arm;
-    float dy = abs(localShape.y) - arm;
-    insideDot = max(1.0 - smoothstep(-fwidth(dx), fwidth(dx), dx),
-                    1.0 - smoothstep(-fwidth(dy), fwidth(dy), dy));
+    insideDot = max(step(abs(localShape.x), arm), step(abs(localShape.y), arm));
   } else if (iPattern == 4) {
     // Blob — metaball dots: nearby dots merge into organic blob shapes.
     // Each dot radiates an influence field (r²/d²); where the summed field
@@ -862,8 +853,7 @@ void main() {
         }
       }
     }
-    float aa = fwidth(metaSum);
-    insideDot = smoothstep(u_blobThreshold - aa, u_blobThreshold + aa, metaSum);
+    insideDot = step(u_blobThreshold, metaSum);
     lum = dominantLum; // color follows the nearest/darkest contributing dot
   }
 
