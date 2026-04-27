@@ -200,7 +200,7 @@ export function buildHalftoneUniforms(
     u_inverted: halftone.invert ? 1 : 0,
     u_angle: (halftone.angle * Math.PI) / 180,
     u_blobThreshold: halftone.blobThreshold / 50,
-    u_pattern: ({ dots: 0, print: 1, lines: 2, cross: 3, grunge: 4, blob: 5 } as const)[halftone.pattern],
+    u_pattern: ({ dots: 0, print: 1, lines: 2, cross: 3, blob: 4 } as const)[halftone.pattern],
     u_contrast: halftone.contrast / 50,
     u_brightness: (halftone.brightness - 50) / 100,
     u_colorBack: hexToVec4(halftone.backgroundColor),
@@ -209,6 +209,7 @@ export function buildHalftoneUniforms(
     u_color3: hexToVec4(halftone.color3),
     u_color4: hexToVec4(halftone.color4),
     u_grainOverlay: halftone.grainOverlay / 100,
+    u_curve: 0.2 + (halftone.curve / 100) * 1.8,
   };
 }
 

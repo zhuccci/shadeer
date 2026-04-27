@@ -1,24 +1,11 @@
 import { useState } from 'react';
+import type React from 'react';
 import { CheckboxControl } from '../CheckboxControl';
 import { ColorSelectorControl } from '../ColorSelectorControl';
 import { DitherTypeSelector } from '../DitherTypeSelector';
 import { SliderControl } from '../SliderControl';
 import type { DitherType, EditorState } from '../../types/editor';
 import './DitheringPanel.css';
-
-interface DitheringPanelProps {
-  state: EditorState;
-  isActive: boolean;
-  onShadowColorChange: (value: string) => void;
-  onFrontColorChange: (value: string) => void;
-  onLightColorChange: (value: string) => void;
-  onHighlightColorChange: (value: string) => void;
-  onOriginalColorsChange: (value: boolean) => void;
-  onInvertChange: (value: boolean) => void;
-  onTypeChange: (value: DitherType) => void;
-  onSizeChange: (value: number) => void;
-  onColorStepsChange: (value: number) => void;
-}
 
 export interface DitheringPreset {
   label: string;
@@ -27,6 +14,8 @@ export interface DitheringPreset {
   light: string;
   highlight: string;
 }
+
+export type DitherPreset = DitheringPreset;
 
 export const DITHER_PRESETS: DitheringPreset[] = [
   { label: 'Mono',    shadow: '#1A1A1A', front: '#555555', light: '#AAAAAA', highlight: '#F0F0F0' },
@@ -51,6 +40,20 @@ function isPresetActive(p: DitheringPreset, d: EditorState['dithering']) {
          p.light === d.lightColor && p.highlight === d.highlightColor;
 }
 
+interface DitheringPanelProps {
+  state: EditorState;
+  isActive: boolean;
+  onShadowColorChange: (value: string) => void;
+  onFrontColorChange: (value: string) => void;
+  onLightColorChange: (value: string) => void;
+  onHighlightColorChange: (value: string) => void;
+  onOriginalColorsChange: (value: boolean) => void;
+  onInvertChange: (value: boolean) => void;
+  onTypeChange: (value: DitherType) => void;
+  onSizeChange: (value: number) => void;
+  onColorStepsChange: (value: number) => void;
+}
+
 export function DitheringPanel({
   state,
   isActive,
@@ -65,6 +68,7 @@ export function DitheringPanel({
   onColorStepsChange,
 }: DitheringPanelProps) {
   const [colorTab, setColorTab] = useState<'custom' | 'presets'>('custom');
+  const d = state.dithering;
 
   function applyPreset(p: DitheringPreset) {
     onShadowColorChange(p.shadow);
@@ -76,16 +80,16 @@ export function DitheringPanel({
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="ditheringPanel">
       <div className="controls-left">
-        <DitherTypeSelector value={state.dithering.type} onChange={onTypeChange} />
+        <DitherTypeSelector value={d.type} onChange={onTypeChange} />
         <div className="dither-slider-section">
-          <SliderControl label="Size" value={state.dithering.size} onChange={onSizeChange} />
-          <SliderControl label="Color Steps" min={1} max={7} value={state.dithering.colorSteps} onChange={onColorStepsChange} />
+          <SliderControl label="Size" value={d.size} onChange={onSizeChange} />
+          <SliderControl label="Color Steps" min={1} max={7} value={d.colorSteps} onChange={onColorStepsChange} />
         </div>
       </div>
       <div className="panel-divider" />
       <div className="dither-right">
-        <CheckboxControl label="Original Colors" checked={state.dithering.originalColors} onChange={onOriginalColorsChange} />
-        {!state.dithering.originalColors && (
+        <CheckboxControl label="Original Colors" checked={d.originalColors} onChange={onOriginalColorsChange} />
+        {!d.originalColors && (
           <>
             <div className="dither-color-tabs">
               <button type="button" className="dither-color-tab" onClick={() => setColorTab('custom')}>Custom</button>
@@ -101,10 +105,10 @@ export function DitheringPanel({
             </div>
             {colorTab === 'custom' && (
               <div className="widget-group" style={{ gap: '24px' }}>
-                <ColorSelectorControl label="Shadow" value={state.dithering.shadowColor} onChange={onShadowColorChange} />
-                <ColorSelectorControl label="Front" value={state.dithering.frontColor} onChange={onFrontColorChange} />
-                <ColorSelectorControl label="Light" value={state.dithering.lightColor} onChange={onLightColorChange} />
-                <ColorSelectorControl label="Highlight" value={state.dithering.highlightColor} onChange={onHighlightColorChange} />
+                <ColorSelectorControl label="Shadow" value={d.shadowColor} onChange={onShadowColorChange} />
+                <ColorSelectorControl label="Front" value={d.frontColor} onChange={onFrontColorChange} />
+                <ColorSelectorControl label="Light" value={d.lightColor} onChange={onLightColorChange} />
+                <ColorSelectorControl label="Highlight" value={d.highlightColor} onChange={onHighlightColorChange} />
               </div>
             )}
             {colorTab === 'presets' && (
@@ -113,7 +117,7 @@ export function DitheringPanel({
                   <button
                     key={p.label}
                     type="button"
-                    className={`dither-preset-item${isPresetActive(p, state.dithering) ? ' selected' : ''}`}
+                    className={`dither-preset-item${isPresetActive(p, d) ? ' selected' : ''}`}
                     onClick={() => applyPreset(p)}
                   >
                     <span className="dither-preset-label">{p.label}</span>
@@ -124,7 +128,7 @@ export function DitheringPanel({
             )}
           </>
         )}
-        <CheckboxControl label="Invert" checked={state.dithering.invert} onChange={onInvertChange} />
+        <CheckboxControl label="Invert" checked={d.invert} onChange={onInvertChange} />
       </div>
     </div>
   );
