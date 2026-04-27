@@ -24,7 +24,6 @@ interface HalftonePanelProps {
   onColor4Change: (value: string) => void;
   onGrainOverlayChange: (value: number) => void;
   onBlobThresholdChange: (value: number) => void;
-  onCurveChange: (value: number) => void;
 }
 
 export function HalftonePanel({
@@ -45,7 +44,6 @@ export function HalftonePanel({
   onColor4Change,
   onGrainOverlayChange,
   onBlobThresholdChange,
-  onCurveChange,
 }: HalftonePanelProps) {
   const bw = state.halftone.blackAndWhite;
 
@@ -59,7 +57,6 @@ export function HalftonePanel({
         <SliderControl label="Scale" min={0} max={100} value={state.halftone.scale} onChange={onScaleChange} />
         <SliderControl label="Contrast" min={0} max={100} value={state.halftone.contrast} onChange={onContrastChange} />
         <SliderControl label="Brightness" min={0} max={100} value={state.halftone.brightness} onChange={onBrightnessChange} />
-        <SliderControl label="Curve" value={state.halftone.curve} onChange={onCurveChange} />
         <SliderControl label="Grain" value={state.halftone.grainOverlay} onChange={onGrainOverlayChange} />
       </div>
       <div className="panel-divider" />

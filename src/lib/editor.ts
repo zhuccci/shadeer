@@ -209,7 +209,6 @@ export function buildHalftoneUniforms(
     u_color3: hexToVec4(halftone.color3),
     u_color4: hexToVec4(halftone.color4),
     u_grainOverlay: halftone.grainOverlay / 100,
-    u_curve: 0.2 + (halftone.curve / 100) * 1.8,
   };
 }
 

@@ -162,7 +162,6 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         onColor4Change={(color4) => updateState((current) => ({ ...current, halftone: { ...current.halftone, color4: sanitizeHex(color4, current.halftone.color4) } }))}
         onGrainOverlayChange={(grainOverlay) => updateState((current) => ({ ...current, halftone: { ...current.halftone, grainOverlay } }))}
         onBlobThresholdChange={(blobThreshold) => updateState((current) => ({ ...current, halftone: { ...current.halftone, blobThreshold } }))}
-        onCurveChange={(curve) => updateState((current) => ({ ...current, halftone: { ...current.halftone, curve } }))}
       />
 
       <PaperPanel

@@ -84,7 +84,6 @@ export interface HalftoneSettings {
   color4: string;
   grainOverlay: number;
   blobThreshold: number;
-  curve: number;
 }
 
 export interface PaperSettings {
@@ -261,6 +260,5 @@ export const defaultHalftoneSettings: HalftoneSettings = {
   color4: '#1A1A2E',
   grainOverlay: 0,
   blobThreshold: 50,
-  curve: 50,
 };
 

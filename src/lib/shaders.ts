@@ -776,7 +776,6 @@ uniform vec4 u_color4;
 uniform float u_angle;
 uniform float u_blobThreshold;
 uniform float u_grainOverlay;
-uniform float u_curve;
 in vec2 v_imageUV;
 out vec4 fragColor;
 float hash21(vec2 p) {
@@ -845,31 +844,32 @@ void main() {
   // Cell index for per-cell randomness (in rotated grid space)
   vec2 cellIdx = floor(rotCoord / cellPx);
 
-  float t = pow(1.0 - lum, u_curve);
+  // Area-proportional halftone: ink coverage = 1 - lum.
+  // For a circular dot: coverage = π*r²/cell² → r = cell * sqrt(coverage/π) = cell * 0.5642 * sqrt(1-lum).
+  // Inversion at lum=0.5 (50% coverage): switch from growing dot to shrinking hole so
+  // dark areas stay solid without leaving white corner gaps (corner = 0.707*cell > max r = 0.564*cell).
+  // At crossover both radius formulas give the same value for a seamless transition.
+  float inkCoverage = 1.0 - lum;
   float insideDot;
   if (iPattern == 0 || iPattern == 1) {
-    // Halftone inversion: below ~50% cell coverage grow a black dot;
-    // above it switch to a white hole on solid black shrinking toward 0.
-    // This eliminates the white corner gaps that circular dots leave at
-    // maximum size (corner distance = cellPx*0.707 > max radius cellPx*0.5).
-    // Threshold t=0.798 ≈ sqrt(2/π), the t where a circle covers 50% of the cell.
     float dist = length(localShape);
-    if (t <= 0.7979) {
-      insideDot = step(dist, t * cellPx * 0.5);
+    if (lum >= 0.5) {
+      // Light area: small dot growing as image darkens
+      float dotR = cellPx * 0.5642 * sqrt(inkCoverage);
+      insideDot = step(dist, dotR);
     } else {
-      float holeR = (1.0 - t) * 1.975 * cellPx;
+      // Dark area: solid field with shrinking hole as image lightens
+      float holeR = cellPx * 0.5642 * sqrt(lum);
       insideDot = step(holeR, dist);
     }
   } else if (iPattern == 2) {
-    float lineH = t * cellPx * 0.5;
+    float lineH = cellPx * 0.5 * inkCoverage;
     insideDot = step(abs(localShape.y), lineH);
   } else if (iPattern == 3) {
-    float arm = t * cellPx * 0.35;
+    float arm = cellPx * 0.35 * inkCoverage;
     insideDot = max(step(abs(localShape.x), arm), step(abs(localShape.y), arm));
   } else if (iPattern == 4) {
     // Blob — metaball dots: nearby dots merge into organic blob shapes.
-    // Each dot radiates an influence field (r²/d²); where the summed field
-    // exceeds u_blobThreshold the pixel is "inside" the blob.
     vec2 blobCellCenter = (cellIdx + 0.5) * cellPx;
     float metaSum = 0.0;
     float dominantLum = lum;
@@ -878,7 +878,6 @@ void main() {
       for (int dy = -2; dy <= 2; dy++) {
         vec2 nIdx = cellIdx + vec2(float(dx), float(dy));
         vec2 nCenter = (nIdx + 0.5) * cellPx;
-        // nOffset is in rotated grid space — unrotate to screen space for UV sampling
         vec2 nOffset = nCenter - blobCellCenter;
         vec2 nOffsetScreen = vec2( cosA * nOffset.x + sinA * nOffset.y,
                                   -sinA * nOffset.x + cosA * nOffset.y);
@@ -888,7 +887,7 @@ void main() {
         nTex.rgb = clamp(nTex.rgb + u_brightness, 0.0, 1.0);
         nTex.rgb = clamp((nTex.rgb - 0.5) * u_contrast + 0.5, 0.0, 1.0);
         float nLum = dot(nTex.rgb, vec3(0.299, 0.587, 0.114));
-        float nr = pow(1.0 - nLum, u_curve) * cellPx * 0.5;
+        float nr = (1.0 - nLum) * cellPx * 0.5642;
         float dist = max(length(rotCoord - nCenter), 0.001);
         float contrib = (nr * nr) / (dist * dist);
         metaSum += contrib;
@@ -899,7 +898,7 @@ void main() {
       }
     }
     insideDot = step(u_blobThreshold, metaSum);
-    lum = dominantLum; // color follows the nearest/darkest contributing dot
+    lum = dominantLum;
   }
 
   // Color selection
