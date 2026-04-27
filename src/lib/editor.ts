@@ -194,7 +194,7 @@ export function buildHalftoneUniforms(
     u_worldHeight: 0,
     u_offsetX: offsetX,
     u_offsetY: offsetY,
-    u_dotScale: 130950 / (90 + 6.375 * halftone.scale),
+    u_dotScale: 87300 / (90 + 6.375 * halftone.scale),
     u_bw: halftone.blackAndWhite ? 1 : 0,
     u_originalColors: halftone.originalColors ? 1 : 0,
     u_inverted: halftone.invert ? 1 : 0,
