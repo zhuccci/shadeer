@@ -768,15 +768,12 @@ uniform float u_originalColors;
 uniform float u_inverted;
 uniform float u_pattern;
 uniform float u_contrast;
-uniform float u_blur;
-uniform float u_inkThreshold;
 uniform vec4 u_colorBack;
 uniform vec4 u_color1;
 uniform vec4 u_color2;
 uniform vec4 u_color3;
 uniform vec4 u_color4;
 uniform float u_angle;
-uniform float u_blobThreshold;
 in vec2 v_imageUV;
 out vec4 fragColor;
 void main() {
@@ -813,18 +810,6 @@ void main() {
                       cellImageUV.y >= 0.0 && cellImageUV.y <= 1.0;
   vec4 tex = texture(u_image, clamp(cellImageUV, 0.0, 1.0));
 
-  // Blur: smooth the cell sample before halftone processing
-  if (u_blur > 0.001) {
-    float bStep = cellPx * u_blur;
-    vec2 dx = dFdx(v_imageUV) * bStep;
-    vec2 dy = dFdy(v_imageUV) * bStep;
-    tex = tex * 0.2
-        + texture(u_image, clamp(cellImageUV + dx,      0.0, 1.0)) * 0.2
-        + texture(u_image, clamp(cellImageUV - dx,      0.0, 1.0)) * 0.2
-        + texture(u_image, clamp(cellImageUV + dy,      0.0, 1.0)) * 0.2
-        + texture(u_image, clamp(cellImageUV - dy,      0.0, 1.0)) * 0.2;
-  }
-
   if (u_inverted > 0.5) tex.rgb = 1.0 - tex.rgb;
   tex.rgb = clamp((tex.rgb - 0.5) * u_contrast + 0.5, 0.0, 1.0);
   float a_ch = cellInBounds ? tex.a : 0.0;
@@ -850,7 +835,7 @@ void main() {
         nTex.rgb = clamp((nTex.rgb - 0.5) * u_contrast + 0.5, 0.0, 1.0);
         float nLum = dot(nTex.rgb, vec3(0.299, 0.587, 0.114));
         float nInk = 1.0 - nLum;
-        float nR = (nInk < u_inkThreshold) ? 0.0 : min(cellPx * 0.53, cellPx * u_dotRadius * sqrt(nInk));
+        float nR = min(cellPx * 0.53, cellPx * u_dotRadius * sqrt(nInk));
         float d = length(toCenter) - nR;
         float h = max(sK - abs(d - minSDF), 0.0) / sK;
         minSDF = min(d, minSDF) - h * h * sK * 0.25;
@@ -874,40 +859,30 @@ void main() {
       1.0 - smoothstep(arm - fwidth(dy), arm + fwidth(dy), dy)
     );
   } else if (iPattern == 3) {
-    // Blob — metaball dots
-    vec2 blobCellCenter = (cellIdx + 0.5) * cellPx;
-    float metaSum = 0.0;
-    float dominantLum = lum;
-    float maxContrib = 0.0;
-    for (int dx = -2; dx <= 2; dx++) {
-      for (int dy = -2; dy <= 2; dy++) {
-        vec2 nIdx = cellIdx + vec2(float(dx), float(dy));
-        vec2 nCenter = (nIdx + 0.5) * cellPx;
-        vec2 nOffset = nCenter - blobCellCenter;
-        vec2 nOffsetScreen = vec2( cosA * nOffset.x + sinA * nOffset.y,
-                                  -sinA * nOffset.x + cosA * nOffset.y);
-        vec2 nUV = clamp(cellImageUV + dFdx(v_imageUV) * nOffsetScreen.x + dFdy(v_imageUV) * nOffsetScreen.y, 0.0, 1.0);
-        vec4 nTex = texture(u_image, nUV);
+    // Gooey — large SDF circles with aggressive smooth union; balls merge and neck like real metaballs
+    float sK = max(cellPx * u_dotRadius * 0.7, 0.01);
+    float minSDF = cellPx * 10.0;
+    for (int ni = -1; ni <= 1; ni++) {
+      for (int nj = -1; nj <= 1; nj++) {
+        vec2 toCenter = localShape - vec2(float(ni), float(nj)) * cellPx;
+        vec2 nLocalPx = vec2( cosA * toCenter.x + sinA * toCenter.y,
+                             -sinA * toCenter.x + cosA * toCenter.y);
+        vec4 nTex = texture(u_image, clamp(v_imageUV
+          - dFdx(v_imageUV) * nLocalPx.x
+          - dFdy(v_imageUV) * nLocalPx.y, 0.0, 1.0));
         if (u_inverted > 0.5) nTex.rgb = 1.0 - nTex.rgb;
         nTex.rgb = clamp((nTex.rgb - 0.5) * u_contrast + 0.5, 0.0, 1.0);
         float nLum = dot(nTex.rgb, vec3(0.299, 0.587, 0.114));
-        float nr = (1.0 - nLum) * cellPx * u_dotRadius;
-        float dist = max(length(rotCoord - nCenter), 0.001);
-        float contrib = (nr * nr) / (dist * dist);
-        metaSum += contrib;
-        if (contrib > maxContrib) {
-          maxContrib = contrib;
-          dominantLum = nLum;
-        }
+        float nInk = 1.0 - nLum;
+        float nR = min(cellPx * 0.65, cellPx * u_dotRadius * 1.2 * sqrt(nInk));
+        float d = length(toCenter) - nR;
+        float h = max(sK - abs(d - minSDF), 0.0) / sK;
+        minSDF = min(d, minSDF) - h * h * sK * 0.25;
       }
     }
-    float blobAa = fwidth(metaSum);
-    insideDot = smoothstep(u_blobThreshold - blobAa, u_blobThreshold + blobAa, metaSum);
-    lum = dominantLum;
+    float aa = fwidth(minSDF);
+    insideDot = 1.0 - smoothstep(-aa, aa, minSDF);
   }
-
-  // Suppress dots on plain/light areas below threshold
-  insideDot *= smoothstep(u_inkThreshold - 0.03, u_inkThreshold + 0.03, inkCoverage);
 
   // Color selection
   vec4 bgColor = u_colorBack;
@@ -1629,6 +1604,8 @@ export class ShaderMount {
     if (existing) {
       this.gl.deleteTexture(existing);
     }
+    this.canvasElements.delete(name);
+    this.videoElements.delete(name);
 
     if (!this.textureUnitMap.has(name)) {
       this.textureUnitMap.set(name, this.textureUnitMap.size);
