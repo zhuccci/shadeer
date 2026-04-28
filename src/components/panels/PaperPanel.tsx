@@ -57,20 +57,20 @@ export function PaperPanel({
         <div className="paper-divider-h" />
         <CheckboxControl label="Xerox" checked={state.paper.xerox} onChange={onXeroxChange} />
         {state.paper.xerox && (
-          <>
+          <div className="paper-sub-controls">
             <SliderControl label="Amount" value={state.paper.xeroxAmount} onChange={onXeroxAmountChange} />
             <SliderControl label="Xerox Opacity" value={state.paper.xeroxOpacity} onChange={onXeroxOpacityChange} />
             <SliderControl label="Threshold" value={state.paper.xeroxThreshold} onChange={onXeroxThresholdChange} />
-          </>
+          </div>
         )}
         <div className="paper-divider-h" />
         <CheckboxControl label="Scan Texture" checked={state.paper.scanEnabled} onChange={onScanEnabledChange} />
         {state.paper.scanEnabled && (
-          <>
+          <div className="paper-sub-controls">
             <ScanSelector value={state.paper.scanTexture} onChange={onScanTextureChange} />
             <SliderControl label="Scan Opacity" value={state.paper.scanOpacity} onChange={onScanOpacityChange} />
             <SliderControl label="Size" value={state.paper.scanScale} onChange={onScanScaleChange} />
-          </>
+          </div>
         )}
       </div>
     </div>

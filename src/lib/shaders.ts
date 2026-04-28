@@ -762,12 +762,14 @@ uniform sampler2D u_image;
 uniform vec2 u_resolution;
 uniform float u_time;
 uniform float u_dotScale;
+uniform float u_dotRadius;
 uniform float u_bw;
 uniform float u_originalColors;
 uniform float u_inverted;
 uniform float u_pattern;
 uniform float u_contrast;
-uniform float u_brightness;
+uniform float u_blur;
+uniform float u_inkThreshold;
 uniform vec4 u_colorBack;
 uniform vec4 u_color1;
 uniform vec4 u_color2;
@@ -775,103 +777,104 @@ uniform vec4 u_color3;
 uniform vec4 u_color4;
 uniform float u_angle;
 uniform float u_blobThreshold;
-uniform float u_grainOverlay;
 in vec2 v_imageUV;
 out vec4 fragColor;
-float hash21(vec2 p) {
-  p = fract(p * vec2(0.3183099, 0.3678794)) + 0.1;
-  p += dot(p, p + 19.19);
-  return fract(p.x * p.y);
-}
 void main() {
   float inBounds = float(v_imageUV.x >= 0.0 && v_imageUV.x <= 1.0 &&
                          v_imageUV.y >= 0.0 && v_imageUV.y <= 1.0);
   int iPattern = int(u_pattern);
 
-  // Derive how many screen pixels span the full image width from the UV derivative.
-  // This is automatically correct for any DPR, fit/fill mode, and zoom level,
-  // so dots stay anchored to image content regardless of display or canvas size.
   float imageBoxWidth = abs(1.0 / dFdx(v_imageUV.x));
   float cellPx = imageBoxWidth / u_dotScale;
-  const float C45 = 0.70711;
 
-  // Grid rotation — rotate fragment coords by u_angle before snapping to grid.
-  // cosA/sinA unrotate standard-grid localShape back to screen space for UV sampling.
-  // cosT/sinT unrotate the combined (45° + u_angle) space used by print/lines.
   float cosA = cos(u_angle);
   float sinA = sin(u_angle);
   vec2 rotCoord = vec2(cosA * gl_FragCoord.x - sinA * gl_FragCoord.y,
                        sinA * gl_FragCoord.x + cosA * gl_FragCoord.y);
-  float cosT = cos(0.7853982 - u_angle);
-  float sinT = sin(0.7853982 - u_angle);
 
-  // localPx  — offset from cell center in screen space (used for UV extrapolation)
-  // localShape — offset in pattern space (used for the shape test)
   vec2 localPx;
   vec2 localShape;
 
   if (iPattern == 1) {
-    // Print: 45°-rotated grid on top of u_angle rotation
-    vec2 rc = vec2( C45 * rotCoord.x + C45 * rotCoord.y,
-                   -C45 * rotCoord.x + C45 * rotCoord.y);
-    vec2 lr = (fract(rc / cellPx) - 0.5) * cellPx;
-    localShape = lr;
-    localPx = vec2(cosT * lr.x - sinT * lr.y,
-                   sinT * lr.x + cosT * lr.y);
-  } else if (iPattern == 2) {
     // Lines: vertical at 0°, horizontal at 90°
     float localRX = (fract(rotCoord.x / cellPx) - 0.5) * cellPx;
     localShape = vec2(0.0, localRX);
     localPx    = vec2(cosA * localRX, -sinA * localRX);
   } else {
-    // Dots, Cross, Grunge, Blob: rotated square grid
+    // Dots, Cross, Blob: rotated square grid
     localShape = (fract(rotCoord / cellPx) - 0.5) * cellPx;
     localPx    = vec2( cosA * localShape.x + sinA * localShape.y,
                       -sinA * localShape.x + cosA * localShape.y);
   }
 
-  // Sample image at the cell center via screen-pixel → UV conversion
+  // Sample image at cell center
   vec2 cellImageUV = v_imageUV - dFdx(v_imageUV) * localPx.x - dFdy(v_imageUV) * localPx.y;
   bool cellInBounds = cellImageUV.x >= 0.0 && cellImageUV.x <= 1.0 &&
                       cellImageUV.y >= 0.0 && cellImageUV.y <= 1.0;
   vec4 tex = texture(u_image, clamp(cellImageUV, 0.0, 1.0));
+
+  // Blur: smooth the cell sample before halftone processing
+  if (u_blur > 0.001) {
+    float bStep = cellPx * u_blur;
+    vec2 dx = dFdx(v_imageUV) * bStep;
+    vec2 dy = dFdy(v_imageUV) * bStep;
+    tex = tex * 0.2
+        + texture(u_image, clamp(cellImageUV + dx,      0.0, 1.0)) * 0.2
+        + texture(u_image, clamp(cellImageUV - dx,      0.0, 1.0)) * 0.2
+        + texture(u_image, clamp(cellImageUV + dy,      0.0, 1.0)) * 0.2
+        + texture(u_image, clamp(cellImageUV - dy,      0.0, 1.0)) * 0.2;
+  }
+
   if (u_inverted > 0.5) tex.rgb = 1.0 - tex.rgb;
-  tex.rgb = clamp(tex.rgb + u_brightness, 0.0, 1.0);
   tex.rgb = clamp((tex.rgb - 0.5) * u_contrast + 0.5, 0.0, 1.0);
   float a_ch = cellInBounds ? tex.a : 0.0;
   float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
 
-  // Cell index for per-cell randomness (in rotated grid space)
   vec2 cellIdx = floor(rotCoord / cellPx);
 
-  // Area-proportional halftone: dotR = cell / sqrt(π) * sqrt(inkCoverage).
-  // fwidth-based AA (learned from paper-design) gives exactly 1-pixel smooth edges at
-  // any scale, avoiding both jagged step() edges and the halo artifacts of fixed-epsilon AA.
-  // No hole-mode — dots simply touch/overlap at maximum darkness; the overlapping AA
-  // transitions fill corners naturally without the rectangular block artifacts that
-  // an abrupt dot→hole mode-switch causes at the lum=0.5 boundary.
   float inkCoverage = 1.0 - lum;
   float insideDot;
-  if (iPattern == 0 || iPattern == 1) {
-    float dist = length(localShape);
-    float dotR = cellPx * 0.5642 * sqrt(inkCoverage);
-    float aa = fwidth(dist);
-    insideDot = 1.0 - smoothstep(dotR - aa, dotR + aa, dist);
-  } else if (iPattern == 2) {
-    float lineH = cellPx * 0.5 * inkCoverage;
+  if (iPattern == 0) {
+    // Dots — 3×3 smooth-union metaball; cap radius at 0.53 so max slider keeps circles
+    float sK = max(cellPx * u_dotRadius * 0.18, 0.01);
+    float minSDF = cellPx * 10.0;
+    for (int ni = -1; ni <= 1; ni++) {
+      for (int nj = -1; nj <= 1; nj++) {
+        vec2 toCenter = localShape - vec2(float(ni), float(nj)) * cellPx;
+        vec2 nLocalPx = vec2( cosA * toCenter.x + sinA * toCenter.y,
+                             -sinA * toCenter.x + cosA * toCenter.y);
+        vec4 nTex = texture(u_image, clamp(v_imageUV
+          - dFdx(v_imageUV) * nLocalPx.x
+          - dFdy(v_imageUV) * nLocalPx.y, 0.0, 1.0));
+        if (u_inverted > 0.5) nTex.rgb = 1.0 - nTex.rgb;
+        nTex.rgb = clamp((nTex.rgb - 0.5) * u_contrast + 0.5, 0.0, 1.0);
+        float nLum = dot(nTex.rgb, vec3(0.299, 0.587, 0.114));
+        float nInk = 1.0 - nLum;
+        float nR = (nInk < u_inkThreshold) ? 0.0 : min(cellPx * 0.53, cellPx * u_dotRadius * sqrt(nInk));
+        float d = length(toCenter) - nR;
+        float h = max(sK - abs(d - minSDF), 0.0) / sK;
+        minSDF = min(d, minSDF) - h * h * sK * 0.25;
+      }
+    }
+    float aa = fwidth(minSDF);
+    insideDot = 1.0 - smoothstep(-aa, aa, minSDF);
+  } else if (iPattern == 1) {
+    // Lines — cap so lines never merge into a solid fill
+    float lineH = min(cellPx * 0.48, cellPx * u_dotRadius * 0.886 * inkCoverage);
     float d = abs(localShape.y);
     float aa = fwidth(d);
     insideDot = 1.0 - smoothstep(lineH - aa, lineH + aa, d);
-  } else if (iPattern == 3) {
-    float arm = cellPx * 0.35 * inkCoverage;
+  } else if (iPattern == 2) {
+    // Cross — cap arms so gaps remain visible
+    float arm = min(cellPx * 0.48, cellPx * u_dotRadius * 0.621 * inkCoverage);
     float dx = abs(localShape.x);
     float dy = abs(localShape.y);
     insideDot = max(
       1.0 - smoothstep(arm - fwidth(dx), arm + fwidth(dx), dx),
       1.0 - smoothstep(arm - fwidth(dy), arm + fwidth(dy), dy)
     );
-  } else if (iPattern == 4) {
-    // Blob — metaball dots: nearby dots merge into organic blob shapes.
+  } else if (iPattern == 3) {
+    // Blob — metaball dots
     vec2 blobCellCenter = (cellIdx + 0.5) * cellPx;
     float metaSum = 0.0;
     float dominantLum = lum;
@@ -886,10 +889,9 @@ void main() {
         vec2 nUV = clamp(cellImageUV + dFdx(v_imageUV) * nOffsetScreen.x + dFdy(v_imageUV) * nOffsetScreen.y, 0.0, 1.0);
         vec4 nTex = texture(u_image, nUV);
         if (u_inverted > 0.5) nTex.rgb = 1.0 - nTex.rgb;
-        nTex.rgb = clamp(nTex.rgb + u_brightness, 0.0, 1.0);
         nTex.rgb = clamp((nTex.rgb - 0.5) * u_contrast + 0.5, 0.0, 1.0);
         float nLum = dot(nTex.rgb, vec3(0.299, 0.587, 0.114));
-        float nr = (1.0 - nLum) * cellPx * 0.5642;
+        float nr = (1.0 - nLum) * cellPx * u_dotRadius;
         float dist = max(length(rotCoord - nCenter), 0.001);
         float contrib = (nr * nr) / (dist * dist);
         metaSum += contrib;
@@ -904,6 +906,9 @@ void main() {
     lum = dominantLum;
   }
 
+  // Suppress dots on plain/light areas below threshold
+  insideDot *= smoothstep(u_inkThreshold - 0.03, u_inkThreshold + 0.03, inkCoverage);
+
   // Color selection
   vec4 bgColor = u_colorBack;
   vec4 dotColor;
@@ -917,14 +922,8 @@ void main() {
     else if (lum >= 0.25) dotColor = u_color3;
     else                  dotColor = u_color4;
   }
-  // Premultiplied blend
   vec3 color = mix(bgColor.rgb * bgColor.a, dotColor.rgb * dotColor.a, insideDot);
   float opacity = mix(bgColor.a, dotColor.a, insideDot);
-  // Grain overlay
-  if (u_grainOverlay > 0.001) {
-    float grain = hash21(v_imageUV * u_resolution) * 2.0 - 1.0;
-    color = clamp(color + grain * u_grainOverlay * 0.3, 0.0, 1.0);
-  }
   fragColor = vec4(color * a_ch, opacity * a_ch) * inBounds;
 }`;
 

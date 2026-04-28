@@ -6,7 +6,7 @@ const SCAN_OPTIONS = [
   { value: 2, label: 'Scan 2' },
   { value: 1, label: 'Scan 3' },
   { value: 4, label: 'Scan 4' },
-  { value: 6, label: 'Scan 6' },
+  { value: 6, label: 'Scan 5' },
 ];
 
 interface ScanSelectorProps {

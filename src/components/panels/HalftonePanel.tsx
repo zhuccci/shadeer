@@ -12,8 +12,10 @@ interface HalftonePanelProps {
   onPatternChange: (value: HalftonePattern) => void;
   onAngleChange: (value: number) => void;
   onScaleChange: (value: number) => void;
+  onRadiusChange: (value: number) => void;
   onContrastChange: (value: number) => void;
-  onBrightnessChange: (value: number) => void;
+  onBlurChange: (value: number) => void;
+  onThresholdChange: (value: number) => void;
   onBlackAndWhiteChange: (value: boolean) => void;
   onOriginalColorsChange: (value: boolean) => void;
   onInvertChange: (value: boolean) => void;
@@ -22,7 +24,6 @@ interface HalftonePanelProps {
   onColor2Change: (value: string) => void;
   onColor3Change: (value: string) => void;
   onColor4Change: (value: string) => void;
-  onGrainOverlayChange: (value: number) => void;
   onBlobThresholdChange: (value: number) => void;
 }
 
@@ -32,8 +33,10 @@ export function HalftonePanel({
   onPatternChange,
   onAngleChange,
   onScaleChange,
+  onRadiusChange,
   onContrastChange,
-  onBrightnessChange,
+  onBlurChange,
+  onThresholdChange,
   onBlackAndWhiteChange,
   onOriginalColorsChange,
   onInvertChange,
@@ -42,7 +45,6 @@ export function HalftonePanel({
   onColor2Change,
   onColor3Change,
   onColor4Change,
-  onGrainOverlayChange,
   onBlobThresholdChange,
 }: HalftonePanelProps) {
   const bw = state.halftone.blackAndWhite;
@@ -55,9 +57,10 @@ export function HalftonePanel({
           <SliderControl label="Threshold" min={0} max={100} value={state.halftone.blobThreshold} onChange={onBlobThresholdChange} />
         )}
         <SliderControl label="Scale" min={0} max={100} value={state.halftone.scale} onChange={onScaleChange} />
+        <SliderControl label="Radius" min={0} max={100} value={state.halftone.radius} onChange={onRadiusChange} />
         <SliderControl label="Contrast" min={0} max={100} value={state.halftone.contrast} onChange={onContrastChange} />
-        <SliderControl label="Brightness" min={0} max={100} value={state.halftone.brightness} onChange={onBrightnessChange} />
-        <SliderControl label="Grain" value={state.halftone.grainOverlay} onChange={onGrainOverlayChange} />
+        <SliderControl label="Blur" value={state.halftone.blur} onChange={onBlurChange} />
+        <SliderControl label="Threshold" min={0} max={100} value={state.halftone.threshold} onChange={onThresholdChange} />
       </div>
       <div className="panel-divider" />
       <div className="halftone-right">

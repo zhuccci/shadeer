@@ -390,6 +390,13 @@ function HalftonePanelContent({ state, updateState, tab, openColor }: PanelConte
           onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, scale: v } }))}
         />
         <SliderControl
+          label="Radius"
+          min={0}
+          max={100}
+          value={state.halftone.radius}
+          onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, radius: v } }))}
+        />
+        <SliderControl
           label="Contrast"
           min={0}
           max={100}
@@ -397,16 +404,16 @@ function HalftonePanelContent({ state, updateState, tab, openColor }: PanelConte
           onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, contrast: v } }))}
         />
         <SliderControl
-          label="Brightness"
-          min={0}
-          max={100}
-          value={state.halftone.brightness}
-          onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, brightness: v } }))}
+          label="Blur"
+          value={state.halftone.blur}
+          onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, blur: v } }))}
         />
         <SliderControl
-          label="Grain"
-          value={state.halftone.grainOverlay}
-          onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, grainOverlay: v } }))}
+          label="Threshold"
+          min={0}
+          max={100}
+          value={state.halftone.threshold}
+          onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, threshold: v } }))}
         />
       </div>
     );

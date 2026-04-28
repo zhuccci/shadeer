@@ -195,20 +195,21 @@ export function buildHalftoneUniforms(
     u_offsetX: offsetX,
     u_offsetY: offsetY,
     u_dotScale: 87300 / (90 + 6.375 * halftone.scale),
+    u_dotRadius: (halftone.radius / 100) * 0.53,
+    u_inkThreshold: halftone.threshold / 100,
     u_bw: halftone.blackAndWhite ? 1 : 0,
     u_originalColors: halftone.originalColors ? 1 : 0,
     u_inverted: halftone.invert ? 1 : 0,
     u_angle: (halftone.angle * Math.PI) / 180,
     u_blobThreshold: halftone.blobThreshold / 50,
-    u_pattern: ({ dots: 0, print: 1, lines: 2, cross: 3, blob: 4 } as const)[halftone.pattern],
-    u_contrast: halftone.contrast / 50,
-    u_brightness: (halftone.brightness - 50) / 100,
+    u_pattern: ({ dots: 0, lines: 1, cross: 2, blob: 3 } as const)[halftone.pattern],
+    u_contrast: 1.0 + halftone.contrast / 100,
+    u_blur: halftone.blur / 100,
     u_colorBack: hexToVec4(halftone.backgroundColor),
     u_color1: hexToVec4(halftone.color1),
     u_color2: hexToVec4(halftone.color2),
     u_color3: hexToVec4(halftone.color3),
     u_color4: hexToVec4(halftone.color4),
-    u_grainOverlay: halftone.grainOverlay / 100,
   };
 }
 
@@ -379,7 +380,8 @@ export function buildSymbolEdgesUniforms(
 ) {
   const cellPx = Math.round(6 + (se.cellSize / 100) * 42);
   const symbols = se.symbols.length > 0 ? se.symbols : '0';
-  const fontAtlas = createFontAtlas(symbols, cellPx);
+  const atlasPx = se.hideImage ? Math.max(128, cellPx) : cellPx;
+  const fontAtlas = createFontAtlas(symbols, atlasPx);
   return {
     u_fit: fitMode === 'fill' ? 2 : 1,
     u_scale: 1,
@@ -980,10 +982,15 @@ export async function renderShaderToBlob(
     return null;
   }
 
-  const outputWidth = sourceImage instanceof HTMLVideoElement ? sourceImage.videoWidth : sourceImage.naturalWidth;
-  const outputHeight = sourceImage instanceof HTMLVideoElement ? sourceImage.videoHeight : sourceImage.naturalHeight;
+  const baseWidth = sourceImage instanceof HTMLVideoElement ? sourceImage.videoWidth : sourceImage.naturalWidth;
+  const baseHeight = sourceImage instanceof HTMLVideoElement ? sourceImage.videoHeight : sourceImage.naturalHeight;
 
   const renderStack = getRenderStack(state);
+  const symbolHiding = renderStack.includes('symbolEdges') && state.symbolEdges.hideImage;
+  const exportScale = symbolHiding ? 2 : 1;
+  const outputWidth = baseWidth * exportScale;
+  const outputHeight = baseHeight * exportScale;
+
   const allDivs: HTMLDivElement[] = [];
   const allMounts: ShaderMount[] = [];
   let prevCanvas: HTMLCanvasElement | null = null;
@@ -992,7 +999,7 @@ export async function renderShaderToBlob(
     const filter = renderStack[i];
     const stateForPass: EditorState = { ...state, activeFilter: filter, fitMode: 'fit', offsetX: 0, offsetY: 0 };
     const config = getShaderConfig(stateForPass, sourceImage);
-    const passUniforms = { ...config.uniforms } as UniformMap & { u_pxSize?: number };
+    const passUniforms = { ...config.uniforms } as UniformMap & { u_pxSize?: number; u_cellSize?: number; u_fontAtlas?: HTMLCanvasElement };
 
     if (
       filter === 'dithering' &&
@@ -1000,7 +1007,14 @@ export async function renderShaderToBlob(
       shaderMount.parentWidth > 0 &&
       sourceImage instanceof HTMLImageElement
     ) {
-      passUniforms.u_pxSize = passUniforms.u_pxSize * (outputWidth / shaderMount.parentWidth);
+      passUniforms.u_pxSize = passUniforms.u_pxSize * (baseWidth / shaderMount.parentWidth);
+    }
+
+    if (filter === 'symbolEdges' && symbolHiding) {
+      const scaledCell = Math.round(6 + (state.symbolEdges.cellSize / 100) * 42) * 2;
+      const syms = state.symbolEdges.symbols.length > 0 ? state.symbolEdges.symbols : '0';
+      passUniforms.u_cellSize = scaledCell;
+      passUniforms.u_fontAtlas = createFontAtlas(syms, Math.max(256, scaledCell));
     }
 
     const div = document.createElement('div');

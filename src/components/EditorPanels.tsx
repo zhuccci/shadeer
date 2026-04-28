@@ -150,8 +150,10 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         onPatternChange={(pattern) => updateState((current) => ({ ...current, halftone: { ...current.halftone, pattern } }))}
         onAngleChange={(angle) => updateState((current) => ({ ...current, halftone: { ...current.halftone, angle } }))}
         onScaleChange={(scale) => updateState((current) => ({ ...current, halftone: { ...current.halftone, scale } }))}
+        onRadiusChange={(radius) => updateState((current) => ({ ...current, halftone: { ...current.halftone, radius } }))}
         onContrastChange={(contrast) => updateState((current) => ({ ...current, halftone: { ...current.halftone, contrast } }))}
-        onBrightnessChange={(brightness) => updateState((current) => ({ ...current, halftone: { ...current.halftone, brightness } }))}
+        onBlurChange={(blur) => updateState((current) => ({ ...current, halftone: { ...current.halftone, blur } }))}
+        onThresholdChange={(threshold) => updateState((current) => ({ ...current, halftone: { ...current.halftone, threshold } }))}
         onBlackAndWhiteChange={(blackAndWhite) => updateState((current) => ({ ...current, halftone: { ...current.halftone, blackAndWhite } }))}
         onOriginalColorsChange={(originalColors) => updateState((current) => ({ ...current, halftone: { ...current.halftone, originalColors } }))}
         onInvertChange={(invert) => updateState((current) => ({ ...current, halftone: { ...current.halftone, invert } }))}
@@ -160,7 +162,6 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         onColor2Change={(color2) => updateState((current) => ({ ...current, halftone: { ...current.halftone, color2: sanitizeHex(color2, current.halftone.color2) } }))}
         onColor3Change={(color3) => updateState((current) => ({ ...current, halftone: { ...current.halftone, color3: sanitizeHex(color3, current.halftone.color3) } }))}
         onColor4Change={(color4) => updateState((current) => ({ ...current, halftone: { ...current.halftone, color4: sanitizeHex(color4, current.halftone.color4) } }))}
-        onGrainOverlayChange={(grainOverlay) => updateState((current) => ({ ...current, halftone: { ...current.halftone, grainOverlay } }))}
         onBlobThresholdChange={(blobThreshold) => updateState((current) => ({ ...current, halftone: { ...current.halftone, blobThreshold } }))}
       />
 

@@ -4,7 +4,6 @@ import type { HalftonePattern } from '../types/editor';
 
 const patterns: { id: HalftonePattern; label: string }[] = [
   { id: 'dots',  label: 'Dots' },
-  { id: 'print', label: 'Print' },
   { id: 'lines', label: 'Lines' },
   { id: 'cross', label: 'Cross' },
   { id: 'blob',  label: 'Blob' },
