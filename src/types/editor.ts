@@ -11,7 +11,7 @@ export type GlitchFormMode = 'bands' | 'wide' | 'mosaic' | 'compress';
 
 export type DitherType = '2x2' | '4x4' | '8x8';
 
-export type HalftonePattern = 'dots' | 'lines' | 'cross' | 'blob';
+export type HalftonePattern = 'dots' | 'lines' | 'cross' | 'gooey';
 
 export type HeatmapPalette = 'thermal' | 'inferno' | 'ice' | 'acid' | 'sunset';
 
@@ -74,8 +74,6 @@ export interface HalftoneSettings {
   scale: number;
   radius: number;
   contrast: number;
-  blur: number;
-  threshold: number;
   blackAndWhite: boolean;
   originalColors: boolean;
   invert: boolean;
@@ -84,7 +82,6 @@ export interface HalftoneSettings {
   color2: string;
   color3: string;
   color4: string;
-  blobThreshold: number;
 }
 
 export interface PaperSettings {
@@ -251,8 +248,6 @@ export const defaultHalftoneSettings: HalftoneSettings = {
   scale: 20,
   radius: 56,
   contrast: 0,
-  blur: 0,
-  threshold: 0,
   blackAndWhite: true,
   originalColors: false,
   invert: false,
@@ -261,6 +256,5 @@ export const defaultHalftoneSettings: HalftoneSettings = {
   color2: '#FF7043',
   color3: '#7B1FA2',
   color4: '#1A1A2E',
-  blobThreshold: 50,
 };
 

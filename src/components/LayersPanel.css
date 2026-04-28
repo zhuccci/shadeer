@@ -45,6 +45,15 @@
   background: #303020;
 }
 
+.layer-row--active {
+  border-color: #fff679;
+  background: #252515;
+}
+
+.layer-row--active .layer-name {
+  color: #fff679;
+}
+
 .layer-drag-handle {
   color: #555;
   display: flex;

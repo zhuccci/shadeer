@@ -811,9 +811,9 @@ void main() {
   vec4 tex = texture(u_image, clamp(cellImageUV, 0.0, 1.0));
 
   if (u_inverted > 0.5) tex.rgb = 1.0 - tex.rgb;
-  tex.rgb = clamp((tex.rgb - 0.5) * u_contrast + 0.5, 0.0, 1.0);
   float a_ch = cellInBounds ? tex.a : 0.0;
   float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
+  lum = clamp((lum - 0.5) * u_contrast + 0.5, 0.0, 1.0);
 
   vec2 cellIdx = floor(rotCoord / cellPx);
 
@@ -832,11 +832,11 @@ void main() {
           - dFdx(v_imageUV) * nLocalPx.x
           - dFdy(v_imageUV) * nLocalPx.y, 0.0, 1.0));
         if (u_inverted > 0.5) nTex.rgb = 1.0 - nTex.rgb;
-        nTex.rgb = clamp((nTex.rgb - 0.5) * u_contrast + 0.5, 0.0, 1.0);
         float nLum = dot(nTex.rgb, vec3(0.299, 0.587, 0.114));
+        nLum = clamp((nLum - 0.5) * u_contrast + 0.5, 0.0, 1.0);
         float nInk = 1.0 - nLum;
         float nR = min(cellPx * 0.53, cellPx * u_dotRadius * sqrt(nInk));
-        float d = length(toCenter) - nR;
+        float d = nR > cellPx * 0.02 ? length(toCenter) - nR : cellPx * 100.0;
         float h = max(sK - abs(d - minSDF), 0.0) / sK;
         minSDF = min(d, minSDF) - h * h * sK * 0.25;
       }
@@ -871,11 +871,11 @@ void main() {
           - dFdx(v_imageUV) * nLocalPx.x
           - dFdy(v_imageUV) * nLocalPx.y, 0.0, 1.0));
         if (u_inverted > 0.5) nTex.rgb = 1.0 - nTex.rgb;
-        nTex.rgb = clamp((nTex.rgb - 0.5) * u_contrast + 0.5, 0.0, 1.0);
         float nLum = dot(nTex.rgb, vec3(0.299, 0.587, 0.114));
+        nLum = clamp((nLum - 0.5) * u_contrast + 0.5, 0.0, 1.0);
         float nInk = 1.0 - nLum;
         float nR = min(cellPx * 0.65, cellPx * u_dotRadius * 1.2 * sqrt(nInk));
-        float d = length(toCenter) - nR;
+        float d = nR > cellPx * 0.02 ? length(toCenter) - nR : cellPx * 100.0;
         float h = max(sK - abs(d - minSDF), 0.0) / sK;
         minSDF = min(d, minSDF) - h * h * sK * 0.25;
       }

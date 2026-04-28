@@ -6,7 +6,7 @@ const patterns: { id: HalftonePattern; label: string }[] = [
   { id: 'dots',  label: 'Dots' },
   { id: 'lines', label: 'Lines' },
   { id: 'cross', label: 'Cross' },
-  { id: 'blob',  label: 'Blob' },
+  { id: 'gooey', label: 'Gooey' },
 ];
 
 interface HalftonePatternSelectorProps {

@@ -373,15 +373,6 @@ function HalftonePanelContent({ state, updateState, tab, openColor }: PanelConte
           value={state.halftone.pattern}
           onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, pattern: v } }))}
         />
-        {state.halftone.pattern === 'blob' && (
-          <SliderControl
-            label="Threshold"
-            min={0}
-            max={100}
-            value={state.halftone.blobThreshold}
-            onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, blobThreshold: v } }))}
-          />
-        )}
         <SliderControl
           label="Scale"
           min={0}
@@ -402,18 +393,6 @@ function HalftonePanelContent({ state, updateState, tab, openColor }: PanelConte
           max={100}
           value={state.halftone.contrast}
           onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, contrast: v } }))}
-        />
-        <SliderControl
-          label="Blur"
-          value={state.halftone.blur}
-          onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, blur: v } }))}
-        />
-        <SliderControl
-          label="Threshold"
-          min={0}
-          max={100}
-          value={state.halftone.threshold}
-          onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, threshold: v } }))}
         />
       </div>
     );

@@ -5,8 +5,10 @@ import type { ActiveFilter } from '../types/editor';
 
 interface LayersPanelProps {
   layers: ActiveFilter[];
+  activeFilter: ActiveFilter;
   onRemove: (filter: ActiveFilter) => void;
   onReorder: (layers: ActiveFilter[]) => void;
+  onSelect: (filter: ActiveFilter) => void;
 }
 
 function DragHandleIcon() {
@@ -30,7 +32,7 @@ function RemoveIcon() {
   );
 }
 
-export function LayersPanel({ layers, onRemove, onReorder }: LayersPanelProps) {
+export function LayersPanel({ layers, activeFilter, onRemove, onReorder, onSelect }: LayersPanelProps) {
   const dragIndexRef = useRef<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
 
@@ -73,12 +75,13 @@ export function LayersPanel({ layers, onRemove, onReorder }: LayersPanelProps) {
         {layers.map((id, index) => (
           <div
             key={id}
-            className={`layer-row${dragOver === index ? ' layer-row--over' : ''}`}
+            className={`layer-row${dragOver === index ? ' layer-row--over' : ''}${activeFilter === id ? ' layer-row--active' : ''}`}
             draggable
             onDragStart={() => handleDragStart(index)}
             onDragOver={(e) => handleDragOver(e, index)}
             onDrop={() => handleDrop(index)}
             onDragEnd={handleDragEnd}
+            onClick={() => onSelect(id)}
           >
             <span className="layer-drag-handle" aria-hidden="true">
               <DragHandleIcon />

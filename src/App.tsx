@@ -359,8 +359,10 @@ export default function App() {
         <EditorPanels state={editorState} updateState={updateState} />
         <LayersPanel
           layers={editorState.layers}
+          activeFilter={editorState.activeFilter}
           onRemove={handleRemoveLayer}
           onReorder={handleReorderLayers}
+          onSelect={handleFilterSelect}
         />
         <ActionBar visible={editorState.image.hasUserImage} onUpload={handleUploadClick} onSave={(fmt) => void handleSave(fmt)} isVideo={editorState.image.isVideo} canExportVideo={hasAnimatedEffect(editorState)} savingProgress={videoExportProgress} savingPhase={savingPhase} exportError={exportError} />
       </div>
