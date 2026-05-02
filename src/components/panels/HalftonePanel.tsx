@@ -14,6 +14,8 @@ interface HalftonePanelProps {
   onScaleChange: (value: number) => void;
   onRadiusChange: (value: number) => void;
   onContrastChange: (value: number) => void;
+  onShadowRangeChange: (value: number) => void;
+  onShadowInvertChange: (value: boolean) => void;
   onBlackAndWhiteChange: (value: boolean) => void;
   onOriginalColorsChange: (value: boolean) => void;
   onInvertChange: (value: boolean) => void;
@@ -32,6 +34,8 @@ export function HalftonePanel({
   onScaleChange,
   onRadiusChange,
   onContrastChange,
+  onShadowRangeChange,
+  onShadowInvertChange,
   onBlackAndWhiteChange,
   onOriginalColorsChange,
   onInvertChange,
@@ -50,6 +54,8 @@ export function HalftonePanel({
         <SliderControl label="Scale" min={0} max={100} value={state.halftone.scale} onChange={onScaleChange} />
         <SliderControl label="Radius" min={0} max={100} value={state.halftone.radius} onChange={onRadiusChange} />
         <SliderControl label="Contrast" min={0} max={100} value={state.halftone.contrast} onChange={onContrastChange} />
+        <SliderControl label="Shadows" min={0} max={100} value={state.halftone.shadowRange} onChange={onShadowRangeChange} />
+        <CheckboxControl label="Invert Shadows" checked={state.halftone.shadowInvert} onChange={onShadowInvertChange} />
       </div>
       <div className="panel-divider" />
       <div className="halftone-right">

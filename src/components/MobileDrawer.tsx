@@ -394,6 +394,18 @@ function HalftonePanelContent({ state, updateState, tab, openColor }: PanelConte
           value={state.halftone.contrast}
           onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, contrast: v } }))}
         />
+        <SliderControl
+          label="Shadows"
+          min={0}
+          max={100}
+          value={state.halftone.shadowRange}
+          onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, shadowRange: v } }))}
+        />
+        <CheckboxControl
+          label="Invert Shadows"
+          checked={state.halftone.shadowInvert}
+          onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, shadowInvert: v } }))}
+        />
       </div>
     );
   }

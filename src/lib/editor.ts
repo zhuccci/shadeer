@@ -202,6 +202,8 @@ export function buildHalftoneUniforms(
     u_angle: (halftone.angle * Math.PI) / 180,
     u_pattern: ({ dots: 0, lines: 1, cross: 2, gooey: 3 } as const)[halftone.pattern],
     u_contrast: 1.0 + Math.pow(halftone.contrast / 100, 2) * 7.0,
+    u_shadowRange: halftone.shadowRange / 100,
+    u_shadowInvert: halftone.shadowInvert ? 1 : 0,
     u_colorBack: hexToVec4(halftone.backgroundColor),
     u_color1: hexToVec4(halftone.color1),
     u_color2: hexToVec4(halftone.color2),
@@ -752,13 +754,15 @@ export async function renderVideoToBlob(
   const duration = video.duration;
   if (!video.videoWidth || !video.videoHeight) return null;
 
-  // Cap export to 1920px on the longest side — 4K sources would OOM the GPU
-  // and make VideoEncoder fail, falling back to slow FFmpeg conversion.
-  const MAX_PX = 1920;
-  const scale = Math.min(1, MAX_PX / Math.max(video.videoWidth, video.videoHeight));
-  // H.264 requires even dimensions
-  const width = Math.floor(video.videoWidth * scale / 2) * 2;
-  const height = Math.floor(video.videoHeight * scale / 2) * 2;
+  // H.264 requires even dimensions — export at full native resolution
+  const width = Math.floor(video.videoWidth / 2) * 2;
+  const height = Math.floor(video.videoHeight / 2) * 2;
+
+  // Export FPS and bitrate — hoisted so both encoder paths use the same values.
+  // Dithering's alternating pixels are worst-case for DCT codecs; 0.5 bits/pixel/frame
+  // keeps them sharp. Clamp to a practical range.
+  const exportFps = 30;
+  const exportBitrate = Math.max(20_000_000, Math.min(80_000_000, Math.round(width * height * exportFps * 0.5)));
 
   const wasLooping = video.loop;
   video.loop = false;
@@ -844,10 +848,11 @@ export async function renderVideoToBlob(
 
   // ── VideoEncoder path ───────────────────────────────────────────────────────
   if (typeof VideoEncoder !== 'undefined' && videoAny.requestVideoFrameCallback) {
-    const bitrate = 12_000_000;
-    const fps = 30;
+    const bitrate = exportBitrate;
+    const fps = exportFps;
 
-    const profiles = ['avc1.42E01E', 'avc1.42001E', 'avc1.4D001E', 'avc1.640028'];
+    // Try highest H.264 levels first so 4K is handled natively; fall back to lower levels
+    const profiles = ['avc1.640034', 'avc1.640033', 'avc1.640032', 'avc1.640028', 'avc1.4D001E', 'avc1.42E01E', 'avc1.42001E'];
     let codec = '';
     for (const p of profiles) {
       try {
@@ -866,9 +871,10 @@ export async function renderVideoToBlob(
           output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
           error: (e) => { encodeErr = e; },
         });
+        // VBR handles keyframe complexity spikes better than CBR; CBR stalls when
+        // dithering frames exceed the constant budget.
         const baseCfg: VideoEncoderConfig = { codec, width, height, bitrate, framerate: fps, latencyMode: 'quality' };
-        try { encoder.configure({ ...baseCfg, bitrateMode: 'constant' } as VideoEncoderConfig); }
-        catch { encoder.configure(baseCfg); }
+        encoder.configure(baseCfg);
 
         // RVFC at 1× — browser delivers every frame in real-time, no drops.
         // Faster than seek-based (no per-frame seek latency) and accurate.
@@ -880,20 +886,35 @@ export async function renderVideoToBlob(
           video.addEventListener('ended', finish, { once: true });
           video.addEventListener('error', () => reject(new Error('video error during export')), { once: true });
 
+          const scheduleNext = (currentTime: number) => {
+            if (currentTime < duration - 0.05) {
+              videoAny.requestVideoFrameCallback(process);
+            } else {
+              finish();
+            }
+          };
+
           const process: RVFCFN = (_now, meta) => {
             if (done) return;
             if (encodeErr) { reject(encodeErr); return; }
             try {
               renderOffScreen(meta.mediaTime);
               const vf = new VideoFrame(offCanvas, { timestamp: Math.round(meta.mediaTime * 1_000_000) });
-              encoder.encode(vf, { keyFrame: frameIndex % 60 === 0 });
+              encoder.encode(vf, { keyFrame: frameIndex % 90 === 0 });
               vf.close();
               frameIndex++;
               onProgress?.(Math.min(meta.mediaTime / duration, 0.99));
-              if (meta.mediaTime < duration - 0.05) {
-                videoAny.requestVideoFrameCallback(process);
+              // Backpressure: if the encoder queue is deep, pause video until it
+              // drains. Without this, real-time RVFC keeps submitting frames faster
+              // than the encoder can emit them, causing visible drops at keyframes.
+              if (encoder.encodeQueueSize > 3) {
+                video.pause();
+                encoder.addEventListener('dequeue', () => {
+                  scheduleNext(meta.mediaTime);
+                  void video.play().catch(() => {});
+                }, { once: true });
               } else {
-                finish();
+                scheduleNext(meta.mediaTime);
               }
             } catch (e) { reject(e as Error); }
           };
@@ -929,7 +950,7 @@ export async function renderVideoToBlob(
     ) ?? 'video/webm';
   const stream = offCanvas.captureStream(60);
   const chunks: BlobPart[] = [];
-  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 4_000_000 });
+  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: exportBitrate });
   recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
   const blobReady = new Promise<Blob>((r) => { recorder.onstop = () => r(new Blob(chunks, { type: mimeType.split(';')[0] })); });
 

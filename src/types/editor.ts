@@ -74,6 +74,8 @@ export interface HalftoneSettings {
   scale: number;
   radius: number;
   contrast: number;
+  shadowRange: number;
+  shadowInvert: boolean;
   blackAndWhite: boolean;
   originalColors: boolean;
   invert: boolean;
@@ -248,6 +250,8 @@ export const defaultHalftoneSettings: HalftoneSettings = {
   scale: 20,
   radius: 56,
   contrast: 0,
+  shadowRange: 100,
+  shadowInvert: false,
   blackAndWhite: true,
   originalColors: false,
   invert: false,

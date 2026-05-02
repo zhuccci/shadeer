@@ -152,6 +152,8 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         onScaleChange={(scale) => updateState((current) => ({ ...current, halftone: { ...current.halftone, scale } }))}
         onRadiusChange={(radius) => updateState((current) => ({ ...current, halftone: { ...current.halftone, radius } }))}
         onContrastChange={(contrast) => updateState((current) => ({ ...current, halftone: { ...current.halftone, contrast } }))}
+        onShadowRangeChange={(shadowRange) => updateState((current) => ({ ...current, halftone: { ...current.halftone, shadowRange } }))}
+        onShadowInvertChange={(shadowInvert) => updateState((current) => ({ ...current, halftone: { ...current.halftone, shadowInvert } }))}
         onBlackAndWhiteChange={(blackAndWhite) => updateState((current) => ({ ...current, halftone: { ...current.halftone, blackAndWhite } }))}
         onOriginalColorsChange={(originalColors) => updateState((current) => ({ ...current, halftone: { ...current.halftone, originalColors } }))}
         onInvertChange={(invert) => updateState((current) => ({ ...current, halftone: { ...current.halftone, invert } }))}

@@ -768,6 +768,8 @@ uniform float u_originalColors;
 uniform float u_inverted;
 uniform float u_pattern;
 uniform float u_contrast;
+uniform float u_shadowRange;
+uniform float u_shadowInvert;
 uniform vec4 u_colorBack;
 uniform vec4 u_color1;
 uniform vec4 u_color2;
@@ -899,7 +901,18 @@ void main() {
   }
   vec3 color = mix(bgColor.rgb * bgColor.a, dotColor.rgb * dotColor.a, insideDot);
   float opacity = mix(bgColor.a, dotColor.a, insideDot);
-  fragColor = vec4(color * a_ch, opacity * a_ch) * inBounds;
+  vec4 halftoneResult = vec4(color * a_ch, opacity * a_ch) * inBounds;
+
+  // Shadow range: blend halftone with original image based on pixel brightness.
+  // At u_shadowRange=1.0 the effect covers the full tonal range; lower values
+  // restrict it to darker pixels, leaving brights as the original image.
+  vec4 origTex = texture(u_image, clamp(v_imageUV, 0.0, 1.0));
+  float pixLum = dot(origTex.rgb, vec3(0.299, 0.587, 0.114));
+  if (u_inverted > 0.5) pixLum = 1.0 - pixLum;
+  float htBlend = 1.0 - smoothstep(u_shadowRange - 0.05, u_shadowRange + 0.05, pixLum);
+  if (u_shadowInvert > 0.5) htBlend = 1.0 - htBlend;
+  vec4 origResult = vec4(origTex.rgb * origTex.a, origTex.a) * inBounds;
+  fragColor = mix(origResult, halftoneResult, htBlend);
 }`;
 
 function createShader(gl: WebGL2RenderingContext, type: number, source: string) {
