@@ -1359,7 +1359,7 @@ void main() {
   if (u_grain > 0.0) {
     vec2 grainUV = gl_FragCoord.xy;
     float noise = hmHash(grainUV) * 2.0 - 1.0;
-    finalColor += noise * u_grain * 0.25;
+    finalColor += noise * u_grain * 0.12;
   }
 
   fragColor = vec4(clamp(finalColor, 0.0, 1.0), tex.a);
@@ -1469,7 +1469,7 @@ void main() {
   vec3 color = clamp(sum.rgb, 0.0, 1.0);
   if (u_grain > 0.0) {
     float noise = blurHash(gl_FragCoord.xy) * 2.0 - 1.0;
-    color = clamp(color + vec3(noise) * u_grain * 0.25, 0.0, 1.0);
+    color = clamp(color + vec3(noise) * u_grain * 0.12, 0.0, 1.0);
   }
   fragColor = vec4(color, origAlpha);
 }`;
