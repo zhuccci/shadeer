@@ -215,6 +215,7 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         onTypeChange={(type) => updateState((current) => ({ ...current, blur: { ...current.blur, type, ...(type === 'radial' ? { centerX: 0.5, centerY: 0.5 } : {}) } }))}
         onStrengthChange={(strength) => updateState((current) => ({ ...current, blur: { ...current.blur, strength } }))}
         onAngleChange={(angle) => updateState((current) => ({ ...current, blur: { ...current.blur, angle } }))}
+        onGrainChange={(grain) => updateState((current) => ({ ...current, blur: { ...current.blur, grain } }))}
       />
     </div>
   );

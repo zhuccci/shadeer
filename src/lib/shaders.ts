@@ -1414,8 +1414,13 @@ uniform float u_strength;
 uniform float u_angle;
 uniform float u_centerX;
 uniform float u_centerY;
+uniform float u_grain;
 in vec2 v_imageUV;
 out vec4 fragColor;
+
+float blurHash(vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
 
 const int TAPS = 48;
 
@@ -1459,7 +1464,12 @@ void main() {
     sum /= float(TAPS);
   }
 
-  fragColor = vec4(clamp(sum.rgb, 0.0, 1.0), origAlpha);
+  vec3 color = clamp(sum.rgb, 0.0, 1.0);
+  if (u_grain > 0.0) {
+    float noise = blurHash(gl_FragCoord.xy) * 2.0 - 1.0;
+    color = clamp(color + vec3(noise) * u_grain * 0.4, 0.0, 1.0);
+  }
+  fragColor = vec4(color, origAlpha);
 }`;
 
 export class ShaderMount {

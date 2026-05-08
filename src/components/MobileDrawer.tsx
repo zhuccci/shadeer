@@ -910,6 +910,13 @@ function BlurPanelContent({ state, updateState }: PanelContentProps) {
         value={b.strength}
         onChange={(v) => updateState((s) => ({ ...s, blur: { ...s.blur, strength: v } }))}
       />
+      <SliderControl
+        label="Grain"
+        min={0}
+        max={100}
+        value={b.grain}
+        onChange={(v) => updateState((s) => ({ ...s, blur: { ...s.blur, grain: v } }))}
+      />
       {b.type === 'motion' && (
         <div className="mobile-angle-tab mobile-knob-top">
           <KnobControl

@@ -16,9 +16,10 @@ interface BlurPanelProps {
   onTypeChange: (type: BlurType) => void;
   onStrengthChange: (strength: number) => void;
   onAngleChange: (angle: number) => void;
+  onGrainChange: (grain: number) => void;
 }
 
-export function BlurPanel({ state, isActive, onTypeChange, onStrengthChange, onAngleChange }: BlurPanelProps) {
+export function BlurPanel({ state, isActive, onTypeChange, onStrengthChange, onAngleChange, onGrainChange }: BlurPanelProps) {
   const b = state.blur;
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
@@ -65,6 +66,7 @@ export function BlurPanel({ state, isActive, onTypeChange, onStrengthChange, onA
           </div>
         </div>
         <SliderControl label="Strength" min={0} max={100} value={b.strength} onChange={onStrengthChange} />
+        <SliderControl label="Grain" min={0} max={100} value={b.grain} onChange={onGrainChange} />
         {b.type === 'motion' && (
           <div className="blur-angle-wrap">
             <KnobControl
