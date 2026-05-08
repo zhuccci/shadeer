@@ -67,16 +67,17 @@ export function BlurPanel({ state, isActive, onTypeChange, onStrengthChange, onA
         </div>
         <SliderControl label="Strength" min={0} max={100} value={b.strength} onChange={onStrengthChange} />
         <SliderControl label="Grain" min={0} max={100} value={b.grain} onChange={onGrainChange} />
-        {b.type === 'motion' && (
-          <div className="blur-angle-wrap">
-            <KnobControl
-              labels={{ top: '0°', left: '270°', right: '90°', bottom: '180°' }}
-              value={b.angle}
-              onChange={onAngleChange}
-            />
-          </div>
-        )}
       </div>
+      {b.type === 'motion' && (
+        <>
+          <div className="panel-divider" />
+          <KnobControl
+            labels={{ top: '0°', left: '270°', right: '90°', bottom: '180°' }}
+            value={b.angle}
+            onChange={onAngleChange}
+          />
+        </>
+      )}
     </div>
   );
 }
