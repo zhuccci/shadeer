@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { getShaderConfig, updateFitClip } from '../lib/editor';
+import { getShaderConfig, getBlurHPassConfig, updateFitClip } from '../lib/editor';
 import { ShaderMount } from '../lib/shaders';
 import type { ActiveFilter, EditorState } from '../types/editor';
 import type { UniformMap } from '../lib/shaders';
@@ -11,13 +11,14 @@ interface UseShaderPreviewOptions {
 }
 
 // Returns [bottomLayer, ..., topLayer] render order.
-// layers[0] in UI = top visually = applied last, so we reverse.
-// activeFilter is always rendered on top if not already in layers.
-function getRenderStack(state: EditorState): ActiveFilter[] {
+// 'blur' expands to ['blur_h', 'blur'] for two-pass separable Gaussian.
+function getRenderStack(state: EditorState): string[] {
+  const expand = (f: ActiveFilter): string[] => (f === 'blur' ? ['blur_h', 'blur'] : [f]);
   const { activeFilter, layers } = state;
-  if (layers.length === 0) return [activeFilter];
+  if (layers.length === 0) return expand(activeFilter);
   const bottomToTop = [...layers].reverse();
-  return layers.includes(activeFilter) ? bottomToTop : [...bottomToTop, activeFilter];
+  const base = layers.includes(activeFilter) ? bottomToTop : [...bottomToTop, activeFilter];
+  return base.flatMap(expand);
 }
 
 export function useShaderPreview({ editorState, previewRef, shaderMountRef }: UseShaderPreviewOptions) {
@@ -61,14 +62,13 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
     for (let i = 0; i < stack.length; i++) {
       const isLast = i === stack.length - 1;
       const filter = stack[i];
-      const stateForPass: EditorState = {
-        ...editorState,
-        activeFilter: filter,
-        fitMode: isLast ? editorState.fitMode : 'fit',
-        offsetX: isLast ? editorState.offsetX : 0,
-        offsetY: isLast ? editorState.offsetY : 0,
-      };
-      const config = getShaderConfig(stateForPass, media);
+      const fitMode = isLast ? editorState.fitMode : 'fit';
+      const offsetX = isLast ? editorState.offsetX : 0;
+      const offsetY = isLast ? editorState.offsetY : 0;
+      const config =
+        filter === 'blur_h'
+          ? getBlurHPassConfig({ ...editorState, fitMode: 'fit', offsetX: 0, offsetY: 0 }, media)
+          : getShaderConfig({ ...editorState, activeFilter: filter as ActiveFilter, fitMode, offsetX, offsetY }, media);
 
       if (isLast) {
         const mount = new ShaderMount(preview, config.fragmentShader, config.uniforms, undefined, config.speed);
@@ -125,14 +125,13 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
       const filter = renderStack[i];
       if (!filter) return;
       const isLast = i === allMounts.length - 1;
-      const stateForPass: EditorState = {
-        ...editorState,
-        activeFilter: filter,
-        fitMode: isLast ? editorState.fitMode : 'fit',
-        offsetX: isLast ? editorState.offsetX : 0,
-        offsetY: isLast ? editorState.offsetY : 0,
-      };
-      const config = getShaderConfig(stateForPass, media);
+      const fitMode = isLast ? editorState.fitMode : 'fit';
+      const offsetX = isLast ? editorState.offsetX : 0;
+      const offsetY = isLast ? editorState.offsetY : 0;
+      const config =
+        filter === 'blur_h'
+          ? getBlurHPassConfig({ ...editorState, fitMode: 'fit', offsetX: 0, offsetY: 0 }, media)
+          : getShaderConfig({ ...editorState, activeFilter: filter as ActiveFilter, fitMode, offsetX, offsetY }, media);
 
       if (i > 0) {
         // Don't overwrite the canvas texture for chained mounts

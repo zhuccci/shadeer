@@ -294,6 +294,8 @@ export default function App() {
 
     const handlePaste = (event: KeyboardEvent) => {
       if (!(event.metaKey || event.ctrlKey) || event.code !== 'KeyV') return;
+      const active = document.activeElement;
+      if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) return;
       event.preventDefault();
       void (async () => {
         let items: ClipboardItems;

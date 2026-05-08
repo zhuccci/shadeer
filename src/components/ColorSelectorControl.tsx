@@ -1,4 +1,4 @@
-import { useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { ColorPicker } from './ColorPicker';
 import './ColorSelectorControl.css';
 
@@ -14,6 +14,15 @@ export function ColorSelectorControl({ label, value, onChange, onMobileOpen }: C
   const swatchRef = useRef<HTMLButtonElement>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+  const [localHex, setLocalHex] = useState(() => value.replace('#', '').toUpperCase());
+  const isFocused = useRef(false);
+
+  // Sync from parent (e.g. picker updated the color) only while not editing
+  useEffect(() => {
+    if (!isFocused.current) {
+      setLocalHex(value.replace('#', '').toUpperCase());
+    }
+  }, [value]);
 
   function handleSwatchClick() {
     if (onMobileOpen) {
@@ -32,6 +41,25 @@ export function ColorSelectorControl({ label, value, onChange, onMobileOpen }: C
     }
   }
 
+  function handleHexChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const digits = e.target.value.toUpperCase().replace(/[^0-9A-F]/g, '').slice(0, 6);
+    setLocalHex(digits);
+    if (digits.length === 6) onChange('#' + digits);
+  }
+
+  function handleHexPaste(e: React.ClipboardEvent<HTMLInputElement>) {
+    e.preventDefault();
+    const digits = e.clipboardData.getData('text').toUpperCase().replace(/[^0-9A-F]/g, '').slice(0, 6);
+    setLocalHex(digits);
+    if (digits.length === 6) onChange('#' + digits);
+  }
+
+  function handleBlur() {
+    isFocused.current = false;
+    // Revert display to the last committed valid value if editing was incomplete
+    setLocalHex(value.replace('#', '').toUpperCase());
+  }
+
   return (
     <div className="color-selector">
       <label className="color-label" htmlFor={inputId}>{label}</label>
@@ -47,8 +75,12 @@ export function ColorSelectorControl({ label, value, onChange, onMobileOpen }: C
         <input
           id={inputId}
           className="color-hex"
-          value={value}
-          onChange={(e) => onChange(e.target.value.toUpperCase())}
+          value={'#' + localHex}
+          maxLength={7}
+          onChange={handleHexChange}
+          onPaste={handleHexPaste}
+          onFocus={() => { isFocused.current = true; }}
+          onBlur={handleBlur}
         />
       </div>
       {pickerOpen && anchorRect && (

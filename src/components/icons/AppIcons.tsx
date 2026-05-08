@@ -97,6 +97,16 @@ export function FilterIcon({ id }: { id: string }) {
     );
   }
 
+  if (id === 'blur') {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="4" fill="currentColor" opacity="1" />
+        <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="1.5" opacity="0.5" />
+        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1" opacity="0.25" />
+      </svg>
+    );
+  }
+
   if (id === 'liquid') {
     return (
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

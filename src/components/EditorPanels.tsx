@@ -9,6 +9,7 @@ import { LiquidPanel } from './panels/LiquidPanel';
 import { PaperPanel } from './panels/PaperPanel';
 import { HeatmapPanel } from './panels/HeatmapPanel';
 import { SymbolEdgesPanel } from './panels/SymbolEdgesPanel';
+import { BlurPanel } from './panels/BlurPanel';
 
 interface EditorPanelsProps {
   state: EditorState;
@@ -206,6 +207,14 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         onTargetColorChange={(targetColor) => updateState((current) => ({ ...current, symbolEdges: { ...current.symbolEdges, targetColor: sanitizeHex(targetColor, current.symbolEdges.targetColor) } }))}
         onInvertChange={(invert) => updateState((current) => ({ ...current, symbolEdges: { ...current.symbolEdges, invert } }))}
         onHideImageChange={(hideImage) => updateState((current) => ({ ...current, symbolEdges: { ...current.symbolEdges, hideImage } }))}
+      />
+
+      <BlurPanel
+        state={state}
+        isActive={state.activeFilter === 'blur'}
+        onTypeChange={(type) => updateState((current) => ({ ...current, blur: { ...current.blur, type } }))}
+        onStrengthChange={(strength) => updateState((current) => ({ ...current, blur: { ...current.blur, strength } }))}
+        onAngleChange={(angle) => updateState((current) => ({ ...current, blur: { ...current.blur, angle } }))}
       />
     </div>
   );

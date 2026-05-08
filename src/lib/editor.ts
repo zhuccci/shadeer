@@ -6,6 +6,7 @@ import type {
   GlassSettings,
   GlitchySettings,
   HalftoneSettings,
+  BlurSettings,
   HeatmapSettings,
   LiquidSettings,
   PaperSettings,
@@ -16,6 +17,7 @@ import {
   defaultGlassSettings,
   defaultGlitchySettings,
   defaultHalftoneSettings,
+  defaultBlurSettings,
   defaultHeatmapSettings,
   defaultLiquidSettings,
   defaultPaperSettings,
@@ -29,6 +31,8 @@ import {
   flutedGlassFragmentShader,
   glitchyFragmentShader,
   halftoneFragmentShader,
+  blurHFragmentShader,
+  blurFragmentShader,
   heatmapFragmentShader,
   imageDitheringFragmentShader,
   paperFragmentShader,
@@ -50,6 +54,7 @@ export const defaultEditorState: EditorState = {
   symbolEdges: defaultSymbolEdgesSettings,
   paper: defaultPaperSettings,
   heatmap: defaultHeatmapSettings,
+  blur: defaultBlurSettings,
   image: {
     image: null,
     video: null,
@@ -243,6 +248,7 @@ export function buildGlitchyUniforms(
   };
 }
 
+
 const _scanCache = new Map<number, HTMLImageElement>();
 
 function getScanImage(index: number): HTMLImageElement {
@@ -339,6 +345,23 @@ export function buildHeatmapUniforms(
   };
 }
 
+export function buildBlurUniforms(blur: BlurSettings, fitMode: FitMode, offsetX: number, offsetY: number) {
+  return {
+    u_fit: fitMode === 'fill' ? 2 : 1,
+    u_scale: 1,
+    u_rotation: 0,
+    u_originX: 0.5,
+    u_originY: 0.5,
+    u_worldWidth: 0,
+    u_worldHeight: 0,
+    u_offsetX: offsetX,
+    u_offsetY: offsetY,
+    u_blurType: blur.type === 'gaussian' ? 0 : blur.type === 'motion' ? 1 : 2,
+    u_strength: blur.strength / 100,
+    u_angle: (blur.angle * Math.PI) / 180,
+  };
+}
+
 // ── Font atlas for symbol edges ───────────────────────────────────────────────
 const _fontAtlasCache = new Map<string, HTMLCanvasElement>();
 
@@ -411,11 +434,26 @@ export function hasAnimatedEffect(state: EditorState): boolean {
   return ANIMATED_FILTERS.has(state.activeFilter) || state.layers.some((f) => ANIMATED_FILTERS.has(f));
 }
 
-export function getRenderStack(state: EditorState): ActiveFilter[] {
+export type RenderFilter = ActiveFilter | 'blur_h';
+
+export function getRenderStack(state: EditorState): RenderFilter[] {
+  const expand = (f: ActiveFilter): RenderFilter[] => (f === 'blur' ? ['blur_h', 'blur'] : [f]);
   const { activeFilter, layers } = state;
-  if (layers.length === 0) return [activeFilter];
+  if (layers.length === 0) return expand(activeFilter);
   const bottomToTop = [...layers].reverse();
-  return layers.includes(activeFilter) ? bottomToTop : [...bottomToTop, activeFilter];
+  const base = layers.includes(activeFilter) ? bottomToTop : [...bottomToTop, activeFilter];
+  return base.flatMap(expand);
+}
+
+export function getBlurHPassConfig(state: EditorState, image: HTMLImageElement | HTMLVideoElement) {
+  return {
+    fragmentShader: blurHFragmentShader,
+    uniforms: {
+      u_image: image,
+      ...buildBlurUniforms(state.blur, 'fit', 0, 0),
+    },
+    speed: 0,
+  };
 }
 
 export function getShaderConfig(state: EditorState, image: HTMLImageElement | HTMLVideoElement) {
@@ -491,6 +529,17 @@ export function getShaderConfig(state: EditorState, image: HTMLImageElement | HT
       uniforms: {
         u_image: image,
         ...buildHeatmapUniforms(state.heatmap, state.fitMode, state.offsetX, state.offsetY),
+      },
+      speed: 0,
+    };
+  }
+
+  if (state.activeFilter === 'blur') {
+    return {
+      fragmentShader: blurFragmentShader,
+      uniforms: {
+        u_image: image,
+        ...buildBlurUniforms(state.blur, state.fitMode, state.offsetX, state.offsetY),
       },
       speed: 0,
     };
@@ -778,8 +827,10 @@ export async function renderVideoToBlob(
 
   for (let i = 0; i < renderStack.length; i++) {
     const filter = renderStack[i];
-    const stateForPass: EditorState = { ...editorState, activeFilter: filter, fitMode: 'fit', offsetX: 0, offsetY: 0 };
-    const config = getShaderConfig(stateForPass, video);
+    const config =
+      filter === 'blur_h'
+        ? getBlurHPassConfig({ ...editorState, fitMode: 'fit', offsetX: 0, offsetY: 0 }, video)
+        : getShaderConfig({ ...editorState, activeFilter: filter, fitMode: 'fit', offsetX: 0, offsetY: 0 }, video);
     const passUniforms = { ...config.uniforms } as UniformMap & { u_pxSize?: number };
 
     if (filter === 'dithering' && typeof passUniforms.u_pxSize === 'number' && previewMount.parentWidth > 0) {
@@ -1015,8 +1066,10 @@ export async function renderShaderToBlob(
 
   for (let i = 0; i < renderStack.length; i++) {
     const filter = renderStack[i];
-    const stateForPass: EditorState = { ...state, activeFilter: filter, fitMode: 'fit', offsetX: 0, offsetY: 0 };
-    const config = getShaderConfig(stateForPass, sourceImage);
+    const config =
+      filter === 'blur_h'
+        ? getBlurHPassConfig({ ...state, fitMode: 'fit', offsetX: 0, offsetY: 0 }, sourceImage)
+        : getShaderConfig({ ...state, activeFilter: filter, fitMode: 'fit', offsetX: 0, offsetY: 0 }, sourceImage);
     const passUniforms = { ...config.uniforms } as UniformMap & { u_pxSize?: number; u_cellSize?: number; u_fontAtlas?: HTMLCanvasElement };
 
     if (
@@ -1111,8 +1164,10 @@ export async function renderImageAsVideoToBlob(
 
   for (let i = 0; i < renderStack.length; i++) {
     const filter = renderStack[i];
-    const stateForPass: EditorState = { ...state, activeFilter: filter, fitMode: 'fit', offsetX: 0, offsetY: 0 };
-    const config = getShaderConfig(stateForPass, sourceImage);
+    const config =
+      filter === 'blur_h'
+        ? getBlurHPassConfig({ ...state, fitMode: 'fit', offsetX: 0, offsetY: 0 }, sourceImage)
+        : getShaderConfig({ ...state, activeFilter: filter, fitMode: 'fit', offsetX: 0, offsetY: 0 }, sourceImage);
     const passUniforms = { ...config.uniforms } as UniformMap & { u_pxSize?: number };
 
     if (filter === 'dithering' && typeof passUniforms.u_pxSize === 'number' && shaderMount.parentWidth > 0) {

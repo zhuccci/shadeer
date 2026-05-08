@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this project is
 
-Neuroshade is a React + TypeScript image editing tool with real-time WebGL2 shader effects (glass, dithering, liquid, glitchy). Built with Vite, deployed to GitHub Pages.
+Shadeer is a React + TypeScript image editing tool with real-time WebGL2 shader effects (glass, dithering, liquid, glitchy). Built with Vite, deployed to GitHub Pages.
 
 ## Running the app
 
@@ -65,7 +65,7 @@ public/
 blueprints/                  # Reference HTML prototypes — not part of the app
 docs/                        # Build output (GitHub Pages)
 index.html                   # Vite entry HTML
-vite.config.ts               # base: '/neuroshade/', outDir: 'docs'
+vite.config.ts               # base: '/shadeer/', outDir: 'docs'
 figma.json                   # Figma Code Connect mapping (file key: vuz3bNrwb0IuzmzhgDuxk1)
 ```
 
@@ -134,8 +134,8 @@ Vanilla CSS — no Tailwind, no CSS modules, no CSS-in-JS.
 
 ```tsx
 <div className="btn-thumbnail">
-  <img src="/neuroshade/placeholders/glass.png" className="thumb-base" />
-  <img src="/neuroshade/placeholders/glass_hover.png" className="thumb-hover" />
+  <img src="/shadeer/placeholders/glass.png" className="thumb-base" />
+  <img src="/shadeer/placeholders/glass_hover.png" className="thumb-hover" />
 </div>
 ```
 
@@ -156,7 +156,7 @@ Vanilla CSS — no Tailwind, no CSS modules, no CSS-in-JS.
 ## Build & deployment
 
 - Output: `docs/` (GitHub Pages)
-- Base path: `/neuroshade/` — all `public/` asset URLs must include this prefix (handled automatically by Vite in production; use `/neuroshade/path` in code if hardcoding)
+- Base path: `/shadeer/` — all `public/` asset URLs must include this prefix (handled automatically by Vite in production; use `/shadeer/path` in code if hardcoding)
 - No server required — fully static
 
 ## Blueprints

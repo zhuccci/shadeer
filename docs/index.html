@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Neuroshade</title>
+    <title>Shadeer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="/neuroshade/assets/index-xtgHx85l.js"></script>
-    <link rel="stylesheet" crossorigin href="/neuroshade/assets/index-CbxILL1P.css">
+    <script type="module" crossorigin src="/assets/index-C2blqPxO.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BW3I23NS.css">
   </head>
   <body>
     <div id="root"></div>
@@ -16,7 +16,7 @@
       // Register service worker that injects COOP/COEP headers so
       // SharedArrayBuffer is available (required by ffmpeg.wasm).
       if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("/neuroshade/coi-serviceworker.js").then(
+        navigator.serviceWorker.register("/coi-serviceworker.js").then(
           function (reg) {
             // First activation requires a reload so the SW can intercept all fetches.
             if (!navigator.serviceWorker.controller) {

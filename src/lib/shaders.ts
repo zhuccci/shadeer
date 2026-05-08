@@ -1365,6 +1365,101 @@ void main() {
   fragColor = vec4(clamp(finalColor, 0.0, 1.0), tex.a);
 }`;
 
+
+// Pass 1 of 2 for Gaussian: horizontal 1D blur. Motion/radial pass through unchanged.
+export const blurHFragmentShader = `#version 300 es
+precision mediump float;
+uniform sampler2D u_image;
+uniform float u_blurType;
+uniform float u_strength;
+in vec2 v_imageUV;
+out vec4 fragColor;
+
+void main() {
+  vec2 uv = v_imageUV;
+  float inB = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
+  if (inB < 0.5) { fragColor = vec4(0.0); return; }
+
+  if (u_blurType > 0.5) {
+    fragColor = texture(u_image, uv);
+    return;
+  }
+
+  float origAlpha = texture(u_image, uv).a;
+  if (origAlpha < 0.01) { fragColor = vec4(0.0); return; }
+
+  float r = u_strength * 40.0;
+  float stepPx = max(1.0, r / 16.0);
+  float sigma2 = 2.0 * (r / 3.0) * (r / 3.0) + 0.001;
+  float texelX = 1.0 / float(textureSize(u_image, 0).x);
+  vec4 sum = vec4(0.0);
+  float wSum = 0.0;
+
+  for (int xi = -16; xi <= 16; xi++) {
+    float dx = float(xi) * stepPx;
+    float w = exp(-dx * dx / sigma2);
+    sum += texture(u_image, clamp(vec2(uv.x + dx * texelX, uv.y), 0.0, 1.0)) * w;
+    wSum += w;
+  }
+
+  fragColor = vec4(clamp((sum / wSum).rgb, 0.0, 1.0), origAlpha);
+}`;
+
+// Pass 2 of 2: vertical 1D Gaussian (reads H-blurred image). Full effect for motion/radial.
+export const blurFragmentShader = `#version 300 es
+precision mediump float;
+uniform sampler2D u_image;
+uniform float u_blurType;
+uniform float u_strength;
+uniform float u_angle;
+in vec2 v_imageUV;
+out vec4 fragColor;
+
+const int TAPS = 48;
+
+void main() {
+  vec2 uv = v_imageUV;
+  float inB = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
+  if (inB < 0.5) { fragColor = vec4(0.0); return; }
+  float origAlpha = texture(u_image, uv).a;
+  if (origAlpha < 0.01) { fragColor = vec4(0.0); return; }
+
+  vec2 texel = 1.0 / vec2(textureSize(u_image, 0));
+  vec4 sum = vec4(0.0);
+  float wSum = 0.0;
+
+  if (u_blurType < 0.5) {
+    float r = u_strength * 40.0;
+    float stepPx = max(1.0, r / 16.0);
+    float sigma2 = 2.0 * (r / 3.0) * (r / 3.0) + 0.001;
+    for (int yi = -16; yi <= 16; yi++) {
+      float dy = float(yi) * stepPx;
+      float w = exp(-dy * dy / sigma2);
+      sum += texture(u_image, clamp(uv + vec2(0.0, dy * texel.y), 0.0, 1.0)) * w;
+      wSum += w;
+    }
+    sum /= wSum;
+  } else if (u_blurType < 1.5) {
+    float dist = u_strength * 120.0;
+    vec2 dir = vec2(cos(u_angle), -sin(u_angle)) * dist * texel / float(TAPS);
+    for (int i = 0; i < TAPS; i++) {
+      float t = float(i) - float(TAPS - 1) * 0.5;
+      sum += texture(u_image, clamp(uv + dir * t, 0.0, 1.0));
+    }
+    sum /= float(TAPS);
+  } else {
+    float dist = u_strength * 0.5;
+    vec2 toCenter = (vec2(0.5) - uv) * dist;
+    for (int i = 0; i < TAPS; i++) {
+      float t = float(i) / float(TAPS - 1);
+      sum += texture(u_image, clamp(uv + toCenter * t, 0.0, 1.0));
+    }
+    sum /= float(TAPS);
+  }
+
+  fragColor = vec4(clamp(sum.rgb, 0.0, 1.0), origAlpha);
+}`;
+
 export class ShaderMount {
   parentElement: HTMLElement;
   canvasElement: HTMLCanvasElement;

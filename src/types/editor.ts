@@ -1,4 +1,4 @@
-export type ActiveFilter = 'glass' | 'dithering' | 'liquid' | 'glitchy' | 'halftone' | 'symbolEdges' | 'paper' | 'heatmap';
+export type ActiveFilter = 'glass' | 'dithering' | 'liquid' | 'glitchy' | 'halftone' | 'symbolEdges' | 'paper' | 'heatmap' | 'blur';
 
 export type SymbolEdgesMode = 'edges' | 'color';
 
@@ -14,6 +14,15 @@ export type DitherType = '2x2' | '4x4' | '8x8';
 export type HalftonePattern = 'dots' | 'lines' | 'cross' | 'gooey';
 
 export type HeatmapPalette = 'thermal' | 'inferno' | 'ice' | 'acid' | 'sunset';
+
+export type BlurType = 'gaussian' | 'motion' | 'radial';
+
+export interface BlurSettings {
+  type: BlurType;
+  strength: number;
+  angle: number;
+}
+
 
 export interface GradientStop {
   color: string;
@@ -115,6 +124,7 @@ export interface SymbolEdgesSettings {
   hideImage: boolean;
 }
 
+
 export interface HeatmapSettings {
   palette: HeatmapPalette;
   customGradient: boolean;
@@ -150,6 +160,7 @@ export interface EditorState {
   symbolEdges: SymbolEdgesSettings;
   paper: PaperSettings;
   heatmap: HeatmapSettings;
+  blur: BlurSettings;
   image: EditorImageState;
 }
 
@@ -242,6 +253,12 @@ export const defaultHeatmapSettings: HeatmapSettings = {
   blend: 100,
   grain: 0,
   blur: 0,
+};
+
+export const defaultBlurSettings: BlurSettings = {
+  type: 'gaussian',
+  strength: 40,
+  angle: 0,
 };
 
 export const defaultHalftoneSettings: HalftoneSettings = {
