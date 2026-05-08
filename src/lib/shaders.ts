@@ -1419,7 +1419,9 @@ in vec2 v_imageUV;
 out vec4 fragColor;
 
 float blurHash(vec2 p) {
-  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+  p = fract(p * vec2(0.3183099, 0.3678794)) + 0.1;
+  p += dot(p, p + 19.19);
+  return fract(p.x * p.y);
 }
 
 const int TAPS = 48;
@@ -1467,7 +1469,7 @@ void main() {
   vec3 color = clamp(sum.rgb, 0.0, 1.0);
   if (u_grain > 0.0) {
     float noise = blurHash(gl_FragCoord.xy) * 2.0 - 1.0;
-    color = clamp(color + vec3(noise) * u_grain * 0.4, 0.0, 1.0);
+    color = clamp(color + vec3(noise) * u_grain * 0.25, 0.0, 1.0);
   }
   fragColor = vec4(color, origAlpha);
 }`;
