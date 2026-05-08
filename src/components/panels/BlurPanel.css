@@ -1,14 +1,4 @@
-.blur-type-group {
+.blur-angle-wrap {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.blur-right {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  flex: 1;
-  min-width: 0;
 }

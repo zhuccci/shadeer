@@ -1441,7 +1441,7 @@ void main() {
     sum /= wSum;
   } else if (u_blurType < 1.5) {
     float dist = u_strength * 120.0;
-    vec2 dir = vec2(cos(u_angle), -sin(u_angle)) * dist * texel / float(TAPS);
+    vec2 dir = vec2(sin(u_angle), -cos(u_angle)) * dist * texel / float(TAPS);
     for (int i = 0; i < TAPS; i++) {
       float t = float(i) - float(TAPS - 1) * 0.5;
       sum += texture(u_image, clamp(uv + dir * t, 0.0, 1.0));
