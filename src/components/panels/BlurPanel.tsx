@@ -34,50 +34,55 @@ export function BlurPanel({ state, isActive, onTypeChange, onStrengthChange, onA
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
+  const sliders = (
+    <div className="controls-left">
+      <SliderControl label="Strength" min={0} max={100} value={b.strength} onChange={onStrengthChange} />
+      <SliderControl label="Grain" min={0} max={100} value={b.grain} onChange={onGrainChange} />
+    </div>
+  );
+
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="blurPanel">
-      <div className="controls-left">
-        <div ref={ref} className="selector-group">
-          <span className="selector-group-label">Type</span>
-          <div className={`selector${open ? ' open' : ''}`}>
-            <button type="button" className="selector-trigger" onClick={() => setOpen(o => !o)}>
-              <span className="selector-left">
-                <span className="option-text">{selected.label}</span>
-              </span>
-              <img
-                src={`${import.meta.env.BASE_URL}icons/chevron-down.svg`}
-                className="chevron"
-                alt=""
-                style={{ filter: 'brightness(0) invert(78%)' }}
-              />
-            </button>
-            <div className="dropdown">
-              {blurTypes.map(t => (
-                <button
-                  key={t.id}
-                  type="button"
-                  className={`dropdown-item${t.id === b.type ? ' active' : ''}`}
-                  onClick={() => { onTypeChange(t.id); setOpen(false); }}
-                >
-                  <span className="dropdown-item-text">{t.label}</span>
-                </button>
-              ))}
-            </div>
+      <div ref={ref} className="selector-group">
+        <span className="selector-group-label">Type</span>
+        <div className={`selector${open ? ' open' : ''}`}>
+          <button type="button" className="selector-trigger" onClick={() => setOpen(o => !o)}>
+            <span className="selector-left">
+              <span className="option-text">{selected.label}</span>
+            </span>
+            <img
+              src={`${import.meta.env.BASE_URL}icons/chevron-down.svg`}
+              className="chevron"
+              alt=""
+              style={{ filter: 'brightness(0) invert(78%)' }}
+            />
+          </button>
+          <div className="dropdown">
+            {blurTypes.map(t => (
+              <button
+                key={t.id}
+                type="button"
+                className={`dropdown-item${t.id === b.type ? ' active' : ''}`}
+                onClick={() => { onTypeChange(t.id); setOpen(false); }}
+              >
+                <span className="dropdown-item-text">{t.label}</span>
+              </button>
+            ))}
           </div>
         </div>
-        <SliderControl label="Strength" min={0} max={100} value={b.strength} onChange={onStrengthChange} />
-        <SliderControl label="Grain" min={0} max={100} value={b.grain} onChange={onGrainChange} />
       </div>
-      {b.type === 'motion' && (
-        <>
+
+      {b.type === 'motion' ? (
+        <div className="blur-motion-row">
+          {sliders}
           <div className="panel-divider" />
           <KnobControl
             labels={{ top: '0°', left: '270°', right: '90°', bottom: '180°' }}
             value={b.angle}
             onChange={onAngleChange}
           />
-        </>
-      )}
+        </div>
+      ) : sliders}
     </div>
   );
 }
