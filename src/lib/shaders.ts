@@ -1412,6 +1412,8 @@ uniform sampler2D u_image;
 uniform float u_blurType;
 uniform float u_strength;
 uniform float u_angle;
+uniform float u_centerX;
+uniform float u_centerY;
 in vec2 v_imageUV;
 out vec4 fragColor;
 
@@ -1449,7 +1451,7 @@ void main() {
     sum /= float(TAPS);
   } else {
     float dist = u_strength * 0.5;
-    vec2 toCenter = (vec2(0.5) - uv) * dist;
+    vec2 toCenter = (vec2(u_centerX, u_centerY) - uv) * dist;
     for (int i = 0; i < TAPS; i++) {
       float t = float(i) / float(TAPS - 1);
       sum += texture(u_image, clamp(uv + toCenter * t, 0.0, 1.0));

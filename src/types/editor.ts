@@ -21,6 +21,8 @@ export interface BlurSettings {
   type: BlurType;
   strength: number;
   angle: number;
+  centerX: number;
+  centerY: number;
 }
 
 
@@ -259,6 +261,8 @@ export const defaultBlurSettings: BlurSettings = {
   type: 'gaussian',
   strength: 40,
   angle: 0,
+  centerX: 0.5,
+  centerY: 0.5,
 };
 
 export const defaultHalftoneSettings: HalftoneSettings = {

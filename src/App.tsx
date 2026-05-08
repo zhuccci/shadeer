@@ -379,6 +379,9 @@ export default function App() {
           isDragging={imageDrag.isDragging}
           previewRef={previewRef}
           onUpload={handleUploadClick}
+          onBlurCenterChange={(x, y) =>
+            updateState((s) => ({ ...s, blur: { ...s.blur, centerX: x, centerY: y } }))
+          }
           onDropFile={(file) => {
             if (file.type.startsWith('video/')) void handleVideoFile(file);
             else void handleImageFile(file);

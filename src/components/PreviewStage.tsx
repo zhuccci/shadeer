@@ -16,7 +16,106 @@ interface PreviewStageProps {
   onPointerUp: PointerEventHandler<HTMLDivElement>;
   onPointerCancel: PointerEventHandler<HTMLDivElement>;
   onLostPointerCapture: PointerEventHandler<HTMLDivElement>;
+  onBlurCenterChange?: (x: number, y: number) => void;
 }
+
+// ── Coordinate helpers ────────────────────────────────────────────────────────
+
+function getImageBox(cw: number, ch: number, ar: number, fitMode: 'fit' | 'fill') {
+  if (fitMode === 'fit') {
+    return cw / ch > ar
+      ? { w: ch * ar, h: ch }
+      : { w: cw, h: cw / ar };
+  }
+  return cw / ch > ar
+    ? { w: cw, h: cw / ar }
+    : { w: ch * ar, h: ch };
+}
+
+function uvToCanvasPx(uvX: number, uvY: number, cw: number, ch: number, ar: number, fitMode: 'fit' | 'fill', offsetX: number, offsetY: number) {
+  const { w, h } = getImageBox(cw, ch, ar, fitMode);
+  return {
+    x: (uvX + offsetX) * w - 0.5 * (w - cw),
+    y: (uvY + offsetY) * h - 0.5 * (h - ch),
+  };
+}
+
+function canvasPxToUV(px: number, py: number, cw: number, ch: number, ar: number, fitMode: 'fit' | 'fill', offsetX: number, offsetY: number) {
+  const { w, h } = getImageBox(cw, ch, ar, fitMode);
+  return {
+    x: Math.max(0, Math.min(1, (px + 0.5 * (w - cw)) / w - offsetX)),
+    y: Math.max(0, Math.min(1, (py + 0.5 * (h - ch)) / h - offsetY)),
+  };
+}
+
+// ── Radial center handle ──────────────────────────────────────────────────────
+
+interface RadialHandleProps {
+  uvX: number;
+  uvY: number;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  ar: number;
+  fitMode: 'fit' | 'fill';
+  offsetX: number;
+  offsetY: number;
+  onChange: (x: number, y: number) => void;
+}
+
+function RadialCenterHandle({ uvX, uvY, containerRef, ar, fitMode, offsetX, offsetY, onChange }: RadialHandleProps) {
+  const [dragging, setDragging] = useState(false);
+
+  const getPos = useCallback(() => {
+    const el = containerRef.current;
+    if (!el) return { x: 0, y: 0 };
+    const { width, height } = el.getBoundingClientRect();
+    return uvToCanvasPx(uvX, uvY, width, height, ar, fitMode, offsetX, offsetY);
+  }, [uvX, uvY, containerRef, ar, fitMode, offsetX, offsetY]);
+
+  const pos = getPos();
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setDragging(true);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+    const el = containerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const uv = canvasPxToUV(
+      e.clientX - rect.left,
+      e.clientY - rect.top,
+      rect.width, rect.height,
+      ar, fitMode, offsetX, offsetY,
+    );
+    onChange(uv.x, uv.y);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.releasePointerCapture(e.pointerId);
+    setDragging(false);
+  };
+
+  return (
+    <div
+      className={`radial-center-handle${dragging ? ' dragging' : ''}`}
+      style={{ left: pos.x, top: pos.y }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onLostPointerCapture={() => setDragging(false)}
+    >
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <circle cx="12" cy="12" r="9" fill="none" stroke="#fff679" strokeWidth="1.5" />
+      </svg>
+    </div>
+  );
+}
+
+// ── PreviewStage ──────────────────────────────────────────────────────────────
 
 export function PreviewStage({
   state,
@@ -31,6 +130,7 @@ export function PreviewStage({
   onPointerUp,
   onPointerCancel,
   onLostPointerCapture,
+  onBlurCenterChange,
 }: PreviewStageProps) {
   const [controlsVisible, setControlsVisible] = useState(false);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -63,6 +163,12 @@ export function PreviewStage({
     if ((e.target as HTMLElement).closest('.preview-play-btn')) return;
     showControls();
   }, [showControls]);
+
+  const showRadialHandle =
+    state.activeFilter === 'blur' &&
+    state.blur.type === 'radial' &&
+    state.image.isReady &&
+    onBlurCenterChange != null;
 
   return (
     <div className="preview-panel" onTouchEnd={handlePanelTap}>
@@ -105,6 +211,19 @@ export function PreviewStage({
             Fit
           </button>
         </div>
+
+        {showRadialHandle && (
+          <RadialCenterHandle
+            uvX={state.blur.centerX}
+            uvY={state.blur.centerY}
+            containerRef={previewRef}
+            ar={state.image.aspectRatio}
+            fitMode={state.fitMode}
+            offsetX={state.offsetX}
+            offsetY={state.offsetY}
+            onChange={onBlurCenterChange!}
+          />
+        )}
       </div>
 
       {isAnimated && state.image.isReady && (

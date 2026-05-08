@@ -16,7 +16,7 @@ import { SaveIcon, UploadIcon } from './icons/AppIcons';
 import { filterOptions } from './filterOptions';
 import { sanitizeHex } from '../lib/editor';
 import { DITHER_PRESETS, ditherSwatchStyle } from './panels/DitheringPanel';
-import type { ActiveFilter, EditorState, GradientStop, HeatmapPalette } from '../types/editor';
+import type { ActiveFilter, BlurType, EditorState, GradientStop, HeatmapPalette } from '../types/editor';
 
 type MobileTab = 'sliders' | 'colors';
 
@@ -24,6 +24,7 @@ function getFirstTabLabel(filter: ActiveFilter): string {
   if (filter === 'symbolEdges') return 'Symbol';
   if (filter === 'heatmap') return 'Palette';
   if (filter === 'dithering') return 'Types';
+  if (filter === 'blur') return 'Type';
   return 'Sliders';
 }
 
@@ -845,6 +846,67 @@ function PaperPanelContent({ state, updateState, tab }: PanelContentProps) {
   );
 }
 
+const BLUR_TYPES: { id: BlurType; label: string }[] = [
+  { id: 'gaussian', label: 'Gaussian' },
+  { id: 'motion',   label: 'Motion' },
+  { id: 'radial',   label: 'Radial' },
+];
+
+function BlurPanelContent({ state, updateState }: PanelContentProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const b = state.blur;
+  const selected = BLUR_TYPES.find((t) => t.id === b.type) ?? BLUR_TYPES[0];
+
+  React.useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div className="mobile-panel-section">
+      <div ref={ref} className="selector-group">
+        <span className="selector-group-label">Type</span>
+        <div className={`selector${open ? ' open' : ''}`}>
+          <button type="button" className="selector-trigger" onClick={() => setOpen((o) => !o)}>
+            <span className="selector-left">
+              <span className="option-text">{selected.label}</span>
+            </span>
+            <img
+              src={`${import.meta.env.BASE_URL}icons/chevron-down.svg`}
+              className="chevron"
+              alt=""
+              style={{ filter: 'brightness(0) invert(78%)' }}
+            />
+          </button>
+          <div className="dropdown">
+            {BLUR_TYPES.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                className={`dropdown-item${t.id === b.type ? ' active' : ''}`}
+                onClick={() => {
+                  updateState((s) => ({
+                    ...s,
+                    blur: { ...s.blur, type: t.id, ...(t.id === 'radial' ? { centerX: 0.5, centerY: 0.5 } : {}) },
+                  }));
+                  setOpen(false);
+                }}
+              >
+                <span className="dropdown-item-text">{t.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 type MobileColorPickerState = { label: string; value: string; onChange: (v: string) => void; originX: string; originY: string } | null;
 
 export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSelect, isVideo, canExportVideo, savingProgress, savingPhase }: MobileDrawerProps) {
@@ -1082,6 +1144,9 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
                       )}
                       {state.activeFilter === 'heatmap' && (
                         <HeatmapPanelContent state={state} updateState={updateState} tab={activeTab} openColor={openColor} />
+                      )}
+                      {state.activeFilter === 'blur' && (
+                        <BlurPanelContent state={state} updateState={updateState} tab={activeTab} openColor={openColor} />
                       )}
                     </div>
                   </div>

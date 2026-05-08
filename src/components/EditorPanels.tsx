@@ -212,7 +212,7 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
       <BlurPanel
         state={state}
         isActive={state.activeFilter === 'blur'}
-        onTypeChange={(type) => updateState((current) => ({ ...current, blur: { ...current.blur, type } }))}
+        onTypeChange={(type) => updateState((current) => ({ ...current, blur: { ...current.blur, type, ...(type === 'radial' ? { centerX: 0.5, centerY: 0.5 } : {}) } }))}
         onStrengthChange={(strength) => updateState((current) => ({ ...current, blur: { ...current.blur, strength } }))}
         onAngleChange={(angle) => updateState((current) => ({ ...current, blur: { ...current.blur, angle } }))}
       />

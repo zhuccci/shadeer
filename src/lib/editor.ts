@@ -359,6 +359,8 @@ export function buildBlurUniforms(blur: BlurSettings, fitMode: FitMode, offsetX:
     u_blurType: blur.type === 'gaussian' ? 0 : blur.type === 'motion' ? 1 : 2,
     u_strength: blur.strength / 100,
     u_angle: (blur.angle * Math.PI) / 180,
+    u_centerX: blur.centerX,
+    u_centerY: blur.centerY,
   };
 }
 

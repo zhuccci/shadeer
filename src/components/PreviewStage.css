@@ -132,6 +132,37 @@ button.upload-btn:hover {
   color: var(--accent);
 }
 
+/* ── Radial blur center handle ── */
+.radial-center-handle {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  transform: translate(-50%, -50%);
+  cursor: move;
+  z-index: 5;
+  pointer-events: all;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radial-center-handle svg {
+  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.9));
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+}
+
+.radial-center-handle:hover svg,
+.radial-center-handle.dragging svg {
+  opacity: 1;
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 1));
+}
+
+.radial-center-handle.dragging {
+  cursor: grabbing;
+}
+
 /* ── Play/pause overlay button ── */
 .preview-play-btn {
   display: flex;
