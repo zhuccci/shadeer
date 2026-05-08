@@ -903,6 +903,22 @@ function BlurPanelContent({ state, updateState }: PanelContentProps) {
           </div>
         </div>
       </div>
+      <SliderControl
+        label="Strength"
+        min={0}
+        max={100}
+        value={b.strength}
+        onChange={(v) => updateState((s) => ({ ...s, blur: { ...s.blur, strength: v } }))}
+      />
+      {b.type === 'motion' && (
+        <div className="mobile-angle-tab mobile-knob-top">
+          <KnobControl
+            labels={{ top: '0°', left: '270°', right: '90°', bottom: '180°' }}
+            value={b.angle}
+            onChange={(v) => updateState((s) => ({ ...s, blur: { ...s.blur, angle: v } }))}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -1073,6 +1089,13 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
                   closing={colorPickerClosing}
                   onCloseEnd={() => { setMobileColorPicker(null); setColorPickerClosing(false); }}
                 />
+              ) : state.activeFilter === 'blur' ? (
+                /* Blur — no tabs, single scrollable column */
+                <div className="sheet-scroll">
+                  <div key="blur" className="sheet-tab-content">
+                    <BlurPanelContent state={state} updateState={updateState} tab="sliders" openColor={openColor} />
+                  </div>
+                </div>
               ) : (
                 <>
                   {/* Segmented tabs */}
@@ -1144,9 +1167,6 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
                       )}
                       {state.activeFilter === 'heatmap' && (
                         <HeatmapPanelContent state={state} updateState={updateState} tab={activeTab} openColor={openColor} />
-                      )}
-                      {state.activeFilter === 'blur' && (
-                        <BlurPanelContent state={state} updateState={updateState} tab={activeTab} openColor={openColor} />
                       )}
                     </div>
                   </div>
