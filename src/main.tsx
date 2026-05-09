@@ -6,7 +6,7 @@ import './components/Button.css';
 import './styles/app.css';
 
 posthog.init('phc_q4JRmDtuCymoWJzWfsHDy4pPX9kdUJuNtPQfcaZVi5ym', {
-  api_host: 'https://us.i.posthog.com',
+  api_host: 'https://eu.i.posthog.com',
   capture_pageview: true,
   capture_pageleave: true,
   autocapture: false,
