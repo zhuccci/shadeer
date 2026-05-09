@@ -1,6 +1,7 @@
 import './EditorPanels.css';
 import { sanitizeHex } from '../lib/editor';
-import type { EditorState } from '../types/editor';
+import type { ActiveFilter, EditorState } from '../types/editor';
+import { AddLayerIcon } from './icons/AppIcons';
 import { DitheringPanel } from './panels/DitheringPanel';
 import { GlassPanel } from './panels/GlassPanel';
 import { GlitchyPanel } from './panels/GlitchyPanel';
@@ -14,9 +15,12 @@ import { BlurPanel } from './panels/BlurPanel';
 interface EditorPanelsProps {
   state: EditorState;
   updateState: (updater: (state: EditorState) => EditorState) => void;
+  onAddLayer: (filter: ActiveFilter) => void;
 }
 
-export function EditorPanels({ state, updateState }: EditorPanelsProps) {
+export function EditorPanels({ state, updateState, onAddLayer }: EditorPanelsProps) {
+  const alreadyLayer = state.layers.some((l) => l.id === state.activeFilter);
+
   return (
     <div id="panelWrapper">
       <GlassPanel
@@ -217,6 +221,16 @@ export function EditorPanels({ state, updateState }: EditorPanelsProps) {
         onAngleChange={(angle) => updateState((current) => ({ ...current, blur: { ...current.blur, angle } }))}
         onGrainChange={(grain) => updateState((current) => ({ ...current, blur: { ...current.blur, grain } }))}
       />
+
+      <button
+        type="button"
+        className={`add-layer-btn${alreadyLayer ? ' add-layer-btn--added' : ''}`}
+        disabled={alreadyLayer}
+        onClick={() => onAddLayer(state.activeFilter)}
+      >
+        <AddLayerIcon />
+        Add as layer
+      </button>
     </div>
   );
 }

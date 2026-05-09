@@ -1,5 +1,4 @@
 import { ColorSelectorControl } from '../ColorSelectorControl';
-import { PauseIcon, PlayIcon } from '../icons/AppIcons';
 import { SliderControl } from '../SliderControl';
 import type { EditorState } from '../../types/editor';
 
@@ -19,7 +18,7 @@ export function LiquidPanel({
   state,
   isActive,
   onHighlightColorChange,
-  onTogglePlaying,
+  onTogglePlaying: _onTogglePlaying,
   onHighlightsChange,
   onWavesChange,
   onDistortionChange,
@@ -41,10 +40,6 @@ export function LiquidPanel({
           <ColorSelectorControl label="Highlight" value={state.liquid.highlightColor} onChange={onHighlightColorChange} />
         </div>
       </div>
-      <button type="button" className="btn btn-tertiary liq-play-pause-btn" onClick={onTogglePlaying}>
-        {state.liquid.playing ? <PauseIcon /> : <PlayIcon />}
-        {state.liquid.playing ? 'Pause Effect' : 'Play Effect'}
-      </button>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import posthog from 'posthog-js';
 import { ActionBar } from './components/ActionBar';
 import { CopyToast } from './components/CopyToast';
 import { EditorPanels } from './components/EditorPanels';
@@ -20,7 +21,7 @@ import {
 import { ShaderMount } from './lib/shaders';
 import { useImageDrag } from './hooks/useImageDrag';
 import { useShaderPreview } from './hooks/useShaderPreview';
-import type { ActiveFilter, EditorState } from './types/editor';
+import type { ActiveFilter, EditorState, LayerEntry } from './types/editor';
 
 const baseUrl = import.meta.env.BASE_URL;
 
@@ -100,6 +101,7 @@ export default function App() {
   }, [downloadUrl]);
 
   const handleFilterSelect = useCallback((filterId: ActiveFilter) => {
+    posthog.capture('filter_selected', { filter: filterId });
     updateState((current) => ({
       ...current,
       activeFilter: filterId,
@@ -110,23 +112,31 @@ export default function App() {
 
   const handleAddLayer = useCallback((filterId: ActiveFilter) => {
     updateState((current) => {
-      if (current.layers.includes(filterId)) return current;
-      return { ...current, layers: [filterId, ...current.layers] };
+      if (current.layers.some((l) => l.id === filterId)) return current;
+      return { ...current, layers: [{ id: filterId, hidden: false }, ...current.layers] };
     });
   }, [updateState]);
 
   const handleRemoveLayer = useCallback((filterId: ActiveFilter) => {
     updateState((current) => ({
       ...current,
-      layers: current.layers.filter((l) => l !== filterId),
+      layers: current.layers.filter((l) => l.id !== filterId),
     }));
   }, [updateState]);
 
-  const handleReorderLayers = useCallback((layers: ActiveFilter[]) => {
+  const handleReorderLayers = useCallback((layers: LayerEntry[]) => {
     updateState((current) => ({ ...current, layers }));
   }, [updateState]);
 
+  const handleToggleLayerVisibility = useCallback((filterId: ActiveFilter) => {
+    updateState((current) => ({
+      ...current,
+      layers: current.layers.map((l) => l.id === filterId ? { ...l, hidden: !l.hidden } : l),
+    }));
+  }, [updateState]);
+
   const handleImageFile = useCallback(async (file: File) => {
+    posthog.capture('image_uploaded', { type: file.type, size_kb: Math.round(file.size / 1024) });
     const objectUrl = URL.createObjectURL(file);
     const image = await loadImage(objectUrl);
     updateState((current) => ({
@@ -148,6 +158,7 @@ export default function App() {
   }, [updateState]);
 
   const handleVideoFile = useCallback(async (file: File) => {
+    posthog.capture('video_uploaded', { type: file.type, size_kb: Math.round(file.size / 1024) });
     const objectUrl = URL.createObjectURL(file);
     const video = document.createElement('video');
     video.src = objectUrl;
@@ -196,6 +207,7 @@ export default function App() {
   }, [editorState.image.video, updateState]);
 
   const handleSave = useCallback(async (format: 'png' | 'mp4' | 'webm' = 'png') => {
+    posthog.capture('export', { format, filter: editorState.activeFilter, layers: editorState.layers.length });
     if (editorState.image.isVideo && editorState.image.video && shaderMountRef.current) {
       const isMp4 = format === 'mp4';
       setSavingPhase('recording');
@@ -354,17 +366,16 @@ export default function App() {
       <div className="sidebar">
         <FilterStrip
           activeFilter={editorState.activeFilter}
-          layers={editorState.layers}
           onSelect={handleFilterSelect}
-          onAddLayer={handleAddLayer}
         />
-        <EditorPanels state={editorState} updateState={updateState} />
+        <EditorPanels state={editorState} updateState={updateState} onAddLayer={handleAddLayer} />
         <LayersPanel
           layers={editorState.layers}
           activeFilter={editorState.activeFilter}
           onRemove={handleRemoveLayer}
           onReorder={handleReorderLayers}
           onSelect={handleFilterSelect}
+          onToggleVisibility={handleToggleLayerVisibility}
         />
         <ActionBar visible={editorState.image.hasUserImage} onUpload={handleUploadClick} onSave={(fmt) => void handleSave(fmt)} isVideo={editorState.image.isVideo} canExportVideo={hasAnimatedEffect(editorState)} savingProgress={videoExportProgress} savingPhase={savingPhase} exportError={exportError} />
       </div>

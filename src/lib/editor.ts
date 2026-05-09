@@ -434,7 +434,7 @@ export function buildSymbolEdgesUniforms(
 const ANIMATED_FILTERS = new Set<ActiveFilter>(['liquid', 'glitchy']);
 
 export function hasAnimatedEffect(state: EditorState): boolean {
-  return ANIMATED_FILTERS.has(state.activeFilter) || state.layers.some((f) => ANIMATED_FILTERS.has(f));
+  return ANIMATED_FILTERS.has(state.activeFilter) || state.layers.some((l) => ANIMATED_FILTERS.has(l.id));
 }
 
 export type RenderFilter = ActiveFilter | 'blur_h';
@@ -443,10 +443,12 @@ export function getRenderStack(state: EditorState): RenderFilter[] {
   const expand = (f: ActiveFilter): RenderFilter[] => (f === 'blur' ? ['blur_h', 'blur'] : [f]);
   const { activeFilter, layers } = state;
   if (layers.length === 0) return expand(activeFilter);
-  const bottomToTop = [...layers].reverse();
-  const base = layers.includes(activeFilter) ? bottomToTop : [...bottomToTop, activeFilter];
+  const visibleLayers = layers.filter((l) => !l.hidden);
+  const bottomToTop = visibleLayers.reverse().map((l) => l.id);
+  const base = layers.some((l) => l.id === activeFilter) ? bottomToTop : [...bottomToTop, activeFilter];
   return base.flatMap(expand);
 }
+
 
 export function getBlurHPassConfig(state: EditorState, image: HTMLImageElement | HTMLVideoElement) {
   return {
@@ -454,18 +456,20 @@ export function getBlurHPassConfig(state: EditorState, image: HTMLImageElement |
     uniforms: {
       u_image: image,
       ...buildBlurUniforms(state.blur, 'fit', 0, 0),
+      u_opacity: 1.0,
     },
     speed: 0,
   };
 }
 
-export function getShaderConfig(state: EditorState, image: HTMLImageElement | HTMLVideoElement) {
+export function getShaderConfig(state: EditorState, image: HTMLImageElement | HTMLVideoElement, opacity = 1.0) {
   if (state.activeFilter === 'dithering') {
     return {
       fragmentShader: imageDitheringFragmentShader,
       uniforms: {
         u_image: image,
         ...buildDitheringUniforms(state.dithering, state.fitMode, state.offsetX, state.offsetY),
+        u_opacity: opacity,
       },
       speed: 0,
     };
@@ -477,6 +481,7 @@ export function getShaderConfig(state: EditorState, image: HTMLImageElement | HT
       uniforms: {
         u_image: image,
         ...buildLiquidUniforms(state.liquid, state.fitMode, state.offsetX, state.offsetY),
+        u_opacity: opacity,
       },
       speed: state.liquid.playing ? 1 : 0,
     };
@@ -488,6 +493,7 @@ export function getShaderConfig(state: EditorState, image: HTMLImageElement | HT
       uniforms: {
         u_image: image,
         ...buildGlitchyUniforms(state.glitchy, state.fitMode, state.offsetX, state.offsetY),
+        u_opacity: opacity,
       },
       speed: state.glitchy.playing ? 1 : 0,
     };
@@ -499,6 +505,7 @@ export function getShaderConfig(state: EditorState, image: HTMLImageElement | HT
       uniforms: {
         u_image: image,
         ...buildHalftoneUniforms(state.halftone, state.fitMode, state.offsetX, state.offsetY),
+        u_opacity: opacity,
       },
       speed: 0,
     };
@@ -510,6 +517,7 @@ export function getShaderConfig(state: EditorState, image: HTMLImageElement | HT
       uniforms: {
         u_image: image,
         ...buildPaperUniforms(state.paper, state.fitMode, state.offsetX, state.offsetY),
+        u_opacity: opacity,
       },
       speed: 0,
     };
@@ -521,6 +529,7 @@ export function getShaderConfig(state: EditorState, image: HTMLImageElement | HT
       uniforms: {
         u_image: image,
         ...buildSymbolEdgesUniforms(state.symbolEdges, state.fitMode, state.offsetX, state.offsetY),
+        u_opacity: opacity,
       },
       speed: 0,
     };
@@ -532,6 +541,7 @@ export function getShaderConfig(state: EditorState, image: HTMLImageElement | HT
       uniforms: {
         u_image: image,
         ...buildHeatmapUniforms(state.heatmap, state.fitMode, state.offsetX, state.offsetY),
+        u_opacity: opacity,
       },
       speed: 0,
     };
@@ -543,6 +553,7 @@ export function getShaderConfig(state: EditorState, image: HTMLImageElement | HT
       uniforms: {
         u_image: image,
         ...buildBlurUniforms(state.blur, state.fitMode, state.offsetX, state.offsetY),
+        u_opacity: opacity,
       },
       speed: 0,
     };
@@ -550,7 +561,7 @@ export function getShaderConfig(state: EditorState, image: HTMLImageElement | HT
 
   return {
     fragmentShader: flutedGlassFragmentShader,
-    uniforms: buildGlassUniforms(image, state.glass, state.fitMode, state.offsetX, state.offsetY),
+    uniforms: { ...buildGlassUniforms(image, state.glass, state.fitMode, state.offsetX, state.offsetY), u_opacity: opacity },
     speed: 0,
   };
 }
@@ -833,7 +844,7 @@ export async function renderVideoToBlob(
     const config =
       filter === 'blur_h'
         ? getBlurHPassConfig({ ...editorState, fitMode: 'fit', offsetX: 0, offsetY: 0 }, video)
-        : getShaderConfig({ ...editorState, activeFilter: filter, fitMode: 'fit', offsetX: 0, offsetY: 0 }, video);
+        : getShaderConfig({ ...editorState, activeFilter: filter, fitMode: 'fit', offsetX: 0, offsetY: 0 }, video, 1.0);
     const passUniforms = { ...config.uniforms } as UniformMap & { u_pxSize?: number };
 
     if (filter === 'dithering' && typeof passUniforms.u_pxSize === 'number' && previewMount.parentWidth > 0) {
@@ -1072,7 +1083,7 @@ export async function renderShaderToBlob(
     const config =
       filter === 'blur_h'
         ? getBlurHPassConfig({ ...state, fitMode: 'fit', offsetX: 0, offsetY: 0 }, sourceImage)
-        : getShaderConfig({ ...state, activeFilter: filter, fitMode: 'fit', offsetX: 0, offsetY: 0 }, sourceImage);
+        : getShaderConfig({ ...state, activeFilter: filter, fitMode: 'fit', offsetX: 0, offsetY: 0 }, sourceImage, 1.0);
     const passUniforms = { ...config.uniforms } as UniformMap & { u_pxSize?: number; u_cellSize?: number; u_fontAtlas?: HTMLCanvasElement };
 
     if (
@@ -1170,7 +1181,7 @@ export async function renderImageAsVideoToBlob(
     const config =
       filter === 'blur_h'
         ? getBlurHPassConfig({ ...state, fitMode: 'fit', offsetX: 0, offsetY: 0 }, sourceImage)
-        : getShaderConfig({ ...state, activeFilter: filter, fitMode: 'fit', offsetX: 0, offsetY: 0 }, sourceImage);
+        : getShaderConfig({ ...state, activeFilter: filter, fitMode: 'fit', offsetX: 0, offsetY: 0 }, sourceImage, 1.0);
     const passUniforms = { ...config.uniforms } as UniformMap & { u_pxSize?: number };
 
     if (filter === 'dithering' && typeof passUniforms.u_pxSize === 'number' && shaderMount.parentWidth > 0) {

@@ -15,7 +15,7 @@
   pointer-events: none;
   transition: opacity 100ms ease-out;
   gap: 24px;
-  padding: 24px;
+  padding: 24px 24px 80px;
   border-radius: 24px;
   background: #191919;
   box-shadow: inset 0 0 0 0.5px #494949, inset 0 0 40px rgba(0, 0, 0, 0.5);
@@ -155,7 +155,6 @@
   width: fit-content;
 }
 
-#glassPanel .controls-left,
 #halftonePanel .controls-left {
   overflow: visible;
 }
@@ -414,3 +413,39 @@
 .panel-active .paper-sub-controls > *:nth-child(1) { animation-delay: 20ms; }
 .panel-active .paper-sub-controls > *:nth-child(2) { animation-delay: 50ms; }
 .panel-active .paper-sub-controls > *:nth-child(3) { animation-delay: 80ms; }
+
+/* ── Add as layer button ── */
+.add-layer-btn {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--panel-light);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 400;
+  cursor: pointer;
+  z-index: 5;
+  transition: background 0.15s ease-out, opacity 0.15s ease-out, transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.add-layer-btn:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .add-layer-btn:not(:disabled):hover {
+    background: #444;
+  }
+}
+
+.add-layer-btn--added {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

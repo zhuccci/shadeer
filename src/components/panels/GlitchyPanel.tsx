@@ -3,7 +3,6 @@ import { CheckboxControl } from '../CheckboxControl';
 import { GlitchFormSelector } from '../GlitchFormSelector';
 import { GlitchModeSelector } from '../GlitchModeSelector';
 import { SliderControl } from '../SliderControl';
-import { PauseIcon, PlayIcon } from '../icons/AppIcons';
 import type { GlitchMode, GlitchFormMode, EditorState } from '../../types/editor';
 
 interface GlitchyPanelProps {
@@ -37,7 +36,7 @@ export function GlitchyPanel({
   onVhsBandOpacityChange,
   onVhsNoiseLevelChange,
   onVhsBandHeightChange,
-  onTogglePlaying,
+  onTogglePlaying: _onTogglePlaying,
 }: GlitchyPanelProps) {
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="glitchyPanel">
@@ -81,10 +80,6 @@ export function GlitchyPanel({
         </div>
       </div>
 
-      <button type="button" className="btn btn-tertiary glitchy-play-btn" onClick={onTogglePlaying}>
-        {state.glitchy.playing ? <PauseIcon /> : <PlayIcon />}
-        {state.glitchy.playing ? 'Pause Effect' : 'Play Effect'}
-      </button>
     </div>
   );
 }

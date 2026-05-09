@@ -149,9 +149,14 @@ export interface EditorImageState {
   isReady: boolean;
 }
 
+export interface LayerEntry {
+  id: ActiveFilter;
+  hidden: boolean;
+}
+
 export interface EditorState {
   activeFilter: ActiveFilter;
-  layers: ActiveFilter[];
+  layers: LayerEntry[];
   fitMode: FitMode;
   offsetX: number;
   offsetY: number;

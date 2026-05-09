@@ -139,6 +139,13 @@ float snoise(vec2 v) {
 }
 `;
 
+const _opacityBlend = `
+uniform float u_opacity;
+vec4 layerBlend(vec4 filtered) {
+  float ib = step(0.0, v_imageUV.x) * step(v_imageUV.x, 1.0) * step(0.0, v_imageUV.y) * step(v_imageUV.y, 1.0);
+  return mix(texture(u_image, clamp(v_imageUV, vec2(0.0), vec2(1.0))) * ib, filtered, u_opacity);
+}`;
+
 export const flutedGlassFragmentShader = `#version 300 es
 precision mediump float;
 uniform vec2 u_resolution;
@@ -167,6 +174,7 @@ uniform float u_marginBottom;
 uniform float u_grainMixer;
 uniform float u_grainOverlay;
 in vec2 v_imageUV;
+${_opacityBlend}
 out vec4 fragColor;
 ${_declarePI}
 ${_rotation2}
@@ -333,7 +341,7 @@ void main() {
   float grainOverlayStrength = pow(u_grainOverlay * abs(grainOverlayV), .8) * mask;
   color = mix(color, vec3(step(0., grainOverlayV)), .35 * grainOverlayStrength);
   opacity = clamp(opacity + .5 * grainOverlayStrength, 0., 1.);
-  fragColor = vec4(color, opacity) * image.a * frame;
+  fragColor = layerBlend(vec4(color, opacity) * image.a * frame);
 }`;
 
 export const GlassGridShapes = {
@@ -359,6 +367,7 @@ uniform float u_edges;
 uniform float u_caustic;
 uniform float u_waves;
 in vec2 v_imageUV;
+${_opacityBlend}
 out vec4 fragColor;
 ${_declarePI}
 ${_rotation2}
@@ -420,7 +429,7 @@ void main() {
   color += hightlight * (.5 + .5 * wavesNoise);
   opacity += hightlight * (.5 + .5 * wavesNoise);
   opacity = clamp(opacity, 0., 1.);
-  fragColor = vec4(color, opacity) * image.a * frame;
+  fragColor = layerBlend(vec4(color, opacity) * image.a * frame);
 }`;
 
 export const glitchyFragmentShader = `#version 300 es
@@ -440,6 +449,7 @@ uniform float u_glitchStrength;
 uniform float u_glitchAmount;
 uniform float u_glitchMode;
 in vec2 v_imageUV;
+${_opacityBlend}
 out vec4 fragColor;
 float rand(vec2 co) {
   return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
@@ -635,7 +645,7 @@ void main() {
     color = clamp(color + grain * u_vhsNoiseLevel, 0.0, 1.0);
   }
 
-  fragColor = vec4(color * a_ch, a_ch) * inBounds;
+  fragColor = layerBlend(vec4(color * a_ch, a_ch) * inBounds);
 }`;
 
 export const DitheringTypes = {
@@ -669,6 +679,8 @@ uniform float u_pxSize;
 uniform bool u_originalColors;
 uniform bool u_inverted;
 uniform float u_colorSteps;
+in vec2 v_imageUV;
+${_opacityBlend}
 out vec4 fragColor;
 #define PI 3.14159265358979323846
 float hash21(vec2 p) {
@@ -753,7 +765,7 @@ void main() {
     color   = fgVec.rgb;
     opacity = fgVec.a;
   }
-  fragColor = vec4(color, opacity) * image.a * frame;
+  fragColor = layerBlend(vec4(color, opacity) * image.a * frame);
 }`;
 
 export const halftoneFragmentShader = `#version 300 es
@@ -777,6 +789,7 @@ uniform vec4 u_color3;
 uniform vec4 u_color4;
 uniform float u_angle;
 in vec2 v_imageUV;
+${_opacityBlend}
 out vec4 fragColor;
 void main() {
   float inBounds = float(v_imageUV.x >= 0.0 && v_imageUV.x <= 1.0 &&
@@ -912,7 +925,7 @@ void main() {
   float htBlend = 1.0 - smoothstep(u_shadowRange - 0.05, u_shadowRange + 0.05, pixLum);
   if (u_shadowInvert > 0.5) htBlend = 1.0 - htBlend;
   vec4 origResult = vec4(origTex.rgb * origTex.a, origTex.a) * inBounds;
-  fragColor = mix(origResult, halftoneResult, htBlend);
+  fragColor = layerBlend(mix(origResult, halftoneResult, htBlend));
 }`;
 
 function createShader(gl: WebGL2RenderingContext, type: number, source: string) {
@@ -1010,6 +1023,7 @@ uniform float u_invert;
 uniform float u_hideImage;
 uniform float u_seGlow;
 in vec2 v_imageUV;
+${_opacityBlend}
 out vec4 fragColor;
 
 float lum(vec4 c) { return dot(c.rgb, vec3(0.299, 0.587, 0.114)); }
@@ -1112,7 +1126,7 @@ void main() {
       }
     }
     vec3 glowCol = u_symbolColor.rgb * glowAmt * u_seGlow * 0.5;
-    fragColor = vec4(clamp(fragColor.rgb + glowCol, 0.0, 1.0), fragColor.a);
+    fragColor = layerBlend(vec4(clamp(fragColor.rgb + glowCol, 0.0, 1.0), fragColor.a));
   }
 }`;
 
@@ -1134,6 +1148,7 @@ uniform float u_hasScan;
 uniform float u_scanOpacity;
 uniform float u_scanScale;
 in vec2 v_imageUV;
+${_opacityBlend}
 out vec4 fragColor;
 ${_hash21}
 float valueNoise(vec2 st) {
@@ -1240,7 +1255,7 @@ void main() {
     color = mix(color, screened, u_scanOpacity * 0.6);
   }
 
-  fragColor = vec4(color * alpha, alpha) * inBounds;
+  fragColor = layerBlend(vec4(color * alpha, alpha) * inBounds);
 }`;
 
 export const heatmapFragmentShader = `#version 300 es
@@ -1265,6 +1280,7 @@ uniform float u_customGradient;
 uniform float u_customStopCount;
 uniform vec4 u_customStops[8];
 in vec2 v_imageUV;
+${_opacityBlend}
 out vec4 fragColor;
 
 float hmHash(vec2 p) {
@@ -1362,7 +1378,7 @@ void main() {
     finalColor += noise * u_grain * 0.12;
   }
 
-  fragColor = vec4(clamp(finalColor, 0.0, 1.0), tex.a);
+  fragColor = layerBlend(vec4(clamp(finalColor, 0.0, 1.0), tex.a));
 }`;
 
 
@@ -1373,6 +1389,7 @@ uniform sampler2D u_image;
 uniform float u_blurType;
 uniform float u_strength;
 in vec2 v_imageUV;
+${_opacityBlend}
 out vec4 fragColor;
 
 void main() {
@@ -1416,6 +1433,7 @@ uniform float u_centerX;
 uniform float u_centerY;
 uniform float u_grain;
 in vec2 v_imageUV;
+${_opacityBlend}
 out vec4 fragColor;
 
 float blurHash(vec2 p) {
@@ -1471,7 +1489,7 @@ void main() {
     float noise = blurHash(gl_FragCoord.xy) * 2.0 - 1.0;
     color = clamp(color + vec3(noise) * u_grain * 0.12, 0.0, 1.0);
   }
-  fragColor = vec4(color, origAlpha);
+  fragColor = layerBlend(vec4(color, origAlpha));
 }`;
 
 export class ShaderMount {

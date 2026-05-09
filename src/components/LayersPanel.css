@@ -1,96 +1,176 @@
 .layers-panel {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   background: #191919;
-  border-radius: 24px;
-  box-shadow: inset 0 0 0 0.5px #494949, inset 0 0 40px rgba(0, 0, 0, 0.5);
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 0.5px #606060, inset 0 0 40px rgba(0, 0, 0, 0.5);
   padding: 24px;
   flex-shrink: 0;
+  max-height: 0;
+  margin-top: -24px;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.3s cubic-bezier(0.23, 1, 0.32, 1), margin-top 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.layers-panel--visible {
+  max-height: 360px;
+  margin-top: -8px;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .layers-title {
-  font-size: 11px;
-  font-weight: 500;
-  color: #606060;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-size: 16px;
+  font-weight: 400;
+  color: #d6d6d6;
+  transition: opacity 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+
+  @starting-style {
+    opacity: 0;
+  }
 }
 
 .layers-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
+/* Each row: [eye+name flex-1] [gap 16px] [trash] */
 .layer-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: #222222;
-  border-radius: 10px;
-  padding: 8px 10px;
-  border: 0.5px solid #333;
-  transition: border-color 0.15s ease, background 0.15s ease;
-  cursor: grab;
+  gap: 16px;
   user-select: none;
+  transition: opacity 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+
+  @starting-style {
+    opacity: 0;
+  }
 }
 
-.layer-row:active {
-  cursor: grabbing;
+.layer-row--over .layer-name-btn {
+  outline: 1px solid #fff67980;
 }
 
-.layer-row--over {
-  border-color: #fff679;
-  background: #303020;
-}
-
-.layer-row--active {
-  border-color: #fff679;
-  background: #252515;
-}
-
-.layer-row--active .layer-name {
-  color: #fff679;
-}
-
-.layer-drag-handle {
-  color: #555;
+/* Left section: fills available space */
+.layer-left {
+  flex: 1;
   display: flex;
   align-items: center;
+  min-width: 0;
+}
+
+/* Eye toggle button */
+.layer-eye-btn {
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #d6d6d6;
+  cursor: pointer;
   flex-shrink: 0;
   transition: color 0.15s ease;
 }
 
-.layer-row:hover .layer-drag-handle {
-  color: #888;
-}
-
-.layer-name {
-  flex: 1;
-  font-size: 13px;
-  color: #c7c7c7;
-  font-weight: 400;
-}
-
-.layer-remove-btn {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: transparent;
-  border: none;
-  color: #555;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: color 0.15s ease, background 0.15s ease;
+.layer-eye-btn--hidden {
+  color: #606060;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .layer-remove-btn:hover {
+  .layer-eye-btn:hover {
+    color: var(--text);
+  }
+}
+
+/* Name/drag button */
+.layer-name-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  background: #373737;
+  border: none;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px transparent;
+  color: #d6d6d6;
+  font-size: 16px;
+  font-family: inherit;
+  font-weight: 400;
+  cursor: grab;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+}
+
+.layer-name-btn:active {
+  cursor: grabbing;
+}
+
+.layer-name-btn--active {
+  box-shadow: inset 0 0 0 1px #fff679;
+  color: #fff679;
+  text-shadow: 0 0 16px #fff679;
+}
+
+.layer-name-btn--active svg {
+  color: #fff679;
+}
+
+.layer-name-btn--hidden {
+  background: rgba(55, 55, 55, 0.3);
+  color: #6a6a6a;
+}
+
+.layer-name-btn--hidden svg {
+  color: #6a6a6a;
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .layers-panel {
+    transition: opacity 0.25s ease;
+  }
+}
+
+/* Right section: trash */
+.layer-right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-right: -8px;
+}
+
+.layer-trash-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: #606060;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.2s ease-out, background 0.2s ease-out, transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.layer-trash-btn:active {
+  transform: scale(0.85);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .layer-trash-btn:hover {
     color: #ff6b6b;
-    background: rgba(255, 107, 107, 0.12);
+    background: rgba(20, 20, 20, 0.6);
   }
 }

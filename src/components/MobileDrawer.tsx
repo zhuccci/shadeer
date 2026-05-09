@@ -1023,7 +1023,7 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
           <div className="sheet-filter-area">
             <div className="sheet-filter-area-inner">
               <div className="sheet-filter-strip">
-                <FilterStrip activeFilter={state.activeFilter} layers={state.layers} onSelect={onFilterSelect} onAddLayer={() => {}} />
+                <FilterStrip activeFilter={state.activeFilter} onSelect={onFilterSelect} />
               </div>
             </div>
           </div>

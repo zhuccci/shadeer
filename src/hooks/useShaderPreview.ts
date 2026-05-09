@@ -16,10 +16,12 @@ function getRenderStack(state: EditorState): string[] {
   const expand = (f: ActiveFilter): string[] => (f === 'blur' ? ['blur_h', 'blur'] : [f]);
   const { activeFilter, layers } = state;
   if (layers.length === 0) return expand(activeFilter);
-  const bottomToTop = [...layers].reverse();
-  const base = layers.includes(activeFilter) ? bottomToTop : [...bottomToTop, activeFilter];
+  const visibleLayers = layers.filter((l) => !l.hidden);
+  const bottomToTop = [...visibleLayers].reverse().map((l) => l.id);
+  const base = layers.some((l) => l.id === activeFilter) ? bottomToTop : [...bottomToTop, activeFilter];
   return base.flatMap(expand);
 }
+
 
 export function useShaderPreview({ editorState, previewRef, shaderMountRef }: UseShaderPreviewOptions) {
   const media = editorState.image.video ?? editorState.image.image;
@@ -68,7 +70,7 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
       const config =
         filter === 'blur_h'
           ? getBlurHPassConfig({ ...editorState, fitMode: 'fit', offsetX: 0, offsetY: 0 }, media)
-          : getShaderConfig({ ...editorState, activeFilter: filter as ActiveFilter, fitMode, offsetX, offsetY }, media);
+          : getShaderConfig({ ...editorState, activeFilter: filter as ActiveFilter, fitMode, offsetX, offsetY }, media, 1.0);
 
       if (isLast) {
         const mount = new ShaderMount(preview, config.fragmentShader, config.uniforms, undefined, config.speed);
@@ -131,7 +133,7 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
       const config =
         filter === 'blur_h'
           ? getBlurHPassConfig({ ...editorState, fitMode: 'fit', offsetX: 0, offsetY: 0 }, media)
-          : getShaderConfig({ ...editorState, activeFilter: filter as ActiveFilter, fitMode, offsetX, offsetY }, media);
+          : getShaderConfig({ ...editorState, activeFilter: filter as ActiveFilter, fitMode, offsetX, offsetY }, media, 1.0);
 
       if (i > 0) {
         // Don't overwrite the canvas texture for chained mounts
