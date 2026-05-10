@@ -1,0 +1,178 @@
+.landing-page {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Header ── */
+.landing-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+.landing-logo {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.landing-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.landing-menu-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: default;
+  padding: 0;
+  color: #fff;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+/* ── Hero ── */
+.landing-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  justify-content: flex-end;
+}
+
+/* ── Deer video ── */
+.landing-deer-wrap {
+  width: 378px;
+  flex-shrink: 0;
+  margin-bottom: -160px;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.landing-deer-video {
+  width: 100%;
+  display: block;
+}
+
+/* ── Gradient + text section ── */
+.landing-bottom {
+  width: 100%;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+  background: linear-gradient(to top, #000 55%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 56px 24px;
+  gap: 24px;
+}
+
+.landing-title-row {
+  display: flex;
+  align-items: center;
+  gap: 34px;
+}
+
+.landing-title {
+  font-family: 'Geist', 'Inter', system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 48px;
+  color: #fff679;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.landing-tagline {
+  font-family: 'Geist', 'Inter', system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  color: #fff679;
+  line-height: 1.4;
+  width: 172px;
+}
+
+/* ── CTA button ── */
+.landing-cta-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(to bottom, #fff679, #d7cf5f);
+  color: #141414;
+  font-family: 'Geist', 'Inter', system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow:
+    0px 2px 8px 0px rgba(0, 0, 0, 0.2),
+    0px 0px 39px 0px rgba(255, 246, 117, 0.3),
+    inset 0px 4px 6px 0px rgba(255, 255, 255, 0.4);
+  transition: box-shadow 0.2s ease-out, transform 0.15s ease-out;
+}
+
+.landing-cta-btn:hover {
+  box-shadow:
+    0px 2px 8px 0px rgba(0, 0, 0, 0.25),
+    0px 0px 56px 0px rgba(255, 246, 117, 0.45),
+    inset 0px 4px 6px 0px rgba(255, 255, 255, 0.4);
+}
+
+.landing-cta-btn:active {
+  transform: scale(0.97);
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .landing-deer-wrap {
+    width: 280px;
+    margin-bottom: -120px;
+  }
+
+  .landing-title {
+    font-size: 36px;
+  }
+
+  .landing-bottom {
+    padding: 40px 20px;
+    gap: 20px;
+  }
+
+  .landing-title-row {
+    gap: 20px;
+  }
+
+  .landing-tagline {
+    font-size: 14px;
+    width: 140px;
+  }
+}

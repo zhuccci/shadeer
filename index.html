@@ -11,6 +11,16 @@
   <body>
     <div id="root"></div>
     <script>
+      // Restore path after GitHub Pages 404 redirect
+      (function () {
+        var redirect = sessionStorage.redirect;
+        delete sessionStorage.redirect;
+        if (redirect && redirect !== location.href) {
+          history.replaceState(null, null, redirect);
+        }
+      })();
+    </script>
+    <script>
       // Register service worker that injects COOP/COEP headers so
       // SharedArrayBuffer is available (required by ffmpeg.wasm).
       if ("serviceWorker" in navigator) {
