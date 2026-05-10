@@ -1,5 +1,6 @@
-import { useNavigate } from 'react-router-dom';
+import '../components/Button.css';
 import './LandingPage.css';
+import { usePageTransition } from '../components/PageTransition';
 
 function HamburgerIcon() {
   return (
@@ -12,7 +13,7 @@ function HamburgerIcon() {
 }
 
 export function LandingPage() {
-  const navigate = useNavigate();
+  const { navigateTo } = usePageTransition();
 
   return (
     <div className="landing-page">
@@ -49,8 +50,8 @@ export function LandingPage() {
             </p>
           </div>
           <button
-            className="landing-cta-btn"
-            onClick={() => navigate('/create')}
+            className="btn btn-primary"
+            onClick={() => navigateTo('/create')}
           >
             START EDITING
           </button>
