@@ -39,6 +39,8 @@ export interface GlassSettings {
   shape: GlassShape;
   shadow: number;
   distortion: number;
+  centerX: number;
+  centerY: number;
 }
 
 export interface DitheringSettings {
@@ -179,6 +181,8 @@ export const defaultGlassSettings: GlassSettings = {
   shape: 'lines',
   shadow: 70,
   distortion: 50,
+  centerX: 0.5,
+  centerY: 0.5,
 };
 
 export const defaultDitheringSettings: DitheringSettings = {

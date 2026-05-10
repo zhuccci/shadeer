@@ -17,6 +17,7 @@ interface PreviewStageProps {
   onPointerCancel: PointerEventHandler<HTMLDivElement>;
   onLostPointerCapture: PointerEventHandler<HTMLDivElement>;
   onBlurCenterChange?: (x: number, y: number) => void;
+  onGlassCenterChange?: (x: number, y: number) => void;
 }
 
 // ── Coordinate helpers ────────────────────────────────────────────────────────
@@ -131,6 +132,7 @@ export function PreviewStage({
   onPointerCancel,
   onLostPointerCapture,
   onBlurCenterChange,
+  onGlassCenterChange,
 }: PreviewStageProps) {
   const [controlsVisible, setControlsVisible] = useState(false);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -169,6 +171,11 @@ export function PreviewStage({
     state.blur.type === 'radial' &&
     state.image.isReady &&
     onBlurCenterChange != null;
+
+  const showGlassHandle =
+    state.activeFilter === 'glass' &&
+    state.image.isReady &&
+    onGlassCenterChange != null;
 
   return (
     <div className="preview-panel" onTouchEnd={handlePanelTap}>
@@ -222,6 +229,18 @@ export function PreviewStage({
             offsetX={state.offsetX}
             offsetY={state.offsetY}
             onChange={onBlurCenterChange!}
+          />
+        )}
+        {showGlassHandle && (
+          <RadialCenterHandle
+            uvX={state.glass.centerX}
+            uvY={state.glass.centerY}
+            containerRef={previewRef}
+            ar={state.image.aspectRatio}
+            fitMode={state.fitMode}
+            offsetX={state.offsetX}
+            offsetY={state.offsetY}
+            onChange={onGlassCenterChange!}
           />
         )}
       </div>

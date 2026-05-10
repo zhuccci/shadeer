@@ -7,7 +7,7 @@ import './BlurPanel.css';
 const blurTypes: { id: BlurType; label: string }[] = [
   { id: 'gaussian', label: 'Gaussian' },
   { id: 'motion',   label: 'Motion' },
-  { id: 'radial',   label: 'Radial' },
+  { id: 'radial',   label: 'Zoom' },
 ];
 
 interface BlurPanelProps {

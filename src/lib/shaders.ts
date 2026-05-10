@@ -173,6 +173,8 @@ uniform float u_marginTop;
 uniform float u_marginBottom;
 uniform float u_grainMixer;
 uniform float u_grainOverlay;
+uniform float u_originX;
+uniform float u_originY;
 in vec2 v_imageUV;
 ${_opacityBlend}
 out vec4 fragColor;
@@ -244,8 +246,8 @@ void main() {
     smoothstep(margins[1] - 2. * sw.y, margins[1], uvMask.y) *
     smoothstep(margins[3] - 2. * sw.y, margins[3], 1.0 - uvMask.y);
   float maskStrokeInner = maskInner - mask;
-  vec2 uvImgCentered = uv - .5;
-  uv -= .5; uv *= patternSize;
+  vec2 uvImgCentered = uv - vec2(u_originX, u_originY);
+  uv -= vec2(u_originX, u_originY); uv *= patternSize;
   uv = rotateAspect(uv, patternRotation, u_imageAspectRatio);
   float curve = 0.;
   float patternY = uv.y / u_imageAspectRatio;
@@ -309,7 +311,7 @@ void main() {
   fractOrigUV.x += distortion;
   floorOrigUV = rotateAspect(floorOrigUV, -patternRotation, u_imageAspectRatio);
   fractOrigUV = rotateAspect(fractOrigUV, -patternRotation, u_imageAspectRatio);
-  uv = (floorOrigUV + fractOrigUV) / patternSize + pow(maskStroke, 4.) + vec2(.5);
+  uv = (floorOrigUV + fractOrigUV) / patternSize + pow(maskStroke, 4.) + vec2(u_originX, u_originY);
   uv = mix(v_imageUV, uv, smoothstep(0., .7, mask));
   float blur = mix(0., 50., u_blur) * smoothstep(.5, 1., mask);
   float edgeDistortion = (mix(.0, .04, u_edges) + .06 * frameFade * u_edges) * mask;

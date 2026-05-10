@@ -849,7 +849,7 @@ function PaperPanelContent({ state, updateState, tab }: PanelContentProps) {
 const BLUR_TYPES: { id: BlurType; label: string }[] = [
   { id: 'gaussian', label: 'Gaussian' },
   { id: 'motion',   label: 'Motion' },
-  { id: 'radial',   label: 'Radial' },
+  { id: 'radial',   label: 'Zoom' },
 ];
 
 function BlurPanelContent({ state, updateState }: PanelContentProps) {

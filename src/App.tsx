@@ -393,6 +393,9 @@ export default function App() {
           onBlurCenterChange={(x, y) =>
             updateState((s) => ({ ...s, blur: { ...s.blur, centerX: x, centerY: y } }))
           }
+          onGlassCenterChange={(x, y) =>
+            updateState((s) => ({ ...s, glass: { ...s.glass, centerX: x, centerY: y } }))
+          }
           onDropFile={(file) => {
             if (file.type.startsWith('video/')) void handleVideoFile(file);
             else void handleImageFile(file);
