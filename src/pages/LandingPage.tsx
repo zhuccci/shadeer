@@ -42,7 +42,7 @@ export function LandingPage() {
 
         <div className="landing-bottom">
           <div className="landing-title-row">
-            <span className="landing-title">_SHADEER</span>
+            <span className="landing-title">SHADEER</span>
             <p className="landing-tagline">
               Realtime image effects.<br />
               Right in your browser.
