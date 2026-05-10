@@ -12,7 +12,8 @@ function HamburgerIcon() {
   );
 }
 
-const deerVideo = Math.random() < 0.5 ? '/deer_main.webm' : '/deer2.webm';
+const deerVideos = ['/deer_main.webm', '/deer2.webm', '/deer3.webm'];
+const deerVideo = deerVideos[Math.floor(Math.random() * deerVideos.length)];
 
 export function LandingPage() {
   const { navigateTo } = usePageTransition();
