@@ -12,6 +12,8 @@ function HamburgerIcon() {
   );
 }
 
+const deerVideo = Math.random() < 0.5 ? '/deer_main.webm' : '/deer2.webm';
+
 export function LandingPage() {
   const { navigateTo } = usePageTransition();
 
@@ -37,7 +39,7 @@ export function LandingPage() {
             muted
             playsInline
           >
-            <source src="/deer_main.webm" type="video/webm" />
+            <source src={deerVideo} type="video/webm" />
           </video>
         </div>
 

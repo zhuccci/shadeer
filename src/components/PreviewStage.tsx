@@ -174,6 +174,7 @@ export function PreviewStage({
 
   const showGlassHandle =
     state.activeFilter === 'glass' &&
+    state.glass.shape === 'circles' &&
     state.image.isReady &&
     onGlassCenterChange != null;
 
