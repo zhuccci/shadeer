@@ -115,22 +115,6 @@ button {
 @media (max-width: 1200px) {
   .app {
     flex-direction: column;
-    height: auto;
-    min-height: 100%;
-  }
-
-  .sidebar {
-    width: 100%;
-  }
-
-  .preview-panel {
-    min-height: 60vh;
-  }
-}
-
-@media (max-width: 768px) {
-  .app {
-    flex-direction: column;
     padding: 0;
     gap: 0;
     height: 100%;
@@ -165,8 +149,10 @@ button {
   .mobile-sheet {
     display: flex;
   }
+}
 
-  /* Make the upload button 48px tall with sheet-matching radius on mobile */
+@media (max-width: 768px) {
+  /* Make the upload button 48px tall with sheet-matching radius on small screens */
   .upload-btn {
     height: 48px;
     padding: 0 20px;

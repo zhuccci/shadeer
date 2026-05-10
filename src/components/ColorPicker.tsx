@@ -106,7 +106,20 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
     ctx.fillRect(0, 0, PALETTE_W, PALETTE_H);
   }, [color.h]);
 
-  // ── Close on Escape ───────────────────────────────────────────────────────────
+  // ── Close on outside click or Escape ─────────────────────────────────────────
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    const handler = (e: PointerEvent) => {
+      if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
+        onCloseRef.current();
+      }
+    };
+    document.addEventListener('pointerdown', handler);
+    return () => document.removeEventListener('pointerdown', handler);
+  }, []);
+
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();
@@ -236,12 +249,6 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
     : Math.max(8, anchorRect.top - popupHeight - 8);
 
   return createPortal(
-    <>
-    <div
-      className="color-picker-backdrop"
-      onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); onClose(); }}
-      onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
-    />
     <div
       className="color-picker-popup"
       ref={popupRef}
@@ -312,8 +319,7 @@ export function ColorPicker({ value, anchorRect, onClose, onChange }: ColorPicke
           />
         </div>
       </div>
-    </div>
-    </>,
+    </div>,
     document.body
   );
 }

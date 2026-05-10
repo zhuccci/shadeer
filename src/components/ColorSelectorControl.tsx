@@ -70,6 +70,7 @@ export function ColorSelectorControl({ label, value, onChange, onMobileOpen }: C
           className="color-swatch"
           style={{ background: value }}
           aria-label={`Choose ${label}`}
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={handleSwatchClick}
         />
         <input
