@@ -46,10 +46,9 @@ export function LandingPage() {
 
         <div className="landing-bottom">
           <div className="landing-title-row">
-            <span className="landing-title">SHADEER</span>
+            <span className="landing-title">Made to be noticed</span>
             <p className="landing-tagline">
-              Realtime image effects.<br />
-              Right in your browser.
+              Make your images and videos look like nothing else in the feed. For designers, illustrators, and visual experimenters — right in your browser, no installs, no friction.
             </p>
           </div>
           <button

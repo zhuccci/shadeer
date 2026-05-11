@@ -1,3 +1,11 @@
+@font-face {
+  font-family: 'MursGothic';
+  src: url('../fonts/MursGothic-MassiveDemi.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @keyframes landing-fade-up {
   from {
     opacity: 0;
@@ -83,7 +91,7 @@
 .landing-deer-wrap {
   width: 378px;
   flex-shrink: 0;
-  margin-bottom: -200px;
+  margin-bottom: -220px;
   position: relative;
   z-index: 1;
   pointer-events: none;
@@ -112,16 +120,21 @@
 
 .landing-title-row {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 34px;
+  gap: 8px;
+  width: 100%;
+  max-width: 700px;
 }
 
 .landing-title {
-  font-family: 'Geist', 'Inter', system-ui, sans-serif;
-  font-weight: 400;
-  font-size: 48px;
+  font-family: 'MursGothic', sans-serif;
+  font-weight: normal;
+  font-size: clamp(28px, 8.5vw, 48px);
   color: #fff679;
   line-height: 1;
+  text-transform: uppercase;
+  text-align: center;
   white-space: nowrap;
   animation: landing-fade-up 700ms cubic-bezier(0.23, 1, 0.32, 1) 350ms both;
 }
@@ -129,10 +142,12 @@
 .landing-tagline {
   font-family: 'Geist', 'Inter', system-ui, sans-serif;
   font-weight: 400;
-  font-size: 16px;
-  color: #fff679;
-  line-height: 1.4;
-  width: 172px;
+  font-size: 18px;
+  color: #fff;
+  line-height: 1.5;
+  text-align: center;
+  max-width: 700px;
+  width: 100%;
   animation: landing-fade-up 700ms cubic-bezier(0.23, 1, 0.32, 1) 460ms both;
 }
 
@@ -152,14 +167,16 @@
 }
 
 /* ── Responsive ── */
+@media (max-width: 768px) {
+  .landing-title {
+    white-space: normal;
+  }
+}
+
 @media (max-width: 480px) {
   .landing-deer-wrap {
     width: 280px;
     margin-bottom: -120px;
-  }
-
-  .landing-title {
-    font-size: 36px;
   }
 
   .landing-bottom {
@@ -168,14 +185,10 @@
   }
 
   .landing-title-row {
-    flex-direction: column;
     gap: 12px;
-    align-items: center;
   }
 
   .landing-tagline {
-    font-size: 14px;
-    width: 164px;
-    text-align: center;
+    font-size: 15px;
   }
 }
