@@ -96,7 +96,7 @@ button.upload-btn:hover {
   transition: opacity 0.2s ease;
 }
 
-.image-area.has-image:hover ~ .fit-control {
+.preview-panel:has(.image-area.has-image):hover .fit-control {
   opacity: 1;
   pointer-events: auto;
 }
