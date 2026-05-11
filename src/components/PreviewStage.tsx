@@ -138,6 +138,10 @@ export function PreviewStage({
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [zoomScale, setZoomScale] = useState(1.0);
   const zoomScaleRef = useRef(1.0);
+  const [panX, setPanX] = useState(0);
+  const [panY, setPanY] = useState(0);
+  const panXRef = useRef(0);
+  const panYRef = useRef(0);
 
   useEffect(() => { zoomScaleRef.current = zoomScale; }, [zoomScale]);
 
@@ -145,37 +149,73 @@ export function PreviewStage({
     const el = previewRef.current;
     if (!el) return;
 
-    // Use pointer events (not touch) — they fire reliably on iOS even alongside
-    // existing pointer-event handlers, and work independently of touch-action CSS.
     const ptrs = new Map<number, { x: number; y: number }>();
     let pinchStartDist: number | null = null;
     let pinchStartScale = 1.0;
     let wasPinching = false;
     let lastTapTime = 0;
+    let isPanning = false;
+    let panStartX = 0, panStartY = 0;
+    let panStartValueX = 0, panStartValueY = 0;
+    let pointerDownX = 0, pointerDownY = 0;
+    let pointerMoved = false;
 
     const dist2 = () => {
       const [a, b] = [...ptrs.values()];
       return Math.hypot(b.x - a.x, b.y - a.y);
     };
 
+    const clampPan = (px: number, py: number, scale: number) => {
+      const maxX = (scale - 1) * el.offsetWidth / 2;
+      const maxY = (scale - 1) * el.offsetHeight / 2;
+      return { x: Math.min(maxX, Math.max(-maxX, px)), y: Math.min(maxY, Math.max(-maxY, py)) };
+    };
+
+    const applyPan = (px: number, py: number) => {
+      panXRef.current = px; panYRef.current = py;
+      setPanX(px); setPanY(py);
+    };
+
+    const startPanFrom = (clientX: number, clientY: number) => {
+      isPanning = true;
+      panStartX = clientX; panStartY = clientY;
+      panStartValueX = panXRef.current; panStartValueY = panYRef.current;
+    };
+
     const onDown = (e: PointerEvent) => {
       ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      if (ptrs.size === 2) {
+      if (ptrs.size === 1) {
+        pointerDownX = e.clientX; pointerDownY = e.clientY; pointerMoved = false;
+        if (zoomScaleRef.current > 1) {
+          startPanFrom(e.clientX, e.clientY);
+          e.stopPropagation();
+        }
+      } else if (ptrs.size === 2) {
+        isPanning = false;
         wasPinching = true;
         el.classList.add('pinching');
         pinchStartDist = dist2();
         pinchStartScale = zoomScaleRef.current;
-        e.stopPropagation(); // keep useImageDrag from treating second finger as a pan
+        e.stopPropagation();
       }
     };
 
     const onMove = (e: PointerEvent) => {
       if (!ptrs.has(e.pointerId)) return;
       ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (ptrs.size === 1 && !pointerMoved) {
+        if (Math.hypot(e.clientX - pointerDownX, e.clientY - pointerDownY) > 5) pointerMoved = true;
+      }
       if (ptrs.size === 2 && pinchStartDist !== null) {
         const s = Math.min(3.0, Math.max(1.0, pinchStartScale * (dist2() / pinchStartDist)));
         zoomScaleRef.current = s;
         setZoomScale(s);
+        const c = clampPan(panXRef.current, panYRef.current, s);
+        if (c.x !== panXRef.current || c.y !== panYRef.current) applyPan(c.x, c.y);
+        e.stopPropagation();
+      } else if (ptrs.size === 1 && isPanning) {
+        const { x, y } = clampPan(panStartValueX + e.clientX - panStartX, panStartValueY + e.clientY - panStartY, zoomScaleRef.current);
+        applyPan(x, y);
         e.stopPropagation();
       }
     };
@@ -186,16 +226,26 @@ export function PreviewStage({
       if (wasTwo) {
         el.classList.remove('pinching');
         pinchStartDist = null;
+        // Seamlessly transition to single-finger pan if one finger remains
+        if (ptrs.size === 1 && zoomScaleRef.current > 1) {
+          const [rem] = ptrs.values();
+          startPanFrom(rem.x, rem.y);
+          pointerMoved = false;
+        }
         e.stopPropagation();
         return;
       }
       if (ptrs.size > 0) return;
+      isPanning = false;
       if (wasPinching) { wasPinching = false; return; }
+      if (pointerMoved) { pointerMoved = false; lastTapTime = 0; return; }
+      pointerMoved = false;
       const now = Date.now();
       if (now - lastTapTime < 300) {
         const next = zoomScaleRef.current > 1.0 ? 1.0 : 3.0;
         zoomScaleRef.current = next;
         setZoomScale(next);
+        if (next === 1.0) applyPan(0, 0);
         lastTapTime = 0;
       } else {
         lastTapTime = now;
@@ -260,7 +310,7 @@ export function PreviewStage({
       <div
         ref={previewRef}
         className={`image-area${state.image.isReady ? ' has-image' : ''}${state.image.hasUserImage ? ' has-user-image' : ''}${state.fitMode === 'fill' ? ' fill-mode' : ''}${isDragging ? ' dragging-img' : ''}`}
-        style={{ transform: `scale(${zoomScale})`, '--inv-zoom': `${1 / zoomScale}` } as React.CSSProperties}
+        style={{ transform: `translate(${panX}px, ${panY}px) scale(${zoomScale})`, '--inv-zoom': `${1 / zoomScale}` } as React.CSSProperties}
         onDragOver={(event) => event.preventDefault()}
         onDrop={(event) => {
           event.preventDefault();
