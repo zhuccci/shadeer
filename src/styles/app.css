@@ -145,6 +145,7 @@ button {
 
   .preview-panel::after {
     border-radius: 0;
+    box-shadow: none;
   }
 
   .mobile-sheet {
