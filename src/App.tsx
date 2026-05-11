@@ -363,7 +363,7 @@ export default function App() {
         Download
       </a>
 
-      <div className="sidebar">
+      <div className={`sidebar${editorState.image.hasUserImage ? ' sidebar--bar' : ''}`}>
         <FilterStrip
           activeFilter={editorState.activeFilter}
           onSelect={handleFilterSelect}

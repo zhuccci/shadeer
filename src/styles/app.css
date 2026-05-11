@@ -106,6 +106,10 @@ button {
     0px 65px 18px rgba(0, 0, 0, 0);
 }
 
+.sidebar--bar {
+  padding-bottom: 24px;
+}
+
 .sidebar > *:not(.app-shadow-overlay) {
   position: relative;
   z-index: 1;
