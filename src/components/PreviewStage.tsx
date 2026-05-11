@@ -136,6 +136,69 @@ export function PreviewStage({
 }: PreviewStageProps) {
   const [controlsVisible, setControlsVisible] = useState(false);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [zoomScale, setZoomScale] = useState(1.0);
+  const zoomScaleRef = useRef(1.0);
+
+  useEffect(() => { zoomScaleRef.current = zoomScale; }, [zoomScale]);
+
+  useEffect(() => {
+    const el = previewRef.current;
+    if (!el) return;
+
+    let pinchStartDist: number | null = null;
+    let pinchStartScale = 1.0;
+    let wasPinching = false;
+    let lastTapTime = 0;
+
+    const getTouchDist = (touches: TouchList) =>
+      Math.hypot(touches[1].clientX - touches[0].clientX, touches[1].clientY - touches[0].clientY);
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        wasPinching = true;
+        el.classList.add('pinching');
+        pinchStartDist = getTouchDist(e.touches);
+        pinchStartScale = zoomScaleRef.current;
+        e.preventDefault();
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && pinchStartDist !== null) {
+        const newScale = Math.min(1.2, Math.max(1.0, pinchStartScale * (getTouchDist(e.touches) / pinchStartDist)));
+        zoomScaleRef.current = newScale;
+        setZoomScale(newScale);
+        e.preventDefault();
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (pinchStartDist !== null && e.touches.length < 2) {
+        el.classList.remove('pinching');
+        pinchStartDist = null;
+      }
+      if (e.touches.length > 0) return;
+      if (wasPinching) { wasPinching = false; return; }
+      const now = Date.now();
+      if (now - lastTapTime < 300) {
+        const next = zoomScaleRef.current > 1.0 ? 1.0 : 1.2;
+        zoomScaleRef.current = next;
+        setZoomScale(next);
+        lastTapTime = 0;
+      } else {
+        lastTapTime = now;
+      }
+    };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: false });
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    el.addEventListener('touchend', onTouchEnd);
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('touchend', onTouchEnd);
+    };
+  }, []); // previewRef is stable — ref identity never changes
 
   const showControls = useCallback(() => {
     setControlsVisible(true);
@@ -183,6 +246,7 @@ export function PreviewStage({
       <div
         ref={previewRef}
         className={`image-area${state.image.isReady ? ' has-image' : ''}${state.image.hasUserImage ? ' has-user-image' : ''}${state.fitMode === 'fill' ? ' fill-mode' : ''}${isDragging ? ' dragging-img' : ''}`}
+        style={{ transform: `scale(${zoomScale})` }}
         onDragOver={(event) => event.preventDefault()}
         onDrop={(event) => {
           event.preventDefault();

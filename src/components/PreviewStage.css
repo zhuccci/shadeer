@@ -24,6 +24,13 @@
   position: relative;
   overflow: hidden;
   background: transparent;
+  touch-action: none;
+  transform-origin: center center;
+  transition: transform 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.image-area.pinching {
+  transition: none;
 }
 
 .image-area canvas {
