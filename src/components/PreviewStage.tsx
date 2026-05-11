@@ -154,15 +154,25 @@ export function PreviewStage({
     let pinchStartScale = 1.0;
     let wasPinching = false;
     let lastTapTime = 0;
+    let lastTapX = 0, lastTapY = 0;
     let isPanning = false;
     let panStartX = 0, panStartY = 0;
     let panStartValueX = 0, panStartValueY = 0;
     let pointerDownX = 0, pointerDownY = 0;
     let pointerMoved = false;
+    // Track midpoint from the previous pinch frame so we can compute
+    // the translation delta separately from the scale delta.
+    let prevMidX = 0, prevMidY = 0;
 
     const dist2 = () => {
       const [a, b] = [...ptrs.values()];
       return Math.hypot(b.x - a.x, b.y - a.y);
+    };
+
+    const elCenter = () => {
+      // parentElement has no transform, so getBoundingClientRect is accurate
+      const r = el.parentElement!.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
     };
 
     const clampPan = (px: number, py: number, scale: number) => {
@@ -196,6 +206,9 @@ export function PreviewStage({
         el.classList.add('pinching');
         pinchStartDist = dist2();
         pinchStartScale = zoomScaleRef.current;
+        const [pa, pb] = [...ptrs.values()];
+        prevMidX = (pa.x + pb.x) / 2;
+        prevMidY = (pa.y + pb.y) / 2;
         e.stopPropagation();
       }
     };
@@ -209,18 +222,23 @@ export function PreviewStage({
       if (ptrs.size === 2 && pinchStartDist !== null) {
         const sPrev = zoomScaleRef.current;
         const sNew = Math.min(3.0, Math.max(1.0, pinchStartScale * (dist2() / pinchStartDist)));
-        // Pan so the pinch midpoint stays fixed in content space
         const [pa, pb] = [...ptrs.values()];
-        const pr = el.parentElement!.getBoundingClientRect();
-        const dx = (pa.x + pb.x) / 2 - (pr.left + pr.width / 2);
-        const dy = (pa.y + pb.y) / 2 - (pr.top + pr.height / 2);
+        const curMidX = (pa.x + pb.x) / 2;
+        const curMidY = (pa.y + pb.y) / 2;
+        // Translation component: how far both fingers moved together
+        const dpx = curMidX - prevMidX;
+        const dpy = curMidY - prevMidY;
+        // Scale component: keep the previous midpoint fixed in content space
+        const ec = elCenter();
+        const dxPrev = prevMidX - ec.x;
+        const dyPrev = prevMidY - ec.y;
         const ratio = sNew / sPrev;
-        const newPanX = dx * (1 - ratio) + panXRef.current * ratio;
-        const newPanY = dy * (1 - ratio) + panYRef.current * ratio;
+        const newPanX = dxPrev * (1 - ratio) + panXRef.current * ratio + dpx;
+        const newPanY = dyPrev * (1 - ratio) + panYRef.current * ratio + dpy;
+        prevMidX = curMidX; prevMidY = curMidY;
         zoomScaleRef.current = sNew;
         setZoomScale(sNew);
-        const c = clampPan(newPanX, newPanY, sNew);
-        applyPan(c.x, c.y);
+        applyPan(...Object.values(clampPan(newPanX, newPanY, sNew)) as [number, number]);
         e.stopPropagation();
       } else if (ptrs.size === 1 && isPanning) {
         const { x, y } = clampPan(panStartValueX + e.clientX - panStartX, panStartValueY + e.clientY - panStartY, zoomScaleRef.current);
@@ -235,7 +253,6 @@ export function PreviewStage({
       if (wasTwo) {
         el.classList.remove('pinching');
         pinchStartDist = null;
-        // Seamlessly transition to single-finger pan if one finger remains
         if (ptrs.size === 1 && zoomScaleRef.current > 1) {
           const [rem] = ptrs.values();
           startPanFrom(rem.x, rem.y);
@@ -252,12 +269,24 @@ export function PreviewStage({
       const now = Date.now();
       if (now - lastTapTime < 300) {
         const next = zoomScaleRef.current > 1.0 ? 1.0 : 3.0;
+        if (next === 1.0) {
+          applyPan(0, 0);
+        } else {
+          // Zoom toward the tapped point: keep that content pixel under the finger
+          const ec = elCenter();
+          const sCur = zoomScaleRef.current;
+          const lx = (lastTapX - ec.x - panXRef.current) / sCur;
+          const ly = (lastTapY - ec.y - panYRef.current) / sCur;
+          const { x, y } = clampPan(lastTapX - ec.x - lx * next, lastTapY - ec.y - ly * next, next);
+          applyPan(x, y);
+        }
         zoomScaleRef.current = next;
         setZoomScale(next);
-        if (next === 1.0) applyPan(0, 0);
         lastTapTime = 0;
       } else {
         lastTapTime = now;
+        lastTapX = e.clientX;
+        lastTapY = e.clientY;
       }
     };
 
