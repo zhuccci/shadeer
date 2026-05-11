@@ -207,11 +207,20 @@ export function PreviewStage({
         if (Math.hypot(e.clientX - pointerDownX, e.clientY - pointerDownY) > 5) pointerMoved = true;
       }
       if (ptrs.size === 2 && pinchStartDist !== null) {
-        const s = Math.min(3.0, Math.max(1.0, pinchStartScale * (dist2() / pinchStartDist)));
-        zoomScaleRef.current = s;
-        setZoomScale(s);
-        const c = clampPan(panXRef.current, panYRef.current, s);
-        if (c.x !== panXRef.current || c.y !== panYRef.current) applyPan(c.x, c.y);
+        const sPrev = zoomScaleRef.current;
+        const sNew = Math.min(3.0, Math.max(1.0, pinchStartScale * (dist2() / pinchStartDist)));
+        // Pan so the pinch midpoint stays fixed in content space
+        const [pa, pb] = [...ptrs.values()];
+        const pr = el.parentElement!.getBoundingClientRect();
+        const dx = (pa.x + pb.x) / 2 - (pr.left + pr.width / 2);
+        const dy = (pa.y + pb.y) / 2 - (pr.top + pr.height / 2);
+        const ratio = sNew / sPrev;
+        const newPanX = dx * (1 - ratio) + panXRef.current * ratio;
+        const newPanY = dy * (1 - ratio) + panYRef.current * ratio;
+        zoomScaleRef.current = sNew;
+        setZoomScale(sNew);
+        const c = clampPan(newPanX, newPanY, sNew);
+        applyPan(c.x, c.y);
         e.stopPropagation();
       } else if (ptrs.size === 1 && isPanning) {
         const { x, y } = clampPan(panStartValueX + e.clientX - panStartX, panStartValueY + e.clientY - panStartY, zoomScaleRef.current);
