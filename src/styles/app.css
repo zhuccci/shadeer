@@ -129,7 +129,7 @@ button {
   .preview-wrap {
     flex: 1;
     min-height: 0;
-    padding: 12px 12px 16px;
+    padding: 0;
     z-index: 0;
   }
 
@@ -140,11 +140,11 @@ button {
   .preview-panel {
     min-height: unset;
     height: 100%;
-    border-radius: 40px;
+    border-radius: 0;
   }
 
   .preview-panel::after {
-    border-radius: 40px;
+    border-radius: 0;
   }
 
   .mobile-sheet {
