@@ -606,9 +606,11 @@ export function updateFitClip(
     return;
   }
 
-  const rect = canvas.getBoundingClientRect();
-  const canvasWidth = rect.width;
-  const canvasHeight = rect.height;
+  // Use layout dimensions from the ShaderMount ResizeObserver (unaffected by
+  // CSS transforms) rather than getBoundingClientRect(), which returns the
+  // visual/scaled rect and produces wrong inset values when the user is zoomed.
+  const canvasWidth = shaderMount.parentWidth || canvas.clientWidth;
+  const canvasHeight = shaderMount.parentHeight || canvas.clientHeight;
   const aspect = aspectRatio || 1;
   let top = 0;
   let right = 0;

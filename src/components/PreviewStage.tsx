@@ -145,6 +145,18 @@ export function PreviewStage({
 
   useEffect(() => { zoomScaleRef.current = zoomScale; }, [zoomScale]);
 
+  // Reset CSS zoom when switching to fit mode so the full image is always visible
+  useEffect(() => {
+    if (state.fitMode === 'fit' && zoomScaleRef.current !== 1.0) {
+      zoomScaleRef.current = 1.0;
+      panXRef.current = 0;
+      panYRef.current = 0;
+      setZoomScale(1.0);
+      setPanX(0);
+      setPanY(0);
+    }
+  }, [state.fitMode]);
+
   useEffect(() => {
     const el = previewRef.current;
     if (!el) return;
