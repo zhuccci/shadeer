@@ -147,7 +147,7 @@ vec4 layerBlend(vec4 filtered) {
 }`;
 
 export const flutedGlassFragmentShader = `#version 300 es
-precision mediump float;
+precision highp float;
 uniform vec2 u_resolution;
 uniform float u_pixelRatio;
 uniform float u_rotation;
@@ -320,7 +320,11 @@ void main() {
   float stretch = pow(1. - smoothstep(0., .5, xNonSmooth) * smoothstep(1., .5, xNonSmooth), 2.) * mask;
   stretch *= getUvFrame(uv, .1 + .05 * mask * frameFade);
   uv.y = mix(uv.y, .5, u_stretch * stretch);
-  vec4 image = getBlur(u_image, clamp(uv, vec2(0.0), vec2(1.0)), 1. / u_resolution / u_pixelRatio, vec2(0., 1.), blur);
+  vec2 _ts = 1. / u_resolution / u_pixelRatio;
+  vec2 _uvc = clamp(uv, vec2(0.0), vec2(1.0));
+  vec4 imageH = getBlur(u_image, _uvc, _ts, vec2(1., 0.), blur);
+  vec4 imageV = getBlur(u_image, _uvc, _ts, vec2(0., 1.), blur);
+  vec4 image = (imageH + imageV) * 0.5;
   image.rgb *= image.a;
   vec4 backColor = u_colorBack; backColor.rgb *= backColor.a;
   vec4 highlightColor = u_colorHighlight; highlightColor.rgb *= highlightColor.a;
