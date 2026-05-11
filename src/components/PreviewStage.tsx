@@ -273,13 +273,6 @@ export function PreviewStage({
         onPointerCancel={onPointerCancel}
         onLostPointerCapture={onLostPointerCapture}
       >
-        {!state.image.hasUserImage ? (
-          <button className="btn btn-primary upload-btn" onClick={onUpload}>
-            <UploadIcon />
-            Upload media
-          </button>
-        ) : null}
-
         {showRadialHandle && (
           <RadialCenterHandle
             uvX={state.blur.centerX}
@@ -305,6 +298,13 @@ export function PreviewStage({
           />
         )}
       </div>
+
+      {!state.image.hasUserImage && (
+        <button className="btn btn-primary upload-btn" onClick={onUpload}>
+          <UploadIcon />
+          Upload media
+        </button>
+      )}
 
       <div className="fit-control" id="fitControl" data-mode={state.fitMode}>
         <span className="fit-pill" />
