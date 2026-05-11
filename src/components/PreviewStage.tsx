@@ -173,7 +173,7 @@ export function PreviewStage({
       if (!ptrs.has(e.pointerId)) return;
       ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (ptrs.size === 2 && pinchStartDist !== null) {
-        const s = Math.min(1.2, Math.max(1.0, pinchStartScale * (dist2() / pinchStartDist)));
+        const s = Math.min(2.0, Math.max(1.0, pinchStartScale * (dist2() / pinchStartDist)));
         zoomScaleRef.current = s;
         setZoomScale(s);
         e.stopPropagation();
@@ -193,7 +193,7 @@ export function PreviewStage({
       if (wasPinching) { wasPinching = false; return; }
       const now = Date.now();
       if (now - lastTapTime < 300) {
-        const next = zoomScaleRef.current > 1.0 ? 1.0 : 1.2;
+        const next = zoomScaleRef.current > 1.0 ? 1.0 : 2.0;
         zoomScaleRef.current = next;
         setZoomScale(next);
         lastTapTime = 0;
