@@ -145,39 +145,51 @@ export function PreviewStage({
     const el = previewRef.current;
     if (!el) return;
 
+    // Use pointer events (not touch) — they fire reliably on iOS even alongside
+    // existing pointer-event handlers, and work independently of touch-action CSS.
+    const ptrs = new Map<number, { x: number; y: number }>();
     let pinchStartDist: number | null = null;
     let pinchStartScale = 1.0;
     let wasPinching = false;
     let lastTapTime = 0;
 
-    const getTouchDist = (touches: TouchList) =>
-      Math.hypot(touches[1].clientX - touches[0].clientX, touches[1].clientY - touches[0].clientY);
+    const dist2 = () => {
+      const [a, b] = [...ptrs.values()];
+      return Math.hypot(b.x - a.x, b.y - a.y);
+    };
 
-    const onTouchStart = (e: TouchEvent) => {
-      if (e.touches.length === 2) {
+    const onDown = (e: PointerEvent) => {
+      ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (ptrs.size === 2) {
         wasPinching = true;
         el.classList.add('pinching');
-        pinchStartDist = getTouchDist(e.touches);
+        pinchStartDist = dist2();
         pinchStartScale = zoomScaleRef.current;
-        e.preventDefault();
+        e.stopPropagation(); // keep useImageDrag from treating second finger as a pan
       }
     };
 
-    const onTouchMove = (e: TouchEvent) => {
-      if (e.touches.length === 2 && pinchStartDist !== null) {
-        const newScale = Math.min(1.2, Math.max(1.0, pinchStartScale * (getTouchDist(e.touches) / pinchStartDist)));
-        zoomScaleRef.current = newScale;
-        setZoomScale(newScale);
-        e.preventDefault();
+    const onMove = (e: PointerEvent) => {
+      if (!ptrs.has(e.pointerId)) return;
+      ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (ptrs.size === 2 && pinchStartDist !== null) {
+        const s = Math.min(1.2, Math.max(1.0, pinchStartScale * (dist2() / pinchStartDist)));
+        zoomScaleRef.current = s;
+        setZoomScale(s);
+        e.stopPropagation();
       }
     };
 
-    const onTouchEnd = (e: TouchEvent) => {
-      if (pinchStartDist !== null && e.touches.length < 2) {
+    const onUp = (e: PointerEvent) => {
+      const wasTwo = ptrs.size >= 2;
+      ptrs.delete(e.pointerId);
+      if (wasTwo) {
         el.classList.remove('pinching');
         pinchStartDist = null;
+        e.stopPropagation();
+        return;
       }
-      if (e.touches.length > 0) return;
+      if (ptrs.size > 0) return;
       if (wasPinching) { wasPinching = false; return; }
       const now = Date.now();
       if (now - lastTapTime < 300) {
@@ -190,13 +202,15 @@ export function PreviewStage({
       }
     };
 
-    el.addEventListener('touchstart', onTouchStart, { passive: false });
-    el.addEventListener('touchmove', onTouchMove, { passive: false });
-    el.addEventListener('touchend', onTouchEnd);
+    el.addEventListener('pointerdown', onDown);
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerup', onUp);
+    el.addEventListener('pointercancel', onUp);
     return () => {
-      el.removeEventListener('touchstart', onTouchStart);
-      el.removeEventListener('touchmove', onTouchMove);
-      el.removeEventListener('touchend', onTouchEnd);
+      el.removeEventListener('pointerdown', onDown);
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerup', onUp);
+      el.removeEventListener('pointercancel', onUp);
     };
   }, []); // previewRef is stable — ref identity never changes
 
