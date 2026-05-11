@@ -26,18 +26,6 @@
   pointer-events: auto;
 }
 
-.controls-panel::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 80px;
-  background: linear-gradient(to bottom, transparent, #191919 55%);
-  pointer-events: none;
-  border-radius: 0 0 24px 24px;
-}
-
 @keyframes panelItemIn {
   from { opacity: 0; transform: translateY(5px); }
   to   { opacity: 1; transform: translateY(0); }
