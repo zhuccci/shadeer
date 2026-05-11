@@ -18,12 +18,35 @@
   padding: 24px 24px 80px;
   border-radius: 24px;
   background: #191919;
-  box-shadow: inset 0 0 0 0.5px #494949, inset 0 0 40px rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.5);
 }
 
 .controls-panel.panel-active {
   opacity: 1;
   pointer-events: auto;
+}
+
+.controls-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  box-shadow: inset 0 0 0 0.5px #494949;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.controls-panel::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(to bottom, transparent, #191919 55%);
+  pointer-events: none;
+  border-radius: 0 0 24px 24px;
+  z-index: 1;
 }
 
 @keyframes panelItemIn {
