@@ -25,6 +25,7 @@ function getFirstTabLabel(filter: ActiveFilter): string {
   if (filter === 'heatmap') return 'Palette';
   if (filter === 'dithering') return 'Types';
   if (filter === 'blur') return 'Type';
+  if (filter === 'glitchy') return 'Type';
   return 'Sliders';
 }
 

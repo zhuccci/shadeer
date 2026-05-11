@@ -33,8 +33,10 @@ const RAW_RUNTIME_STATE =
           ["@types/react-dom", "virtual:f3cdc4c3d9c52bb4e9f019046a1be0856d1584543c190af3da4ccd9db09e695fe338d4acc252c043ea259bb5027624a324f6abaebfe9b556b90812330f011c8e#npm:19.2.3"],\
           ["@vitejs/plugin-react", "virtual:f3cdc4c3d9c52bb4e9f019046a1be0856d1584543c190af3da4ccd9db09e695fe338d4acc252c043ea259bb5027624a324f6abaebfe9b556b90812330f011c8e#npm:5.2.0"],\
           ["mp4-muxer", "npm:5.2.2"],\
+          ["posthog-js", "npm:1.372.10"],\
           ["react", "npm:19.2.4"],\
           ["react-dom", "virtual:f3cdc4c3d9c52bb4e9f019046a1be0856d1584543c190af3da4ccd9db09e695fe338d4acc252c043ea259bb5027624a324f6abaebfe9b556b90812330f011c8e#npm:19.2.4"],\
+          ["react-router-dom", "virtual:f3cdc4c3d9c52bb4e9f019046a1be0856d1584543c190af3da4ccd9db09e695fe338d4acc252c043ea259bb5027624a324f6abaebfe9b556b90812330f011c8e#npm:7.15.0"],\
           ["shadeer", "workspace:."],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vite", "virtual:f3cdc4c3d9c52bb4e9f019046a1be0856d1584543c190af3da4ccd9db09e695fe338d4acc252c043ea259bb5027624a324f6abaebfe9b556b90812330f011c8e#npm:7.3.2"]\
@@ -639,11 +641,394 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["@opentelemetry/api", [\
+      ["npm:1.9.1", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@opentelemetry-api-npm-1.9.1-a6d8abf4cb-10c0.zip/node_modules/@opentelemetry/api/",\
+        "packageDependencies": [\
+          ["@opentelemetry/api", "npm:1.9.1"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@opentelemetry/api-logs", [\
+      ["npm:0.208.0", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@opentelemetry-api-logs-npm-0.208.0-3af8bf5803-10c0.zip/node_modules/@opentelemetry/api-logs/",\
+        "packageDependencies": [\
+          ["@opentelemetry/api", "npm:1.9.1"],\
+          ["@opentelemetry/api-logs", "npm:0.208.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@opentelemetry/core", [\
+      ["npm:2.2.0", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@opentelemetry-core-npm-2.2.0-181e0c3c19-10c0.zip/node_modules/@opentelemetry/core/",\
+        "packageDependencies": [\
+          ["@opentelemetry/core", "npm:2.2.0"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["npm:2.7.1", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@opentelemetry-core-npm-2.7.1-d977e7ca54-10c0.zip/node_modules/@opentelemetry/core/",\
+        "packageDependencies": [\
+          ["@opentelemetry/core", "npm:2.7.1"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:6cc4c8a2eccc25a84c65c72376da7ecd4aefff5c44d73b245434be8f5dcd5b308544c2f0978566572a2ce114305f1d5530f23f0b94021ffe33049c90054f2ebb#npm:2.2.0", {\
+        "packageLocation": "./.yarn/__virtual__/@opentelemetry-core-virtual-47eef949b5/5/AppData/Local/Yarn/Berry/cache/@opentelemetry-core-npm-2.2.0-181e0c3c19-10c0.zip/node_modules/@opentelemetry/core/",\
+        "packageDependencies": [\
+          ["@opentelemetry/api", "npm:1.9.1"],\
+          ["@opentelemetry/core", "virtual:6cc4c8a2eccc25a84c65c72376da7ecd4aefff5c44d73b245434be8f5dcd5b308544c2f0978566572a2ce114305f1d5530f23f0b94021ffe33049c90054f2ebb#npm:2.2.0"],\
+          ["@opentelemetry/semantic-conventions", "npm:1.40.0"],\
+          ["@types/opentelemetry__api", null]\
+        ],\
+        "packagePeers": [\
+          "@opentelemetry/api",\
+          "@types/opentelemetry__api"\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["virtual:94ef7d680bb09791e5e4b05fba6333dd0e28f6c7beb1ffd5d8987afb3a3f55be3ec8999a9c848b93da91f712b6712b0d40521853532142dd7a0a422b075b43c1#npm:2.7.1", {\
+        "packageLocation": "./.yarn/__virtual__/@opentelemetry-core-virtual-c9b52e3824/5/AppData/Local/Yarn/Berry/cache/@opentelemetry-core-npm-2.7.1-d977e7ca54-10c0.zip/node_modules/@opentelemetry/core/",\
+        "packageDependencies": [\
+          ["@opentelemetry/api", "npm:1.9.1"],\
+          ["@opentelemetry/core", "virtual:94ef7d680bb09791e5e4b05fba6333dd0e28f6c7beb1ffd5d8987afb3a3f55be3ec8999a9c848b93da91f712b6712b0d40521853532142dd7a0a422b075b43c1#npm:2.7.1"],\
+          ["@opentelemetry/semantic-conventions", "npm:1.40.0"],\
+          ["@types/opentelemetry__api", null]\
+        ],\
+        "packagePeers": [\
+          "@opentelemetry/api",\
+          "@types/opentelemetry__api"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@opentelemetry/exporter-logs-otlp-http", [\
+      ["npm:0.208.0", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@opentelemetry-exporter-logs-otlp-http-npm-0.208.0-d1d72919e3-10c0.zip/node_modules/@opentelemetry/exporter-logs-otlp-http/",\
+        "packageDependencies": [\
+          ["@opentelemetry/exporter-logs-otlp-http", "npm:0.208.0"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:4a2aad3d34cd55263ec91d9ead080d7d2931ddbe5d823eff7235a32dd0184fac32ce799fc09883296570b4cf7ca5e6d8d463187d41da71795de00e0175faad49#npm:0.208.0", {\
+        "packageLocation": "./.yarn/__virtual__/@opentelemetry-exporter-logs-otlp-http-virtual-6cc4c8a2ec/5/AppData/Local/Yarn/Berry/cache/@opentelemetry-exporter-logs-otlp-http-npm-0.208.0-d1d72919e3-10c0.zip/node_modules/@opentelemetry/exporter-logs-otlp-http/",\
+        "packageDependencies": [\
+          ["@opentelemetry/api", "npm:1.9.1"],\
+          ["@opentelemetry/api-logs", "npm:0.208.0"],\
+          ["@opentelemetry/core", "virtual:6cc4c8a2eccc25a84c65c72376da7ecd4aefff5c44d73b245434be8f5dcd5b308544c2f0978566572a2ce114305f1d5530f23f0b94021ffe33049c90054f2ebb#npm:2.2.0"],\
+          ["@opentelemetry/exporter-logs-otlp-http", "virtual:4a2aad3d34cd55263ec91d9ead080d7d2931ddbe5d823eff7235a32dd0184fac32ce799fc09883296570b4cf7ca5e6d8d463187d41da71795de00e0175faad49#npm:0.208.0"],\
+          ["@opentelemetry/otlp-exporter-base", "virtual:6cc4c8a2eccc25a84c65c72376da7ecd4aefff5c44d73b245434be8f5dcd5b308544c2f0978566572a2ce114305f1d5530f23f0b94021ffe33049c90054f2ebb#npm:0.208.0"],\
+          ["@opentelemetry/otlp-transformer", "virtual:6cc4c8a2eccc25a84c65c72376da7ecd4aefff5c44d73b245434be8f5dcd5b308544c2f0978566572a2ce114305f1d5530f23f0b94021ffe33049c90054f2ebb#npm:0.208.0"],\
+          ["@opentelemetry/sdk-logs", "virtual:4a2aad3d34cd55263ec91d9ead080d7d2931ddbe5d823eff7235a32dd0184fac32ce799fc09883296570b4cf7ca5e6d8d463187d41da71795de00e0175faad49#npm:0.208.0"],\
+          ["@types/opentelemetry__api", null]\
+        ],\
+        "packagePeers": [\
+          "@opentelemetry/api",\
+          "@types/opentelemetry__api"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@opentelemetry/otlp-exporter-base", [\
+      ["npm:0.208.0", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@opentelemetry-otlp-exporter-base-npm-0.208.0-d62fa25793-10c0.zip/node_modules/@opentelemetry/otlp-exporter-base/",\
+        "packageDependencies": [\
+          ["@opentelemetry/otlp-exporter-base", "npm:0.208.0"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:6cc4c8a2eccc25a84c65c72376da7ecd4aefff5c44d73b245434be8f5dcd5b308544c2f0978566572a2ce114305f1d5530f23f0b94021ffe33049c90054f2ebb#npm:0.208.0", {\
+        "packageLocation": "./.yarn/__virtual__/@opentelemetry-otlp-exporter-base-virtual-120392de5f/5/AppData/Local/Yarn/Berry/cache/@opentelemetry-otlp-exporter-base-npm-0.208.0-d62fa25793-10c0.zip/node_modules/@opentelemetry/otlp-exporter-base/",\
+        "packageDependencies": [\
+          ["@opentelemetry/api", "npm:1.9.1"],\
+          ["@opentelemetry/core", "virtual:6cc4c8a2eccc25a84c65c72376da7ecd4aefff5c44d73b245434be8f5dcd5b308544c2f0978566572a2ce114305f1d5530f23f0b94021ffe33049c90054f2ebb#npm:2.2.0"],\
+          ["@opentelemetry/otlp-exporter-base", "virtual:6cc4c8a2eccc25a84c65c72376da7ecd4aefff5c44d73b245434be8f5dcd5b308544c2f0978566572a2ce114305f1d5530f23f0b94021ffe33049c90054f2ebb#npm:0.208.0"],\
+          ["@opentelemetry/otlp-transformer", "virtual:6cc4c8a2eccc25a84c65c72376da7ecd4aefff5c44d73b245434be8f5dcd5b308544c2f0978566572a2ce114305f1d5530f23f0b94021ffe33049c90054f2ebb#npm:0.208.0"],\
+          ["@types/opentelemetry__api", null]\
+        ],\
+        "packagePeers": [\
+          "@opentelemetry/api",\
+          "@types/opentelemetry__api"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@opentelemetry/otlp-transformer", [\
+      ["npm:0.208.0", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@opentelemetry-otlp-transformer-npm-0.208.0-bb53f9fbfd-10c0.zip/node_modules/@opentelemetry/otlp-transformer/",\
+        "packageDependencies": [\
+          ["@opentelemetry/otlp-transformer", "npm:0.208.0"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:6cc4c8a2eccc25a84c65c72376da7ecd4aefff5c44d73b245434be8f5dcd5b308544c2f0978566572a2ce114305f1d5530f23f0b94021ffe33049c90054f2ebb#npm:0.208.0", {\
+        "packageLocation": "./.yarn/__virtual__/@opentelemetry-otlp-transformer-virtual-593cfb5e46/5/AppData/Local/Yarn/Berry/cache/@opentelemetry-otlp-transformer-npm-0.208.0-bb53f9fbfd-10c0.zip/node_modules/@opentelemetry/otlp-transformer/",\
+        "packageDependencies": [\
+          ["@opentelemetry/api", "npm:1.9.1"],\
+          ["@opentelemetry/api-logs", "npm:0.208.0"],\
+          ["@opentelemetry/core", "virtual:6cc4c8a2eccc25a84c65c72376da7ecd4aefff5c44d73b245434be8f5dcd5b308544c2f0978566572a2ce114305f1d5530f23f0b94021ffe33049c90054f2ebb#npm:2.2.0"],\
+          ["@opentelemetry/otlp-transformer", "virtual:6cc4c8a2eccc25a84c65c72376da7ecd4aefff5c44d73b245434be8f5dcd5b308544c2f0978566572a2ce114305f1d5530f23f0b94021ffe33049c90054f2ebb#npm:0.208.0"],\
+          ["@opentelemetry/resources", "virtual:593cfb5e4632735b80db50661e94e8743d77b09363ec58238b9e48e541aa083726cd3309059bc16200c92368a3ca22b355951dd135322345de34021fed5a9fc4#npm:2.2.0"],\
+          ["@opentelemetry/sdk-logs", "virtual:4a2aad3d34cd55263ec91d9ead080d7d2931ddbe5d823eff7235a32dd0184fac32ce799fc09883296570b4cf7ca5e6d8d463187d41da71795de00e0175faad49#npm:0.208.0"],\
+          ["@opentelemetry/sdk-metrics", "virtual:593cfb5e4632735b80db50661e94e8743d77b09363ec58238b9e48e541aa083726cd3309059bc16200c92368a3ca22b355951dd135322345de34021fed5a9fc4#npm:2.2.0"],\
+          ["@opentelemetry/sdk-trace-base", "virtual:593cfb5e4632735b80db50661e94e8743d77b09363ec58238b9e48e541aa083726cd3309059bc16200c92368a3ca22b355951dd135322345de34021fed5a9fc4#npm:2.2.0"],\
+          ["@types/opentelemetry__api", null],\
+          ["protobufjs", "npm:7.5.7"]\
+        ],\
+        "packagePeers": [\
+          "@opentelemetry/api",\
+          "@types/opentelemetry__api"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@opentelemetry/resources", [\
+      ["npm:2.2.0", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@opentelemetry-resources-npm-2.2.0-97696ab1ae-10c0.zip/node_modules/@opentelemetry/resources/",\
+        "packageDependencies": [\
+          ["@opentelemetry/resources", "npm:2.2.0"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["npm:2.7.1", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@opentelemetry-resources-npm-2.7.1-5ee2e77d6d-10c0.zip/node_modules/@opentelemetry/resources/",\
+        "packageDependencies": [\
+          ["@opentelemetry/resources", "npm:2.7.1"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:4a2aad3d34cd55263ec91d9ead080d7d2931ddbe5d823eff7235a32dd0184fac32ce799fc09883296570b4cf7ca5e6d8d463187d41da71795de00e0175faad49#npm:2.7.1", {\
+        "packageLocation": "./.yarn/__virtual__/@opentelemetry-resources-virtual-94ef7d680b/5/AppData/Local/Yarn/Berry/cache/@opentelemetry-resources-npm-2.7.1-5ee2e77d6d-10c0.zip/node_modules/@opentelemetry/resources/",\
+        "packageDependencies": [\
+          ["@opentelemetry/api", "npm:1.9.1"],\
+          ["@opentelemetry/core", "virtual:94ef7d680bb09791e5e4b05fba6333dd0e28f6c7beb1ffd5d8987afb3a3f55be3ec8999a9c848b93da91f712b6712b0d40521853532142dd7a0a422b075b43c1#npm:2.7.1"],\
+          ["@opentelemetry/resources", "virtual:4a2aad3d34cd55263ec91d9ead080d7d2931ddbe5d823eff7235a32dd0184fac32ce799fc09883296570b4cf7ca5e6d8d463187d41da71795de00e0175faad49#npm:2.7.1"],\
+          ["@opentelemetry/semantic-conventions", "npm:1.40.0"],\
+          ["@types/opentelemetry__api", null]\
+        ],\
+        "packagePeers": [\
+          "@opentelemetry/api",\
+          "@types/opentelemetry__api"\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["virtual:593cfb5e4632735b80db50661e94e8743d77b09363ec58238b9e48e541aa083726cd3309059bc16200c92368a3ca22b355951dd135322345de34021fed5a9fc4#npm:2.2.0", {\
+        "packageLocation": "./.yarn/__virtual__/@opentelemetry-resources-virtual-2720107483/5/AppData/Local/Yarn/Berry/cache/@opentelemetry-resources-npm-2.2.0-97696ab1ae-10c0.zip/node_modules/@opentelemetry/resources/",\
+        "packageDependencies": [\
+          ["@opentelemetry/api", "npm:1.9.1"],\
+          ["@opentelemetry/core", "virtual:6cc4c8a2eccc25a84c65c72376da7ecd4aefff5c44d73b245434be8f5dcd5b308544c2f0978566572a2ce114305f1d5530f23f0b94021ffe33049c90054f2ebb#npm:2.2.0"],\
+          ["@opentelemetry/resources", "virtual:593cfb5e4632735b80db50661e94e8743d77b09363ec58238b9e48e541aa083726cd3309059bc16200c92368a3ca22b355951dd135322345de34021fed5a9fc4#npm:2.2.0"],\
+          ["@opentelemetry/semantic-conventions", "npm:1.40.0"],\
+          ["@types/opentelemetry__api", null]\
+        ],\
+        "packagePeers": [\
+          "@opentelemetry/api",\
+          "@types/opentelemetry__api"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@opentelemetry/sdk-logs", [\
+      ["npm:0.208.0", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@opentelemetry-sdk-logs-npm-0.208.0-53fbee9b5f-10c0.zip/node_modules/@opentelemetry/sdk-logs/",\
+        "packageDependencies": [\
+          ["@opentelemetry/sdk-logs", "npm:0.208.0"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:4a2aad3d34cd55263ec91d9ead080d7d2931ddbe5d823eff7235a32dd0184fac32ce799fc09883296570b4cf7ca5e6d8d463187d41da71795de00e0175faad49#npm:0.208.0", {\
+        "packageLocation": "./.yarn/__virtual__/@opentelemetry-sdk-logs-virtual-7f51f35d1c/5/AppData/Local/Yarn/Berry/cache/@opentelemetry-sdk-logs-npm-0.208.0-53fbee9b5f-10c0.zip/node_modules/@opentelemetry/sdk-logs/",\
+        "packageDependencies": [\
+          ["@opentelemetry/api", "npm:1.9.1"],\
+          ["@opentelemetry/api-logs", "npm:0.208.0"],\
+          ["@opentelemetry/core", "virtual:6cc4c8a2eccc25a84c65c72376da7ecd4aefff5c44d73b245434be8f5dcd5b308544c2f0978566572a2ce114305f1d5530f23f0b94021ffe33049c90054f2ebb#npm:2.2.0"],\
+          ["@opentelemetry/resources", "virtual:593cfb5e4632735b80db50661e94e8743d77b09363ec58238b9e48e541aa083726cd3309059bc16200c92368a3ca22b355951dd135322345de34021fed5a9fc4#npm:2.2.0"],\
+          ["@opentelemetry/sdk-logs", "virtual:4a2aad3d34cd55263ec91d9ead080d7d2931ddbe5d823eff7235a32dd0184fac32ce799fc09883296570b4cf7ca5e6d8d463187d41da71795de00e0175faad49#npm:0.208.0"],\
+          ["@types/opentelemetry__api", null]\
+        ],\
+        "packagePeers": [\
+          "@opentelemetry/api",\
+          "@types/opentelemetry__api"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@opentelemetry/sdk-metrics", [\
+      ["npm:2.2.0", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@opentelemetry-sdk-metrics-npm-2.2.0-6202e3b9e8-10c0.zip/node_modules/@opentelemetry/sdk-metrics/",\
+        "packageDependencies": [\
+          ["@opentelemetry/sdk-metrics", "npm:2.2.0"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:593cfb5e4632735b80db50661e94e8743d77b09363ec58238b9e48e541aa083726cd3309059bc16200c92368a3ca22b355951dd135322345de34021fed5a9fc4#npm:2.2.0", {\
+        "packageLocation": "./.yarn/__virtual__/@opentelemetry-sdk-metrics-virtual-0018546f35/5/AppData/Local/Yarn/Berry/cache/@opentelemetry-sdk-metrics-npm-2.2.0-6202e3b9e8-10c0.zip/node_modules/@opentelemetry/sdk-metrics/",\
+        "packageDependencies": [\
+          ["@opentelemetry/api", "npm:1.9.1"],\
+          ["@opentelemetry/core", "virtual:6cc4c8a2eccc25a84c65c72376da7ecd4aefff5c44d73b245434be8f5dcd5b308544c2f0978566572a2ce114305f1d5530f23f0b94021ffe33049c90054f2ebb#npm:2.2.0"],\
+          ["@opentelemetry/resources", "virtual:593cfb5e4632735b80db50661e94e8743d77b09363ec58238b9e48e541aa083726cd3309059bc16200c92368a3ca22b355951dd135322345de34021fed5a9fc4#npm:2.2.0"],\
+          ["@opentelemetry/sdk-metrics", "virtual:593cfb5e4632735b80db50661e94e8743d77b09363ec58238b9e48e541aa083726cd3309059bc16200c92368a3ca22b355951dd135322345de34021fed5a9fc4#npm:2.2.0"],\
+          ["@types/opentelemetry__api", null]\
+        ],\
+        "packagePeers": [\
+          "@opentelemetry/api",\
+          "@types/opentelemetry__api"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@opentelemetry/sdk-trace-base", [\
+      ["npm:2.2.0", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@opentelemetry-sdk-trace-base-npm-2.2.0-6a7733e8aa-10c0.zip/node_modules/@opentelemetry/sdk-trace-base/",\
+        "packageDependencies": [\
+          ["@opentelemetry/sdk-trace-base", "npm:2.2.0"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:593cfb5e4632735b80db50661e94e8743d77b09363ec58238b9e48e541aa083726cd3309059bc16200c92368a3ca22b355951dd135322345de34021fed5a9fc4#npm:2.2.0", {\
+        "packageLocation": "./.yarn/__virtual__/@opentelemetry-sdk-trace-base-virtual-e44c3d7df0/5/AppData/Local/Yarn/Berry/cache/@opentelemetry-sdk-trace-base-npm-2.2.0-6a7733e8aa-10c0.zip/node_modules/@opentelemetry/sdk-trace-base/",\
+        "packageDependencies": [\
+          ["@opentelemetry/api", "npm:1.9.1"],\
+          ["@opentelemetry/core", "virtual:6cc4c8a2eccc25a84c65c72376da7ecd4aefff5c44d73b245434be8f5dcd5b308544c2f0978566572a2ce114305f1d5530f23f0b94021ffe33049c90054f2ebb#npm:2.2.0"],\
+          ["@opentelemetry/resources", "virtual:593cfb5e4632735b80db50661e94e8743d77b09363ec58238b9e48e541aa083726cd3309059bc16200c92368a3ca22b355951dd135322345de34021fed5a9fc4#npm:2.2.0"],\
+          ["@opentelemetry/sdk-trace-base", "virtual:593cfb5e4632735b80db50661e94e8743d77b09363ec58238b9e48e541aa083726cd3309059bc16200c92368a3ca22b355951dd135322345de34021fed5a9fc4#npm:2.2.0"],\
+          ["@opentelemetry/semantic-conventions", "npm:1.40.0"],\
+          ["@types/opentelemetry__api", null]\
+        ],\
+        "packagePeers": [\
+          "@opentelemetry/api",\
+          "@types/opentelemetry__api"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@opentelemetry/semantic-conventions", [\
+      ["npm:1.40.0", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@opentelemetry-semantic-conventions-npm-1.40.0-d0b94a9adb-10c0.zip/node_modules/@opentelemetry/semantic-conventions/",\
+        "packageDependencies": [\
+          ["@opentelemetry/semantic-conventions", "npm:1.40.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["@paper-design/shaders", [\
       ["npm:0.0.76", {\
         "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@paper-design-shaders-npm-0.0.76-44fcb56042-10c0.zip/node_modules/@paper-design/shaders/",\
         "packageDependencies": [\
           ["@paper-design/shaders", "npm:0.0.76"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@posthog/core", [\
+      ["npm:1.28.4", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@posthog-core-npm-1.28.4-5ffc181350-10c0.zip/node_modules/@posthog/core/",\
+        "packageDependencies": [\
+          ["@posthog/core", "npm:1.28.4"],\
+          ["@posthog/types", "npm:1.372.10"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@posthog/types", [\
+      ["npm:1.372.10", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@posthog-types-npm-1.372.10-f6b31e43d7-10c0.zip/node_modules/@posthog/types/",\
+        "packageDependencies": [\
+          ["@posthog/types", "npm:1.372.10"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@protobufjs/aspromise", [\
+      ["npm:1.1.2", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@protobufjs-aspromise-npm-1.1.2-71d00b938f-10c0.zip/node_modules/@protobufjs/aspromise/",\
+        "packageDependencies": [\
+          ["@protobufjs/aspromise", "npm:1.1.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@protobufjs/base64", [\
+      ["npm:1.1.2", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@protobufjs-base64-npm-1.1.2-cd8ca6814a-10c0.zip/node_modules/@protobufjs/base64/",\
+        "packageDependencies": [\
+          ["@protobufjs/base64", "npm:1.1.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@protobufjs/codegen", [\
+      ["npm:2.0.5", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@protobufjs-codegen-npm-2.0.5-bb74ff329d-10c0.zip/node_modules/@protobufjs/codegen/",\
+        "packageDependencies": [\
+          ["@protobufjs/codegen", "npm:2.0.5"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@protobufjs/eventemitter", [\
+      ["npm:1.1.0", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@protobufjs-eventemitter-npm-1.1.0-029cc7d431-10c0.zip/node_modules/@protobufjs/eventemitter/",\
+        "packageDependencies": [\
+          ["@protobufjs/eventemitter", "npm:1.1.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@protobufjs/fetch", [\
+      ["npm:1.1.0", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@protobufjs-fetch-npm-1.1.0-ca857b7df4-10c0.zip/node_modules/@protobufjs/fetch/",\
+        "packageDependencies": [\
+          ["@protobufjs/aspromise", "npm:1.1.2"],\
+          ["@protobufjs/fetch", "npm:1.1.0"],\
+          ["@protobufjs/inquire", "npm:1.1.1"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@protobufjs/float", [\
+      ["npm:1.0.2", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@protobufjs-float-npm-1.0.2-5678f64d08-10c0.zip/node_modules/@protobufjs/float/",\
+        "packageDependencies": [\
+          ["@protobufjs/float", "npm:1.0.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@protobufjs/inquire", [\
+      ["npm:1.1.1", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@protobufjs-inquire-npm-1.1.1-1f267bc97f-10c0.zip/node_modules/@protobufjs/inquire/",\
+        "packageDependencies": [\
+          ["@protobufjs/inquire", "npm:1.1.1"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@protobufjs/path", [\
+      ["npm:1.1.2", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@protobufjs-path-npm-1.1.2-641d08de76-10c0.zip/node_modules/@protobufjs/path/",\
+        "packageDependencies": [\
+          ["@protobufjs/path", "npm:1.1.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@protobufjs/pool", [\
+      ["npm:1.1.0", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@protobufjs-pool-npm-1.1.0-47a76f96a1-10c0.zip/node_modules/@protobufjs/pool/",\
+        "packageDependencies": [\
+          ["@protobufjs/pool", "npm:1.1.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@protobufjs/utf8", [\
+      ["npm:1.1.1", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@protobufjs-utf8-npm-1.1.1-77a500f5e9-10c0.zip/node_modules/@protobufjs/utf8/",\
+        "packageDependencies": [\
+          ["@protobufjs/utf8", "npm:1.1.1"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -945,6 +1330,16 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["@types/node", [\
+      ["npm:25.6.2", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@types-node-npm-25.6.2-59b4df6216-10c0.zip/node_modules/@types/node/",\
+        "packageDependencies": [\
+          ["@types/node", "npm:25.6.2"],\
+          ["undici-types", "npm:7.19.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["@types/react", [\
       ["npm:19.2.14", {\
         "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@types-react-npm-19.2.14-072ed0943f-10c0.zip/node_modules/@types/react/",\
@@ -971,6 +1366,15 @@ const RAW_RUNTIME_STATE =
         ],\
         "packagePeers": [\
           "@types/react"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@types/trusted-types", [\
+      ["npm:2.0.7", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/@types-trusted-types-npm-2.0.7-a07fc44f59-10c0.zip/node_modules/@types/trusted-types/",\
+        "packageDependencies": [\
+          ["@types/trusted-types", "npm:2.0.7"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -1118,6 +1522,24 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["cookie", [\
+      ["npm:1.1.1", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/cookie-npm-1.1.1-881103ddeb-10c0.zip/node_modules/cookie/",\
+        "packageDependencies": [\
+          ["cookie", "npm:1.1.1"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["core-js", [\
+      ["npm:3.49.0", {\
+        "packageLocation": "./.yarn/unplugged/core-js-npm-3.49.0-0a974f48cc/node_modules/core-js/",\
+        "packageDependencies": [\
+          ["core-js", "npm:3.49.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["csstype", [\
       ["npm:3.2.3", {\
         "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/csstype-npm-3.2.3-741053244e-10c0.zip/node_modules/csstype/",\
@@ -1146,6 +1568,16 @@ const RAW_RUNTIME_STATE =
         "packagePeers": [\
           "@types/supports-color",\
           "supports-color"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["dompurify", [\
+      ["npm:3.4.2", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/dompurify-npm-3.4.2-36824c4d4c-10c0.zip/node_modules/dompurify/",\
+        "packageDependencies": [\
+          ["@types/trusted-types", "npm:2.0.7"],\
+          ["dompurify", "npm:3.4.2"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -1239,6 +1671,15 @@ const RAW_RUNTIME_STATE =
         "packagePeers": [\
           "@types/picomatch",\
           "picomatch"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["fflate", [\
+      ["npm:0.4.8", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/fflate-npm-0.4.8-4dd4e91e29-10c0.zip/node_modules/fflate/",\
+        "packageDependencies": [\
+          ["fflate", "npm:0.4.8"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -1375,6 +1816,15 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/json5-npm-2.2.3-9962c55073-10c0.zip/node_modules/json5/",\
         "packageDependencies": [\
           ["json5", "npm:2.2.3"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["long", [\
+      ["npm:5.3.2", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/long-npm-5.3.2-f80d0f7d39-10c0.zip/node_modules/long/",\
+        "packageDependencies": [\
+          ["long", "npm:5.3.2"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -1633,11 +2083,72 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["posthog-js", [\
+      ["npm:1.372.10", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/posthog-js-npm-1.372.10-4a2aad3d34-10c0.zip/node_modules/posthog-js/",\
+        "packageDependencies": [\
+          ["@opentelemetry/api", "npm:1.9.1"],\
+          ["@opentelemetry/api-logs", "npm:0.208.0"],\
+          ["@opentelemetry/exporter-logs-otlp-http", "virtual:4a2aad3d34cd55263ec91d9ead080d7d2931ddbe5d823eff7235a32dd0184fac32ce799fc09883296570b4cf7ca5e6d8d463187d41da71795de00e0175faad49#npm:0.208.0"],\
+          ["@opentelemetry/resources", "virtual:4a2aad3d34cd55263ec91d9ead080d7d2931ddbe5d823eff7235a32dd0184fac32ce799fc09883296570b4cf7ca5e6d8d463187d41da71795de00e0175faad49#npm:2.7.1"],\
+          ["@opentelemetry/sdk-logs", "virtual:4a2aad3d34cd55263ec91d9ead080d7d2931ddbe5d823eff7235a32dd0184fac32ce799fc09883296570b4cf7ca5e6d8d463187d41da71795de00e0175faad49#npm:0.208.0"],\
+          ["@posthog/core", "npm:1.28.4"],\
+          ["@posthog/types", "npm:1.372.10"],\
+          ["core-js", "npm:3.49.0"],\
+          ["dompurify", "npm:3.4.2"],\
+          ["fflate", "npm:0.4.8"],\
+          ["posthog-js", "npm:1.372.10"],\
+          ["preact", "npm:10.29.1"],\
+          ["query-selector-shadow-dom", "npm:1.0.1"],\
+          ["web-vitals", "npm:5.2.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["preact", [\
+      ["npm:10.29.1", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/preact-npm-10.29.1-3fe8b19c8e-10c0.zip/node_modules/preact/",\
+        "packageDependencies": [\
+          ["preact", "npm:10.29.1"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["proc-log", [\
       ["npm:6.1.0", {\
         "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/proc-log-npm-6.1.0-84e609b3f4-10c0.zip/node_modules/proc-log/",\
         "packageDependencies": [\
           ["proc-log", "npm:6.1.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["protobufjs", [\
+      ["npm:7.5.7", {\
+        "packageLocation": "./.yarn/unplugged/protobufjs-npm-7.5.7-dde5fe2581/node_modules/protobufjs/",\
+        "packageDependencies": [\
+          ["@protobufjs/aspromise", "npm:1.1.2"],\
+          ["@protobufjs/base64", "npm:1.1.2"],\
+          ["@protobufjs/codegen", "npm:2.0.5"],\
+          ["@protobufjs/eventemitter", "npm:1.1.0"],\
+          ["@protobufjs/fetch", "npm:1.1.0"],\
+          ["@protobufjs/float", "npm:1.0.2"],\
+          ["@protobufjs/inquire", "npm:1.1.1"],\
+          ["@protobufjs/path", "npm:1.1.2"],\
+          ["@protobufjs/pool", "npm:1.1.0"],\
+          ["@protobufjs/utf8", "npm:1.1.1"],\
+          ["@types/node", "npm:25.6.2"],\
+          ["long", "npm:5.3.2"],\
+          ["protobufjs", "npm:7.5.7"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["query-selector-shadow-dom", [\
+      ["npm:1.0.1", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/query-selector-shadow-dom-npm-1.0.1-9670bfb4f4-10c0.zip/node_modules/query-selector-shadow-dom/",\
+        "packageDependencies": [\
+          ["query-selector-shadow-dom", "npm:1.0.1"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -1679,6 +2190,61 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/react-refresh-npm-0.18.0-5576c3f4a3-10c0.zip/node_modules/react-refresh/",\
         "packageDependencies": [\
           ["react-refresh", "npm:0.18.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["react-router", [\
+      ["npm:7.15.0", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/react-router-npm-7.15.0-aad005aa8f-10c0.zip/node_modules/react-router/",\
+        "packageDependencies": [\
+          ["react-router", "npm:7.15.0"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:c25ff99ed7c43db2acd2b8656217201f4b631efb1e96a2994a6ca867d8c41a3ab35ab747cac99c60b9971476a5374b265262e9b9ef7e8d5817219d822d953c85#npm:7.15.0", {\
+        "packageLocation": "./.yarn/__virtual__/react-router-virtual-25d9b10514/5/AppData/Local/Yarn/Berry/cache/react-router-npm-7.15.0-aad005aa8f-10c0.zip/node_modules/react-router/",\
+        "packageDependencies": [\
+          ["@types/react", "npm:19.2.14"],\
+          ["@types/react-dom", "virtual:f3cdc4c3d9c52bb4e9f019046a1be0856d1584543c190af3da4ccd9db09e695fe338d4acc252c043ea259bb5027624a324f6abaebfe9b556b90812330f011c8e#npm:19.2.3"],\
+          ["cookie", "npm:1.1.1"],\
+          ["react", "npm:19.2.4"],\
+          ["react-dom", "virtual:f3cdc4c3d9c52bb4e9f019046a1be0856d1584543c190af3da4ccd9db09e695fe338d4acc252c043ea259bb5027624a324f6abaebfe9b556b90812330f011c8e#npm:19.2.4"],\
+          ["react-router", "virtual:c25ff99ed7c43db2acd2b8656217201f4b631efb1e96a2994a6ca867d8c41a3ab35ab747cac99c60b9971476a5374b265262e9b9ef7e8d5817219d822d953c85#npm:7.15.0"],\
+          ["set-cookie-parser", "npm:2.7.2"]\
+        ],\
+        "packagePeers": [\
+          "@types/react-dom",\
+          "@types/react",\
+          "react-dom",\
+          "react"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["react-router-dom", [\
+      ["npm:7.15.0", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/react-router-dom-npm-7.15.0-80f4b533cd-10c0.zip/node_modules/react-router-dom/",\
+        "packageDependencies": [\
+          ["react-router-dom", "npm:7.15.0"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:f3cdc4c3d9c52bb4e9f019046a1be0856d1584543c190af3da4ccd9db09e695fe338d4acc252c043ea259bb5027624a324f6abaebfe9b556b90812330f011c8e#npm:7.15.0", {\
+        "packageLocation": "./.yarn/__virtual__/react-router-dom-virtual-c25ff99ed7/5/AppData/Local/Yarn/Berry/cache/react-router-dom-npm-7.15.0-80f4b533cd-10c0.zip/node_modules/react-router-dom/",\
+        "packageDependencies": [\
+          ["@types/react", "npm:19.2.14"],\
+          ["@types/react-dom", "virtual:f3cdc4c3d9c52bb4e9f019046a1be0856d1584543c190af3da4ccd9db09e695fe338d4acc252c043ea259bb5027624a324f6abaebfe9b556b90812330f011c8e#npm:19.2.3"],\
+          ["react", "npm:19.2.4"],\
+          ["react-dom", "virtual:f3cdc4c3d9c52bb4e9f019046a1be0856d1584543c190af3da4ccd9db09e695fe338d4acc252c043ea259bb5027624a324f6abaebfe9b556b90812330f011c8e#npm:19.2.4"],\
+          ["react-router", "virtual:c25ff99ed7c43db2acd2b8656217201f4b631efb1e96a2994a6ca867d8c41a3ab35ab747cac99c60b9971476a5374b265262e9b9ef7e8d5817219d822d953c85#npm:7.15.0"],\
+          ["react-router-dom", "virtual:f3cdc4c3d9c52bb4e9f019046a1be0856d1584543c190af3da4ccd9db09e695fe338d4acc252c043ea259bb5027624a324f6abaebfe9b556b90812330f011c8e#npm:7.15.0"]\
+        ],\
+        "packagePeers": [\
+          "@types/react-dom",\
+          "@types/react",\
+          "react-dom",\
+          "react"\
         ],\
         "linkType": "HARD"\
       }]\
@@ -1753,6 +2319,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["set-cookie-parser", [\
+      ["npm:2.7.2", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/set-cookie-parser-npm-2.7.2-e1a4d1221b-10c0.zip/node_modules/set-cookie-parser/",\
+        "packageDependencies": [\
+          ["set-cookie-parser", "npm:2.7.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["shadeer", [\
       ["workspace:.", {\
         "packageLocation": "./",\
@@ -1762,8 +2337,10 @@ const RAW_RUNTIME_STATE =
           ["@types/react-dom", "virtual:f3cdc4c3d9c52bb4e9f019046a1be0856d1584543c190af3da4ccd9db09e695fe338d4acc252c043ea259bb5027624a324f6abaebfe9b556b90812330f011c8e#npm:19.2.3"],\
           ["@vitejs/plugin-react", "virtual:f3cdc4c3d9c52bb4e9f019046a1be0856d1584543c190af3da4ccd9db09e695fe338d4acc252c043ea259bb5027624a324f6abaebfe9b556b90812330f011c8e#npm:5.2.0"],\
           ["mp4-muxer", "npm:5.2.2"],\
+          ["posthog-js", "npm:1.372.10"],\
           ["react", "npm:19.2.4"],\
           ["react-dom", "virtual:f3cdc4c3d9c52bb4e9f019046a1be0856d1584543c190af3da4ccd9db09e695fe338d4acc252c043ea259bb5027624a324f6abaebfe9b556b90812330f011c8e#npm:19.2.4"],\
+          ["react-router-dom", "virtual:f3cdc4c3d9c52bb4e9f019046a1be0856d1584543c190af3da4ccd9db09e695fe338d4acc252c043ea259bb5027624a324f6abaebfe9b556b90812330f011c8e#npm:7.15.0"],\
           ["shadeer", "workspace:."],\
           ["typescript", "patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"],\
           ["vite", "virtual:f3cdc4c3d9c52bb4e9f019046a1be0856d1584543c190af3da4ccd9db09e695fe338d4acc252c043ea259bb5027624a324f6abaebfe9b556b90812330f011c8e#npm:7.3.2"]\
@@ -1856,6 +2433,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["undici-types", [\
+      ["npm:7.19.2", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/undici-types-npm-7.19.2-93c792b6dd-10c0.zip/node_modules/undici-types/",\
+        "packageDependencies": [\
+          ["undici-types", "npm:7.19.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["update-browserslist-db", [\
       ["npm:1.2.3", {\
         "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/update-browserslist-db-npm-1.2.3-de1d320326-10c0.zip/node_modules/update-browserslist-db/",\
@@ -1943,6 +2529,15 @@ const RAW_RUNTIME_STATE =
           "terser",\
           "tsx",\
           "yaml"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["web-vitals", [\
+      ["npm:5.2.0", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/web-vitals-npm-5.2.0-f7592a1a81-10c0.zip/node_modules/web-vitals/",\
+        "packageDependencies": [\
+          ["web-vitals", "npm:5.2.0"]\
         ],\
         "linkType": "HARD"\
       }]\
