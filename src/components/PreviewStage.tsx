@@ -280,24 +280,6 @@ export function PreviewStage({
           </button>
         ) : null}
 
-        <div className="fit-control" id="fitControl" data-mode={state.fitMode}>
-          <span className="fit-pill" />
-          <button
-            type="button"
-            className={`fit-btn${state.fitMode === 'fill' ? ' selected' : ''}`}
-            onClick={() => onFitModeChange('fill')}
-          >
-            Fill
-          </button>
-          <button
-            type="button"
-            className={`fit-btn${state.fitMode === 'fit' ? ' selected' : ''}`}
-            onClick={() => onFitModeChange('fit')}
-          >
-            Fit
-          </button>
-        </div>
-
         {showRadialHandle && (
           <RadialCenterHandle
             uvX={state.blur.centerX}
@@ -322,6 +304,24 @@ export function PreviewStage({
             onChange={onGlassCenterChange!}
           />
         )}
+      </div>
+
+      <div className="fit-control" id="fitControl" data-mode={state.fitMode}>
+        <span className="fit-pill" />
+        <button
+          type="button"
+          className={`fit-btn${state.fitMode === 'fill' ? ' selected' : ''}`}
+          onClick={() => onFitModeChange('fill')}
+        >
+          Fill
+        </button>
+        <button
+          type="button"
+          className={`fit-btn${state.fitMode === 'fit' ? ' selected' : ''}`}
+          onClick={() => onFitModeChange('fit')}
+        >
+          Fit
+        </button>
       </div>
 
       {isAnimated && state.image.isReady && (
