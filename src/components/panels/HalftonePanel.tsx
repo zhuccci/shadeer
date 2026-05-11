@@ -49,7 +49,6 @@ export function HalftonePanel({
 
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="halftonePanel">
-      <div className="halftone-scroll">
       <div className="controls-left">
         <HalftonePatternSelector label="Pattern" value={state.halftone.pattern} onChange={onPatternChange} />
         <SliderControl label="Scale" min={0} max={100} value={state.halftone.scale} onChange={onScaleChange} />
@@ -95,7 +94,6 @@ export function HalftonePanel({
         </div>
 
         <CheckboxControl label="Invert" checked={state.halftone.invert} onChange={onInvertChange} />
-      </div>
       </div>
     </div>
   );
