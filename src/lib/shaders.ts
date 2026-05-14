@@ -1399,15 +1399,19 @@ void main() {
   float inB = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
   if (inB < 0.5) { fragColor = vec4(0.0); return; }
 
+  ivec2 sz = textureSize(u_image, 0);
+
   if (u_blurType > 0.5) {
-    fragColor = texture(u_image, uv);
+    // Nearest-pixel pass-through — avoids bilinear straight-alpha contamination
+    // on images that get downsampled to the intermediate canvas.
+    ivec2 ctr0 = clamp(ivec2(uv * vec2(sz)), ivec2(0), sz - 1);
+    fragColor = texelFetch(u_image, ctr0, 0);
     return;
   }
 
   float r = u_strength * 40.0;
   float stepPx = max(1.0, r / 16.0);
   float sigma2 = 2.0 * (r / 3.0) * (r / 3.0) + 0.001;
-  ivec2 sz = textureSize(u_image, 0);
   ivec2 ctr = ivec2(uv * vec2(sz));
   vec3 premulSum = vec3(0.0);
   float alphaSum = 0.0;
