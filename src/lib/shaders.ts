@@ -147,7 +147,7 @@ vec4 layerBlend(vec4 filtered) {
 }`;
 
 export const flutedGlassFragmentShader = `#version 300 es
-precision highp float;
+precision mediump float;
 uniform vec2 u_resolution;
 uniform float u_pixelRatio;
 uniform float u_rotation;
@@ -176,8 +176,8 @@ uniform float u_grainOverlay;
 uniform float u_originX;
 uniform float u_originY;
 in vec2 v_imageUV;
-${_opacityBlend}
 out vec4 fragColor;
+${_opacityBlend}
 ${_declarePI}
 ${_rotation2}
 ${_hash21}
@@ -320,11 +320,7 @@ void main() {
   float stretch = pow(1. - smoothstep(0., .5, xNonSmooth) * smoothstep(1., .5, xNonSmooth), 2.) * mask;
   stretch *= getUvFrame(uv, .1 + .05 * mask * frameFade);
   uv.y = mix(uv.y, .5, u_stretch * stretch);
-  vec2 _ts = 1. / u_resolution / u_pixelRatio;
-  vec2 _uvc = clamp(uv, vec2(0.0), vec2(1.0));
-  vec4 imageH = getBlur(u_image, _uvc, _ts, vec2(1., 0.), blur);
-  vec4 imageV = getBlur(u_image, _uvc, _ts, vec2(0., 1.), blur);
-  vec4 image = (imageH + imageV) * 0.5;
+  vec4 image = getBlur(u_image, clamp(uv, vec2(0.0), vec2(1.0)), 1. / u_resolution / u_pixelRatio, vec2(0., 1.), blur);
   image.rgb *= image.a;
   vec4 backColor = u_colorBack; backColor.rgb *= backColor.a;
   vec4 highlightColor = u_colorHighlight; highlightColor.rgb *= highlightColor.a;
@@ -1388,9 +1384,9 @@ void main() {
 }`;
 
 
-// Pass 1 of 2 for Gaussian: horizontal 1D blur. Motion/radial pass through unchanged.
+// Pass 1 of 2: horizontal Gaussian in linear-premultiplied space. Motion/radial pass through.
 export const blurHFragmentShader = `#version 300 es
-precision mediump float;
+precision highp float;
 uniform sampler2D u_image;
 uniform float u_blurType;
 uniform float u_strength;
@@ -1408,29 +1404,32 @@ void main() {
     return;
   }
 
-  float origAlpha = texture(u_image, uv).a;
-  if (origAlpha < 0.01) { fragColor = vec4(0.0); return; }
-
   float r = u_strength * 40.0;
   float stepPx = max(1.0, r / 16.0);
   float sigma2 = 2.0 * (r / 3.0) * (r / 3.0) + 0.001;
   float texelX = 1.0 / float(textureSize(u_image, 0).x);
-  vec4 sum = vec4(0.0);
-  float wSum = 0.0;
+  vec3 premulSum = vec3(0.0);
+  float alphaSum = 0.0;
+  float totalW = 0.0;
 
   for (int xi = -16; xi <= 16; xi++) {
     float dx = float(xi) * stepPx;
     float w = exp(-dx * dx / sigma2);
-    sum += texture(u_image, clamp(vec2(uv.x + dx * texelX, uv.y), 0.0, 1.0)) * w;
-    wSum += w;
+    vec4 s = texture(u_image, clamp(vec2(uv.x + dx * texelX, uv.y), 0.0, 1.0));
+    // Linearise sRGB, then accumulate premultiplied linear colour + alpha separately
+    vec3 lin = pow(max(s.rgb, vec3(0.0)), vec3(2.2));
+    premulSum += lin * s.a * w;
+    alphaSum  += s.a * w;
+    totalW    += w;
   }
 
-  fragColor = vec4(clamp((sum / wSum).rgb, 0.0, 1.0), origAlpha);
+  // Output: premultiplied linear RGB in .rgb, blurred alpha in .a
+  fragColor = vec4(premulSum / totalW, alphaSum / totalW);
 }`;
 
-// Pass 2 of 2: vertical 1D Gaussian (reads H-blurred image). Full effect for motion/radial.
+// Pass 2 of 2: vertical Gaussian (reads linear-premultiplied from Pass 1). Full motion/radial here.
 export const blurFragmentShader = `#version 300 es
-precision mediump float;
+precision highp float;
 uniform sampler2D u_image;
 uniform float u_blurType;
 uniform float u_strength;
@@ -1454,48 +1453,69 @@ void main() {
   vec2 uv = v_imageUV;
   float inB = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
   if (inB < 0.5) { fragColor = vec4(0.0); return; }
-  float origAlpha = texture(u_image, uv).a;
-  if (origAlpha < 0.01) { fragColor = vec4(0.0); return; }
 
   vec2 texel = 1.0 / vec2(textureSize(u_image, 0));
-  vec4 sum = vec4(0.0);
-  float wSum = 0.0;
+  vec3 premulSum = vec3(0.0);
+  float alphaSum = 0.0;
+  float totalW = 0.0;
 
   if (u_blurType < 0.5) {
+    // Gaussian vertical pass: input .rgb is premultiplied-linear, .a is blurred alpha (from Pass 1)
     float r = u_strength * 40.0;
     float stepPx = max(1.0, r / 16.0);
     float sigma2 = 2.0 * (r / 3.0) * (r / 3.0) + 0.001;
     for (int yi = -16; yi <= 16; yi++) {
       float dy = float(yi) * stepPx;
       float w = exp(-dy * dy / sigma2);
-      sum += texture(u_image, clamp(uv + vec2(0.0, dy * texel.y), 0.0, 1.0)) * w;
-      wSum += w;
+      vec4 s = texture(u_image, clamp(uv + vec2(0.0, dy * texel.y), 0.0, 1.0));
+      premulSum += s.rgb * w;  // s.rgb already premultiplied-linear from Pass 1
+      alphaSum  += s.a * w;
+      totalW    += w;
     }
-    sum /= wSum;
-  } else if (u_blurType < 1.5) {
+    float alpha = alphaSum / totalW;
+    vec3 lin = alpha > 0.001 ? premulSum / (totalW * alpha) : vec3(0.0);
+    vec3 color = pow(max(lin, vec3(0.0)), vec3(1.0 / 2.2));
+    if (u_grain > 0.0) {
+      float noise = blurHash(gl_FragCoord.xy) * 2.0 - 1.0;
+      color = clamp(color + vec3(noise) * u_grain * 0.12, 0.0, 1.0);
+    }
+    fragColor = layerBlend(vec4(color * alpha, alpha));
+    return;
+  }
+
+  // Motion / radial: Pass 1 passed through unchanged — read original sRGB image here
+  if (u_blurType < 1.5) {
     float dist = u_strength * 120.0;
     vec2 dir = vec2(sin(u_angle), -cos(u_angle)) * dist * texel / float(TAPS);
     for (int i = 0; i < TAPS; i++) {
       float t = float(i) - float(TAPS - 1) * 0.5;
-      sum += texture(u_image, clamp(uv + dir * t, 0.0, 1.0));
+      vec4 s = texture(u_image, clamp(uv + dir * t, 0.0, 1.0));
+      vec3 lin = pow(max(s.rgb, vec3(0.0)), vec3(2.2));
+      premulSum += lin * s.a;
+      alphaSum  += s.a;
+      totalW    += 1.0;
     }
-    sum /= float(TAPS);
   } else {
     float dist = u_strength * 0.5;
     vec2 toCenter = (vec2(u_centerX, u_centerY) - uv) * dist;
     for (int i = 0; i < TAPS; i++) {
       float t = float(i) / float(TAPS - 1);
-      sum += texture(u_image, clamp(uv + toCenter * t, 0.0, 1.0));
+      vec4 s = texture(u_image, clamp(uv + toCenter * t, 0.0, 1.0));
+      vec3 lin = pow(max(s.rgb, vec3(0.0)), vec3(2.2));
+      premulSum += lin * s.a;
+      alphaSum  += s.a;
+      totalW    += 1.0;
     }
-    sum /= float(TAPS);
   }
 
-  vec3 color = clamp(sum.rgb, 0.0, 1.0);
+  float alpha = alphaSum / totalW;
+  vec3 lin = alpha > 0.001 ? premulSum / (totalW * alpha) : vec3(0.0);
+  vec3 color = pow(max(lin, vec3(0.0)), vec3(1.0 / 2.2));
   if (u_grain > 0.0) {
     float noise = blurHash(gl_FragCoord.xy) * 2.0 - 1.0;
     color = clamp(color + vec3(noise) * u_grain * 0.12, 0.0, 1.0);
   }
-  fragColor = layerBlend(vec4(color, origAlpha));
+  fragColor = layerBlend(vec4(color * alpha, alpha));
 }`;
 
 export class ShaderMount {

@@ -64,7 +64,7 @@ export default function App() {
         }));
       } catch {
         const fallbackImage = makeFallbackImage();
-        fallbackImage.onload = () => {
+        const applyFallback = () => {
           updateState((current) => ({
             ...current,
             image: {
@@ -79,6 +79,11 @@ export default function App() {
             },
           }));
         };
+        if (fallbackImage.complete) {
+          applyFallback();
+        } else {
+          fallbackImage.onload = applyFallback;
+        }
       }
     };
 
