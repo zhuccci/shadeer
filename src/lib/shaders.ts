@@ -1407,7 +1407,8 @@ void main() {
   float r = u_strength * 40.0;
   float stepPx = max(1.0, r / 16.0);
   float sigma2 = 2.0 * (r / 3.0) * (r / 3.0) + 0.001;
-  float texelX = 1.0 / float(textureSize(u_image, 0).x);
+  ivec2 sz = textureSize(u_image, 0);
+  ivec2 ctr = ivec2(uv * vec2(sz));
   vec3 premulSum = vec3(0.0);
   float alphaSum = 0.0;
   float totalW = 0.0;
@@ -1415,8 +1416,10 @@ void main() {
   for (int xi = -16; xi <= 16; xi++) {
     float dx = float(xi) * stepPx;
     float w = exp(-dx * dx / sigma2);
-    vec4 s = texture(u_image, clamp(vec2(uv.x + dx * texelX, uv.y), 0.0, 1.0));
-    // Linearise sRGB, then accumulate premultiplied linear colour + alpha separately
+    // texelFetch avoids GPU bilinear interpolation in straight-alpha space,
+    // which would mix white garbage RGB from transparent pixels into the result.
+    int tx = clamp(ctr.x + int(dx), 0, sz.x - 1);
+    vec4 s = texelFetch(u_image, ivec2(tx, ctr.y), 0);
     vec3 lin = pow(max(s.rgb, vec3(0.0)), vec3(2.2));
     premulSum += lin * s.a * w;
     alphaSum  += s.a * w;
@@ -1454,7 +1457,8 @@ void main() {
   float inB = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
   if (inB < 0.5) { fragColor = vec4(0.0); return; }
 
-  vec2 texel = 1.0 / vec2(textureSize(u_image, 0));
+  ivec2 sz = textureSize(u_image, 0);
+  ivec2 ctr = ivec2(uv * vec2(sz));
   vec3 premulSum = vec3(0.0);
   float alphaSum = 0.0;
   float totalW = 0.0;
@@ -1467,7 +1471,8 @@ void main() {
     for (int yi = -16; yi <= 16; yi++) {
       float dy = float(yi) * stepPx;
       float w = exp(-dy * dy / sigma2);
-      vec4 s = texture(u_image, clamp(uv + vec2(0.0, dy * texel.y), 0.0, 1.0));
+      int ty = clamp(ctr.y + int(dy), 0, sz.y - 1);
+      vec4 s = texelFetch(u_image, ivec2(ctr.x, ty), 0);
       premulSum += s.rgb * w;  // s.rgb already premultiplied-linear from Pass 1
       alphaSum  += s.a * w;
       totalW    += w;
@@ -1483,13 +1488,16 @@ void main() {
     return;
   }
 
-  // Motion / radial: Pass 1 passed through unchanged — read original sRGB image here
+  // Motion / radial: Pass 1 passed through unchanged — read original sRGB image here.
+  // Use texelFetch (no bilinear interp) so straight-alpha garbage in transparent pixels
+  // can't contaminate the premultiplied accumulation.
   if (u_blurType < 1.5) {
     float dist = u_strength * 120.0;
-    vec2 dir = vec2(sin(u_angle), -cos(u_angle)) * dist * texel / float(TAPS);
+    vec2 stepF = vec2(sin(u_angle), -cos(u_angle)) * dist / float(TAPS);
     for (int i = 0; i < TAPS; i++) {
       float t = float(i) - float(TAPS - 1) * 0.5;
-      vec4 s = texture(u_image, clamp(uv + dir * t, 0.0, 1.0));
+      ivec2 sp = clamp(ctr + ivec2(stepF * t), ivec2(0), sz - 1);
+      vec4 s = texelFetch(u_image, sp, 0);
       vec3 lin = pow(max(s.rgb, vec3(0.0)), vec3(2.2));
       premulSum += lin * s.a;
       alphaSum  += s.a;
@@ -1497,10 +1505,11 @@ void main() {
     }
   } else {
     float dist = u_strength * 0.5;
-    vec2 toCenter = (vec2(u_centerX, u_centerY) - uv) * dist;
+    vec2 toCenterUV = (vec2(u_centerX, u_centerY) - uv) * dist;
     for (int i = 0; i < TAPS; i++) {
       float t = float(i) / float(TAPS - 1);
-      vec4 s = texture(u_image, clamp(uv + toCenter * t, 0.0, 1.0));
+      ivec2 sp = clamp(ivec2((uv + toCenterUV * t) * vec2(sz)), ivec2(0), sz - 1);
+      vec4 s = texelFetch(u_image, sp, 0);
       vec3 lin = pow(max(s.rgb, vec3(0.0)), vec3(2.2));
       premulSum += lin * s.a;
       alphaSum  += s.a;
