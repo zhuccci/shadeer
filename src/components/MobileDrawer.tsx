@@ -12,11 +12,11 @@ import { KnobControl } from './KnobControl';
 import { ScanSelector } from './ScanSelector';
 import { ShapeSelector } from './ShapeSelector';
 import { SliderControl } from './SliderControl';
-import { SaveIcon, UploadIcon } from './icons/AppIcons';
+import { AddLayerIcon, EyeOpenIcon, EyeSlashIcon, LayersCheckIcon, SaveIcon, TrashIcon, UploadIcon } from './icons/AppIcons';
 import { filterOptions } from './filterOptions';
 import { sanitizeHex } from '../lib/editor';
 import { DITHER_PRESETS, ditherSwatchStyle } from './panels/DitheringPanel';
-import type { ActiveFilter, BlurType, EditorState, GradientStop, HeatmapPalette } from '../types/editor';
+import type { ActiveFilter, BlurType, EditorState, GradientStop, HeatmapPalette, LayerEntry } from '../types/editor';
 
 type MobileTab = 'sliders' | 'colors';
 
@@ -48,6 +48,11 @@ interface MobileDrawerProps {
   canExportVideo?: boolean;
   savingProgress?: number | null;
   savingPhase?: 'recording' | 'converting' | null;
+  layers: LayerEntry[];
+  onAddLayer: (filter: ActiveFilter) => void;
+  onRemoveLayer: (filter: ActiveFilter) => void;
+  onReorderLayers: (layers: LayerEntry[]) => void;
+  onToggleLayerVisibility: (filter: ActiveFilter) => void;
 }
 
 function SettingsIcon() {
@@ -931,10 +936,117 @@ function BlurPanelContent({ state, updateState }: PanelContentProps) {
   );
 }
 
+function MobileLayersDragIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <circle cx="9" cy="7" r="1.5" fill="currentColor"/>
+      <circle cx="15" cy="7" r="1.5" fill="currentColor"/>
+      <circle cx="9" cy="12" r="1.5" fill="currentColor"/>
+      <circle cx="15" cy="12" r="1.5" fill="currentColor"/>
+      <circle cx="9" cy="17" r="1.5" fill="currentColor"/>
+      <circle cx="15" cy="17" r="1.5" fill="currentColor"/>
+    </svg>
+  );
+}
+
+interface MobileLayersContentProps {
+  layers: LayerEntry[];
+  activeFilter: ActiveFilter;
+  onAddLayer: (filter: ActiveFilter) => void;
+  onRemoveLayer: (filter: ActiveFilter) => void;
+  onReorder: (layers: LayerEntry[]) => void;
+  onToggleVisibility: (filter: ActiveFilter) => void;
+  onSelectLayer: (filter: ActiveFilter) => void;
+}
+
+function MobileLayersContent({ layers, activeFilter, onAddLayer, onRemoveLayer, onReorder, onToggleVisibility, onSelectLayer }: MobileLayersContentProps) {
+  const dragIndexRef = React.useRef<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
+  const isInLayers = layers.some((l) => l.id === activeFilter);
+  const getLabel = (id: ActiveFilter) => filterOptions.find((f) => f.id === id)?.label ?? id;
+
+  const handleDragStart = (index: number) => { dragIndexRef.current = index; };
+  const handleDragOver = (e: React.DragEvent, index: number) => { e.preventDefault(); setDragOver(index); };
+  const handleDrop = (targetIndex: number) => {
+    const from = dragIndexRef.current;
+    if (from === null || from === targetIndex) { setDragOver(null); return; }
+    const next = [...layers];
+    const [item] = next.splice(from, 1);
+    next.splice(targetIndex, 0, item);
+    onReorder(next);
+    dragIndexRef.current = null;
+    setDragOver(null);
+  };
+  const handleDragEnd = () => { dragIndexRef.current = null; setDragOver(null); };
+
+  return (
+    <div className="mobile-layers-content">
+      {layers.length === 0 ? (
+        <div className="mobile-layers-empty">Stack multiple effects together</div>
+      ) : (
+        <div className="mobile-layers-list">
+          {layers.map((layer, index) => {
+            const isActive = activeFilter === layer.id;
+            const isHidden = layer.hidden;
+            return (
+              <div
+                key={layer.id}
+                className={`layer-row${dragOver === index ? ' layer-row--over' : ''}`}
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDrop={() => handleDrop(index)}
+                onDragEnd={handleDragEnd}
+              >
+                <div className="layer-left">
+                  <button
+                    type="button"
+                    className={`layer-eye-btn${isHidden ? ' layer-eye-btn--hidden' : ''}`}
+                    aria-label={isHidden ? 'Show layer' : 'Hide layer'}
+                    onClick={(e) => { e.stopPropagation(); onToggleVisibility(layer.id); }}
+                  >
+                    {isHidden ? <EyeSlashIcon /> : <EyeOpenIcon />}
+                  </button>
+                  <button
+                    type="button"
+                    className={`layer-name-btn${isActive ? ' layer-name-btn--active' : ''}${isHidden ? ' layer-name-btn--hidden' : ''}`}
+                    onClick={() => onSelectLayer(layer.id)}
+                  >
+                    <MobileLayersDragIcon />
+                    {getLabel(layer.id)}
+                  </button>
+                </div>
+                <div className="layer-right">
+                  <button
+                    type="button"
+                    className="layer-trash-btn"
+                    aria-label={`Remove ${getLabel(layer.id)} layer`}
+                    onClick={(e) => { e.stopPropagation(); onRemoveLayer(layer.id); }}
+                  >
+                    <TrashIcon />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {!isInLayers && (
+        <button type="button" className="mobile-add-layer-btn" onClick={() => onAddLayer(activeFilter)}>
+          <AddLayerIcon />
+          Add layer
+        </button>
+      )}
+    </div>
+  );
+}
+
 type MobileColorPickerState = { label: string; value: string; onChange: (v: string) => void; originX: string; originY: string } | null;
 
-export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSelect, isVideo, canExportVideo, savingProgress, savingPhase }: MobileDrawerProps) {
+export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSelect, isVideo, canExportVideo, savingProgress, savingPhase, layers, onAddLayer, onRemoveLayer, onReorderLayers, onToggleLayerVisibility }: MobileDrawerProps) {
   const [expanded, setExpanded] = useState(false);
+  const [showLayersPanel, setShowLayersPanel] = useState(false);
+  const prevExpandedRef = useRef(false);
   const [activeTab, setActiveTab] = useState<MobileTab>('sliders');
   const [slideDir, setSlideDir] = useState<'forward' | 'back'>('forward');
   const [mobileColorPicker, setMobileColorPicker] = useState<MobileColorPickerState>(null);
@@ -943,6 +1055,19 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
   const panelRef   = useRef<HTMLDivElement>(null);
   const saveWrapRef = useRef<HTMLDivElement | null>(null);
+
+  const isCurrentFilterInLayers = layers.some((l) => l.id === state.activeFilter);
+
+  const openLayersPanel = () => {
+    prevExpandedRef.current = expanded;
+    setExpanded(true);
+    setShowLayersPanel(true);
+  };
+
+  const closeLayersPanel = () => {
+    setShowLayersPanel(false);
+    setExpanded(prevExpandedRef.current);
+  };
 
   React.useEffect(() => {
     if (!showFormatMenu) return;
@@ -1002,19 +1127,43 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
                 <span className="sheet-header-icon"><CloseIcon /></span>
               </button>
             </>
-          ) : (
+          ) : showLayersPanel ? (
             <>
-              <span className="sheet-filter-name">{filterLabel}</span>
+              <span className="sheet-filter-name">Layers</span>
               <button
                 type="button"
                 className="sheet-icon-btn"
-                onClick={() => setExpanded((v) => !v)}
-                aria-label={expanded ? 'Close settings' : 'Open settings'}
+                onClick={closeLayersPanel}
+                aria-label="Close layers"
               >
-                <span key={expanded ? 'close' : 'settings'} className="sheet-header-icon">
-                  {expanded ? <CloseIcon /> : <SettingsIcon />}
-                </span>
+                <span className="sheet-header-icon"><CloseIcon /></span>
               </button>
+            </>
+          ) : (
+            <>
+              <span className="sheet-filter-name">{filterLabel}</span>
+              <div className="sheet-header-icons">
+                <button
+                  type="button"
+                  className="sheet-icon-btn"
+                  onClick={openLayersPanel}
+                  aria-label="Layers"
+                >
+                  <span key={isCurrentFilterInLayers ? 'layers-check' : 'layers'} className="sheet-header-icon">
+                    {isCurrentFilterInLayers ? <LayersCheckIcon /> : <AddLayerIcon />}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className="sheet-icon-btn"
+                  onClick={() => setExpanded((v) => !v)}
+                  aria-label={expanded ? 'Close settings' : 'Open settings'}
+                >
+                  <span key={expanded ? 'close' : 'settings'} className="sheet-header-icon">
+                    {expanded ? <CloseIcon /> : <SettingsIcon />}
+                  </span>
+                </button>
+              </div>
             </>
           )}
         </div>
@@ -1089,13 +1238,23 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
           <div className="sheet-settings-area-inner">
             <div className="sheet-panel" ref={panelRef}>
               {mobileColorPicker ? (
-                /* Color picker view — fills panel directly, no tabs or scroll wrapper */
+                /* Color picker view */
                 <MobileColorPicker
                   value={mobileColorPicker.value}
                   onChange={mobileColorPicker.onChange}
                   style={{ '--cp-origin-x': mobileColorPicker.originX, '--cp-origin-y': mobileColorPicker.originY } as React.CSSProperties}
                   closing={colorPickerClosing}
                   onCloseEnd={() => { setMobileColorPicker(null); setColorPickerClosing(false); }}
+                />
+              ) : showLayersPanel ? (
+                <MobileLayersContent
+                  layers={layers}
+                  activeFilter={state.activeFilter}
+                  onAddLayer={onAddLayer}
+                  onRemoveLayer={onRemoveLayer}
+                  onReorder={onReorderLayers}
+                  onToggleVisibility={onToggleLayerVisibility}
+                  onSelectLayer={onFilterSelect}
                 />
               ) : state.activeFilter === 'blur' ? (
                 /* Blur — no tabs, single scrollable column */

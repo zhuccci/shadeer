@@ -448,6 +448,11 @@ export default function App() {
         canExportVideo={hasAnimatedEffect(editorState)}
         savingProgress={videoExportProgress}
         savingPhase={savingPhase}
+        layers={editorState.layers}
+        onAddLayer={handleAddLayer}
+        onRemoveLayer={handleRemoveLayer}
+        onReorderLayers={handleReorderLayers}
+        onToggleLayerVisibility={handleToggleLayerVisibility}
       />
       <PullToRefresh />
     </div>

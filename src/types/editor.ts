@@ -88,6 +88,7 @@ export interface HalftoneSettings {
   scale: number;
   radius: number;
   contrast: number;
+  shadowEnabled: boolean;
   shadowRange: number;
   shadowInvert: boolean;
   blackAndWhite: boolean;
@@ -279,13 +280,14 @@ export const defaultBlurSettings: BlurSettings = {
 export const defaultHalftoneSettings: HalftoneSettings = {
   pattern: 'dots',
   angle: 0,
-  scale: 20,
-  radius: 56,
+  scale: 0,
+  radius: 100,
   contrast: 0,
+  shadowEnabled: false,
   shadowRange: 100,
   shadowInvert: false,
   blackAndWhite: true,
-  originalColors: false,
+  originalColors: true,
   invert: false,
   backgroundColor: '#FFFFFF',
   color1: '#000000',

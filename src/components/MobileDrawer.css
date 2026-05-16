@@ -16,7 +16,7 @@
 .sheet-card {
   border-radius: 32px;
   border: 0.5px solid #606060;
-  background: radial-gradient(ellipse at bottom left, #292929 0%, #2d2d2d 100%);
+  background: linear-gradient(to top, #202020, #242424);
   box-shadow:
     0 -2px 6px rgba(0, 0, 0, 0.12),
     0 4px 24px rgba(0, 0, 0, 0.3),
@@ -35,7 +35,7 @@
 }
 
 .mobile-sheet.expanded .sheet-card {
-  background: radial-gradient(ellipse at bottom left, #292929 0%, #2d2d2d 100%);
+  background: linear-gradient(to top, #202020, #242424);
   padding: 8px;
   gap: 0;
 }
@@ -54,11 +54,15 @@
   align-items: center;
   justify-content: space-between;
   padding-left: 8px;
-  transition: padding-left 300ms var(--ease-out-strong);
+  padding-right: 8px;
+  position: relative;
+  z-index: 1;
+  transition: padding-left 300ms var(--ease-out-strong), padding-right 300ms var(--ease-out-strong);
 }
 
 .mobile-sheet:not(.expanded) .sheet-header {
   padding-left: 0;
+  padding-right: 0;
 }
 
 .sheet-filter-name {
@@ -72,8 +76,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
-  min-height: 44px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   background: none;
   border: none;
@@ -320,6 +324,71 @@
   z-index: 2;
   background: #141414;
   padding: 8px 8px 0;
+}
+
+/* ── Header icon group (layers + settings) ── */
+.sheet-header-icons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Mobile layers panel content ── */
+.mobile-layers-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  padding: 16px 8px 8px;
+  min-height: 0;
+}
+
+.mobile-layers-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6a6a6a;
+  font-size: 16px;
+}
+
+.mobile-layers-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.mobile-add-layer-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 48px;
+  min-height: 48px;
+  width: 100%;
+  background: #373737;
+  border: none;
+  border-radius: 16px;
+  color: #d6d6d6;
+  font-size: 16px;
+  font-family: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, transform 0.12s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.mobile-add-layer-btn:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .mobile-add-layer-btn:hover {
+    background: #424242;
+  }
 }
 
 .sheet-segmented {

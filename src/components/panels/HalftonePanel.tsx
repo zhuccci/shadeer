@@ -14,6 +14,7 @@ interface HalftonePanelProps {
   onScaleChange: (value: number) => void;
   onRadiusChange: (value: number) => void;
   onContrastChange: (value: number) => void;
+  onShadowEnabledChange: (value: boolean) => void;
   onShadowRangeChange: (value: number) => void;
   onShadowInvertChange: (value: boolean) => void;
   onBlackAndWhiteChange: (value: boolean) => void;
@@ -34,6 +35,7 @@ export function HalftonePanel({
   onScaleChange,
   onRadiusChange,
   onContrastChange,
+  onShadowEnabledChange,
   onShadowRangeChange,
   onShadowInvertChange,
   onBlackAndWhiteChange,
@@ -54,8 +56,14 @@ export function HalftonePanel({
         <SliderControl label="Scale" min={0} max={100} value={state.halftone.scale} onChange={onScaleChange} />
         <SliderControl label="Radius" min={0} max={100} value={state.halftone.radius} onChange={onRadiusChange} />
         <SliderControl label="Contrast" min={0} max={100} value={state.halftone.contrast} onChange={onContrastChange} />
-        <SliderControl label="Shadows" min={0} max={100} value={state.halftone.shadowRange} onChange={onShadowRangeChange} />
-        <CheckboxControl label="Invert Shadows" checked={state.halftone.shadowInvert} onChange={onShadowInvertChange} />
+        <div className="paper-divider-h" />
+        <CheckboxControl label="Area" checked={state.halftone.shadowEnabled} onChange={onShadowEnabledChange} />
+        <div className={`ht-section${!state.halftone.shadowEnabled ? ' ht-hidden' : ''}`}>
+          <div className="ht-section-inner">
+            <SliderControl label="Area" min={0} max={100} value={state.halftone.shadowRange} onChange={onShadowRangeChange} />
+            <CheckboxControl label="Invert Area" checked={state.halftone.shadowInvert} onChange={onShadowInvertChange} />
+          </div>
+        </div>
       </div>
       <div className="panel-divider" />
       <div className="halftone-right">

@@ -175,6 +175,8 @@ uniform float u_grainMixer;
 uniform float u_grainOverlay;
 uniform float u_originX;
 uniform float u_originY;
+uniform float u_glassOriginX;
+uniform float u_glassOriginY;
 in vec2 v_imageUV;
 out vec4 fragColor;
 ${_opacityBlend}
@@ -246,8 +248,8 @@ void main() {
     smoothstep(margins[1] - 2. * sw.y, margins[1], uvMask.y) *
     smoothstep(margins[3] - 2. * sw.y, margins[3], 1.0 - uvMask.y);
   float maskStrokeInner = maskInner - mask;
-  vec2 uvImgCentered = uv - vec2(u_originX, u_originY);
-  uv -= vec2(u_originX, u_originY); uv *= patternSize;
+  vec2 uvImgCentered = uv - vec2(u_glassOriginX, u_glassOriginY);
+  uv -= vec2(u_glassOriginX, u_glassOriginY); uv *= patternSize;
   uv = rotateAspect(uv, patternRotation, u_imageAspectRatio);
   float curve = 0.;
   float patternY = uv.y / u_imageAspectRatio;
@@ -311,7 +313,7 @@ void main() {
   fractOrigUV.x += distortion;
   floorOrigUV = rotateAspect(floorOrigUV, -patternRotation, u_imageAspectRatio);
   fractOrigUV = rotateAspect(fractOrigUV, -patternRotation, u_imageAspectRatio);
-  uv = (floorOrigUV + fractOrigUV) / patternSize + pow(maskStroke, 4.) + vec2(u_originX, u_originY);
+  uv = (floorOrigUV + fractOrigUV) / patternSize + pow(maskStroke, 4.) + vec2(u_glassOriginX, u_glassOriginY);
   uv = mix(v_imageUV, uv, smoothstep(0., .7, mask));
   float blur = mix(0., 50., u_blur) * smoothstep(.5, 1., mask);
   float edgeDistortion = (mix(.0, .04, u_edges) + .06 * frameFade * u_edges) * mask;
@@ -1400,33 +1402,51 @@ void main() {
   if (inB < 0.5) { fragColor = vec4(0.0); return; }
 
   ivec2 sz = textureSize(u_image, 0);
+  ivec2 ctr0 = clamp(ivec2(uv * vec2(sz)), ivec2(0), sz - 1);
 
   if (u_blurType > 0.5) {
     // Nearest-pixel pass-through — avoids bilinear straight-alpha contamination
     // on images that get downsampled to the intermediate canvas.
-    ivec2 ctr0 = clamp(ivec2(uv * vec2(sz)), ivec2(0), sz - 1);
     fragColor = texelFetch(u_image, ctr0, 0);
     return;
   }
 
-  float r = u_strength * 40.0;
-  float stepPx = max(1.0, r / 16.0);
+  float r = u_strength * 80.0;
+
+  // Zero/near-zero blur: pass center pixel through directly.
+  // (With r≈0, sigma2≈0 makes all off-center Gaussian weights collapse to ~0,
+  //  causing totalW≈0 and a division-by-zero that produces noise.)
+  if (r < 0.5) {
+    vec4 s = texelFetch(u_image, ctr0, 0);
+    vec3 lin = pow(max(s.rgb, vec3(0.0)), vec3(2.2));
+    fragColor = vec4(lin * s.a, s.a);
+    return;
+  }
+
+  float stepPx = max(1.0, r / 32.0);
   float sigma2 = 2.0 * (r / 3.0) * (r / 3.0) + 0.001;
   ivec2 ctr = ivec2(uv * vec2(sz));
   vec3 premulSum = vec3(0.0);
   float alphaSum = 0.0;
   float totalW = 0.0;
 
-  for (int xi = -16; xi <= 16; xi++) {
+  for (int xi = -32; xi <= 32; xi++) {
     float dx = float(xi) * stepPx;
     float w = exp(-dx * dx / sigma2);
-    // texelFetch avoids GPU bilinear interpolation in straight-alpha space,
-    // which would mix white garbage RGB from transparent pixels into the result.
-    int tx = clamp(ctr.x + int(dx), 0, sz.x - 1);
-    vec4 s = texelFetch(u_image, ivec2(tx, ctr.y), 0);
-    vec3 lin = pow(max(s.rgb, vec3(0.0)), vec3(2.2));
-    premulSum += lin * s.a * w;
-    alphaSum  += s.a * w;
+    // Manual sub-pixel bilinear: interpolate between the two nearest integer
+    // pixels so every position is smoothly covered with no quantisation gaps.
+    float exactX = float(ctr.x) + dx;
+    float fl = floor(exactX);
+    int x0 = clamp(int(fl),     0, sz.x - 1);
+    int x1 = clamp(int(fl) + 1, 0, sz.x - 1);
+    float f = exactX - fl;
+    vec4 s0 = texelFetch(u_image, ivec2(x0, ctr.y), 0);
+    vec4 s1 = texelFetch(u_image, ivec2(x1, ctr.y), 0);
+    // Linearise + premultiply each sample before interpolating
+    vec3 lin0 = pow(max(s0.rgb, vec3(0.0)), vec3(2.2)) * s0.a;
+    vec3 lin1 = pow(max(s1.rgb, vec3(0.0)), vec3(2.2)) * s1.a;
+    premulSum += mix(lin0, lin1, f) * w;
+    alphaSum  += mix(s0.a, s1.a, f) * w;
     totalW    += w;
   }
 
@@ -1454,7 +1474,7 @@ float blurHash(vec2 p) {
   return fract(p.x * p.y);
 }
 
-const int TAPS = 48;
+const int TAPS = 96;
 
 void main() {
   vec2 uv = v_imageUV;
@@ -1469,16 +1489,34 @@ void main() {
 
   if (u_blurType < 0.5) {
     // Gaussian vertical pass: input .rgb is premultiplied-linear, .a is blurred alpha (from Pass 1)
-    float r = u_strength * 40.0;
-    float stepPx = max(1.0, r / 16.0);
+    float r = u_strength * 80.0;
+    ivec2 ctr0 = clamp(ctr, ivec2(0), sz - 1);
+
+    if (r < 0.5) {
+      // Pass center pixel straight through (avoids sigma2≈0 division noise)
+      vec4 s = texelFetch(u_image, ctr0, 0);
+      float alpha = s.a;
+      vec3 lin = alpha > 0.001 ? s.rgb / alpha : vec3(0.0);
+      vec3 color = pow(max(lin, vec3(0.0)), vec3(1.0 / 2.2));
+      fragColor = layerBlend(vec4(color * alpha, alpha));
+      return;
+    }
+
+    float stepPx = max(1.0, r / 32.0);
     float sigma2 = 2.0 * (r / 3.0) * (r / 3.0) + 0.001;
-    for (int yi = -16; yi <= 16; yi++) {
+    for (int yi = -32; yi <= 32; yi++) {
       float dy = float(yi) * stepPx;
       float w = exp(-dy * dy / sigma2);
-      int ty = clamp(ctr.y + int(dy), 0, sz.y - 1);
-      vec4 s = texelFetch(u_image, ivec2(ctr.x, ty), 0);
-      premulSum += s.rgb * w;  // s.rgb already premultiplied-linear from Pass 1
-      alphaSum  += s.a * w;
+      // Manual sub-pixel bilinear on premultiplied-linear data from Pass 1
+      float exactY = float(ctr.y) + dy;
+      float fl = floor(exactY);
+      int y0 = clamp(int(fl),     0, sz.y - 1);
+      int y1 = clamp(int(fl) + 1, 0, sz.y - 1);
+      float f = exactY - fl;
+      vec4 s0 = texelFetch(u_image, ivec2(ctr.x, y0), 0);
+      vec4 s1 = texelFetch(u_image, ivec2(ctr.x, y1), 0);
+      premulSum += mix(s0.rgb, s1.rgb, f) * w;
+      alphaSum  += mix(s0.a,   s1.a,   f) * w;
       totalW    += w;
     }
     float alpha = alphaSum / totalW;
@@ -1492,14 +1530,18 @@ void main() {
     return;
   }
 
+  // Per-pixel random phase — offsets the sample grid so regular tap spacing
+  // becomes high-frequency noise instead of visible banding/staircase patterns.
+  float phase = blurHash(gl_FragCoord.xy);
+
   // Motion / radial: Pass 1 passed through unchanged — read original sRGB image here.
   // Use texelFetch (no bilinear interp) so straight-alpha garbage in transparent pixels
   // can't contaminate the premultiplied accumulation.
   if (u_blurType < 1.5) {
-    float dist = u_strength * 120.0;
+    float dist = u_strength * 220.0;
     vec2 stepF = vec2(sin(u_angle), -cos(u_angle)) * dist / float(TAPS);
     for (int i = 0; i < TAPS; i++) {
-      float t = float(i) - float(TAPS - 1) * 0.5;
+      float t = float(i) + (phase - 0.5) - float(TAPS - 1) * 0.5;
       ivec2 sp = clamp(ctr + ivec2(stepF * t), ivec2(0), sz - 1);
       vec4 s = texelFetch(u_image, sp, 0);
       vec3 lin = pow(max(s.rgb, vec3(0.0)), vec3(2.2));
@@ -1508,10 +1550,10 @@ void main() {
       totalW    += 1.0;
     }
   } else {
-    float dist = u_strength * 0.5;
+    float dist = u_strength * 0.75;
     vec2 toCenterUV = (vec2(u_centerX, u_centerY) - uv) * dist;
     for (int i = 0; i < TAPS; i++) {
-      float t = float(i) / float(TAPS - 1);
+      float t = clamp((float(i) + phase) / float(TAPS), 0.0, 1.0);
       ivec2 sp = clamp(ivec2((uv + toCenterUV * t) * vec2(sz)), ivec2(0), sz - 1);
       vec4 s = texelFetch(u_image, sp, 0);
       vec3 lin = pow(max(s.rgb, vec3(0.0)), vec3(2.2));

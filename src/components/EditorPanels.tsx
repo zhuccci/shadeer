@@ -157,6 +157,7 @@ export function EditorPanels({ state, updateState, onAddLayer }: EditorPanelsPro
         onScaleChange={(scale) => updateState((current) => ({ ...current, halftone: { ...current.halftone, scale } }))}
         onRadiusChange={(radius) => updateState((current) => ({ ...current, halftone: { ...current.halftone, radius } }))}
         onContrastChange={(contrast) => updateState((current) => ({ ...current, halftone: { ...current.halftone, contrast } }))}
+        onShadowEnabledChange={(shadowEnabled) => updateState((current) => ({ ...current, halftone: { ...current.halftone, shadowEnabled } }))}
         onShadowRangeChange={(shadowRange) => updateState((current) => ({ ...current, halftone: { ...current.halftone, shadowRange } }))}
         onShadowInvertChange={(shadowInvert) => updateState((current) => ({ ...current, halftone: { ...current.halftone, shadowInvert } }))}
         onBlackAndWhiteChange={(blackAndWhite) => updateState((current) => ({ ...current, halftone: { ...current.halftone, blackAndWhite } }))}
@@ -229,7 +230,7 @@ export function EditorPanels({ state, updateState, onAddLayer }: EditorPanelsPro
         onClick={() => onAddLayer(state.activeFilter)}
       >
         <AddLayerIcon />
-        Add as layer
+        Add layer
       </button>
     </div>
   );
