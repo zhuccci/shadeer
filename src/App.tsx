@@ -28,7 +28,7 @@ const baseUrl = import.meta.env.BASE_URL;
 export default function App() {
   const [editorState, setEditorState] = useState<EditorState>(defaultEditorState);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
-  const [downloadFilename, setDownloadFilename] = useState('neuropic.png');
+  const [downloadFilename, setDownloadFilename] = useState('shdrpic.png');
   const [videoExportProgress, setVideoExportProgress] = useState<number | null>(null);
   const [savingPhase, setSavingPhase] = useState<'recording' | 'converting' | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -227,7 +227,7 @@ export default function App() {
         if (!blob) return;
         // VideoEncoder path already returns MP4 — skip conversion
         if (blob.type === 'video/mp4') {
-          setDownloadFilename('neuropic.mp4');
+          setDownloadFilename('shdrpic.mp4');
           setDownloadUrl(URL.createObjectURL(blob));
         } else if (isMp4) {
           // MediaRecorder fallback returned WebM — convert to MP4
@@ -239,10 +239,10 @@ export default function App() {
             blob,
             (p) => setVideoExportProgress((prev) => Math.max(prev ?? 0, 0.65 + p * 0.35)),
           );
-          setDownloadFilename('neuropic.mp4');
+          setDownloadFilename('shdrpic.mp4');
           setDownloadUrl(URL.createObjectURL(mp4Blob));
         } else {
-          setDownloadFilename('neuropic.webm');
+          setDownloadFilename('shdrpic.webm');
           setDownloadUrl(URL.createObjectURL(blob));
         }
       } catch (err) {
@@ -273,7 +273,7 @@ export default function App() {
           (p) => setVideoExportProgress(p),
         );
         if (!blob) return;
-        setDownloadFilename('neuropic.mp4');
+        setDownloadFilename('shdrpic.mp4');
         setDownloadUrl(URL.createObjectURL(blob));
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -289,7 +289,7 @@ export default function App() {
 
     const blob = await renderShaderToBlob(previewRef.current, shaderMountRef.current, editorState);
     if (!blob) return;
-    setDownloadFilename('neuropic.png');
+    setDownloadFilename('shdrpic.png');
     setDownloadUrl(URL.createObjectURL(blob));
   }, [editorState, shaderMountRef]);
 

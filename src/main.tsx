@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import posthog from 'posthog-js';
 import App from './App';
 import { LandingPage } from './pages/LandingPage';
+import { AboutPage } from './pages/AboutPage';
 import { PageTransitionProvider } from './components/PageTransition';
 import './components/Button.css';
 import './styles/app.css';
@@ -21,6 +22,7 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       <PageTransitionProvider>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/about" element={<AboutPage />} />
           <Route path="/create" element={<App />} />
         </Routes>
       </PageTransitionProvider>

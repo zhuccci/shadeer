@@ -1,0 +1,95 @@
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+}
+
+.site-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  bottom: -32px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, transparent 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.site-logo-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.site-menu-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.site-menu-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: #fff;
+}
+
+.site-menu-dropdown {
+  position: fixed;
+  top: 60px;
+  right: 16px;
+  background: linear-gradient(90deg, #222 0%, #222 100%), linear-gradient(90deg, #191919 0%, #191919 100%);
+  border: 0.5px solid #2b2b2b;
+  border-radius: 9px;
+  padding: 4px;
+  min-width: 160px;
+  z-index: 200;
+}
+
+.site-menu-item {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  font-family: 'Geist', 'Inter', system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 300;
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 120ms ease;
+}
+
+.site-menu-item:hover {
+  background: #141414;
+}
+
+.site-menu-item--disabled {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}
