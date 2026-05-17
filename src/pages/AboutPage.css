@@ -148,9 +148,13 @@
 
 /* ── Responsive ── */
 @media (max-width: 600px) {
+  .about-sections {
+    gap: 32px;
+  }
+
   .about-section {
     flex-direction: column;
-    gap: 8px;
+    gap: 16px;
   }
 
   .about-section-label {
