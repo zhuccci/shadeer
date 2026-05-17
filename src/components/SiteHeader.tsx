@@ -54,6 +54,12 @@ export function SiteHeader({ activePage }: SiteHeaderProps) {
           <div className="site-menu-dropdown">
             <button
               className="site-menu-item"
+              onClick={() => { setMenuOpen(false); navigateTo('/'); }}
+            >
+              Home
+            </button>
+            <button
+              className="site-menu-item"
               onClick={() => { setMenuOpen(false); navigateTo('/about'); }}
             >
               About

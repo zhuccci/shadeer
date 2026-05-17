@@ -7,7 +7,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 12px 24px;
 }
 
 .site-header::before {
@@ -52,7 +52,7 @@
   border: none;
   cursor: pointer;
   padding: 0;
-  color: #fff;
+  color: #d6d6d6;
 }
 
 .site-menu-dropdown {
@@ -77,7 +77,7 @@
   font-family: 'Geist', 'Inter', system-ui, sans-serif;
   font-size: 16px;
   font-weight: 300;
-  color: #fff;
+  color: #d6d6d6;
   text-align: left;
   cursor: pointer;
   white-space: nowrap;
@@ -92,4 +92,14 @@
   opacity: 0.4;
   cursor: default;
   pointer-events: none;
+}
+
+@media (max-width: 1200px) {
+  .site-header {
+    padding: 12px 16px;
+  }
+
+  .site-menu-dropdown {
+    right: 16px;
+  }
 }

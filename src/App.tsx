@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import posthog from 'posthog-js';
 import { ActionBar } from './components/ActionBar';
+import { SiteHeader } from './components/SiteHeader';
 import { CopyToast } from './components/CopyToast';
 import { EditorPanels } from './components/EditorPanels';
 import { FilterStrip } from './components/FilterStrip';
@@ -345,6 +346,7 @@ export default function App() {
 
   return (
     <div className="app">
+      <SiteHeader />
       <input
         ref={fileInputRef}
         type="file"
