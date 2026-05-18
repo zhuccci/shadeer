@@ -36,7 +36,7 @@ export function AboutPage() {
           <div className="about-gradient-top" />
 
           <div className="about-section">
-            <p className="about-section-label">ABOUT</p>
+            <p className="about-section-label">INFO</p>
             <p className="about-section-text">
               Shadeer is a free browser-based tool for applying real-time shader effects to images and video.
               Everything runs on your device. Built by{' '}

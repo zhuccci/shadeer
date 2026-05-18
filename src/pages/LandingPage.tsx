@@ -34,7 +34,7 @@ export function LandingPage() {
             </p>
           </div>
           <button
-            className="btn btn-primary"
+            className="btn btn-primary landing-cta-btn"
             onClick={() => navigateTo('/create')}
           >
             START EDITING
