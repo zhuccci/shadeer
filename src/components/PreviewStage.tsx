@@ -136,6 +136,17 @@ export function PreviewStage({
   const stateRef = useRef(state);
   useEffect(() => { stateRef.current = state; }, [state]);
 
+  // Keep video overlay src pre-loaded so hold-to-compare never triggers a reload
+  useEffect(() => {
+    const v = videoOverlayRef.current;
+    if (!v) return;
+    if (state.image.isVideo && state.image.video) {
+      if (v.src !== state.image.video.src) v.src = state.image.video.src;
+    } else {
+      v.src = '';
+    }
+  }, [state.image.isVideo, state.image.video]);
+
   useEffect(() => { zoomScaleRef.current = zoomScale; }, [zoomScale]);
 
   // Reset CSS zoom when switching to fit mode so the full image is always visible
@@ -170,13 +181,10 @@ export function PreviewStage({
     const startComparing = () => {
       const s = stateRef.current;
       if (!s.image.hasUserImage) return;
-      // Hide canvas so nothing bleeds through transparent images
-      const canvas = el.querySelector('canvas');
-      if (canvas) (canvas as HTMLElement).style.visibility = 'hidden';
-      if (s.image.isVideo && s.image.video && videoOverlayRef.current) {
+      // Show overlay first so it paints in the same frame, then hide canvas
+      // in the next frame — prevents the 1-frame dark gap (blink).
+      if (s.image.isVideo && videoOverlayRef.current) {
         const v = videoOverlayRef.current;
-        v.src = s.image.video.src;
-        v.currentTime = s.image.video.currentTime;
         v.style.objectFit = s.fitMode === 'fit' ? 'contain' : 'cover';
         v.style.display = 'block';
       } else if (!s.image.isVideo && overlayRef.current) {
@@ -187,6 +195,10 @@ export function PreviewStage({
           : 'center';
         img.style.display = 'block';
       }
+      requestAnimationFrame(() => {
+        const canvas = el.querySelector('canvas');
+        if (canvas) (canvas as HTMLElement).style.visibility = 'hidden';
+      });
     };
 
     const stopComparing = () => {
