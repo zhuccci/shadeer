@@ -178,15 +178,31 @@ export function PreviewStage({
     let pointerMoved = false;
     let compareTimer: ReturnType<typeof setTimeout> | null = null;
 
+    const hideCanvas = () => {
+      const canvas = el.querySelector('canvas');
+      if (canvas) (canvas as HTMLElement).style.visibility = 'hidden';
+    };
+
+    const showCanvas = () => {
+      const canvas = el.querySelector('canvas');
+      if (canvas) (canvas as HTMLElement).style.visibility = '';
+    };
+
     const startComparing = () => {
       const s = stateRef.current;
       if (!s.image.hasUserImage) return;
-      // Show overlay first so it paints in the same frame, then hide canvas
-      // in the next frame — prevents the 1-frame dark gap (blink).
-      if (s.image.isVideo && videoOverlayRef.current) {
+      if (s.image.isVideo && s.image.video && videoOverlayRef.current) {
         const v = videoOverlayRef.current;
         v.style.objectFit = s.fitMode === 'fit' ? 'contain' : 'cover';
-        v.style.display = 'block';
+        // Seek to current playback position then play — wait for seeked so we
+        // show the right frame, not frame 0.
+        const show = () => {
+          v.style.display = 'block';
+          void v.play();
+          requestAnimationFrame(hideCanvas);
+        };
+        v.addEventListener('seeked', show, { once: true });
+        v.currentTime = s.image.video.currentTime;
       } else if (!s.image.isVideo && overlayRef.current) {
         const img = overlayRef.current;
         img.style.objectFit = s.fitMode === 'fit' ? 'contain' : 'cover';
@@ -194,19 +210,18 @@ export function PreviewStage({
           ? `${(0.5 + s.offsetX) * 100}% ${(0.5 + s.offsetY) * 100}%`
           : 'center';
         img.style.display = 'block';
+        requestAnimationFrame(hideCanvas);
       }
-      requestAnimationFrame(() => {
-        const canvas = el.querySelector('canvas');
-        if (canvas) (canvas as HTMLElement).style.visibility = 'hidden';
-      });
     };
 
     const stopComparing = () => {
       if (compareTimer) { clearTimeout(compareTimer); compareTimer = null; }
-      const canvas = el.querySelector('canvas');
-      if (canvas) (canvas as HTMLElement).style.visibility = '';
+      showCanvas();
       if (overlayRef.current) overlayRef.current.style.display = 'none';
-      if (videoOverlayRef.current) videoOverlayRef.current.style.display = 'none';
+      if (videoOverlayRef.current) {
+        videoOverlayRef.current.pause();
+        videoOverlayRef.current.style.display = 'none';
+      }
     };
     // Track midpoint from the previous pinch frame so we can compute
     // the translation delta separately from the scale delta.
