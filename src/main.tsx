@@ -23,7 +23,7 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/about" element={<AboutPage />} />
-          <Route path="/create" element={<App />} />
+          <Route path="/editor" element={<App />} />
         </Routes>
       </PageTransitionProvider>
     </BrowserRouter>

@@ -60,6 +60,12 @@ export function SiteHeader({ activePage }: SiteHeaderProps) {
             </button>
             <button
               className="site-menu-item"
+              onClick={() => { setMenuOpen(false); navigateTo('/editor'); }}
+            >
+              Editor
+            </button>
+            <button
+              className="site-menu-item"
               onClick={() => { setMenuOpen(false); navigateTo('/about'); }}
             >
               About
