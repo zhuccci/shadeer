@@ -1,21 +1,15 @@
-import { useState, useRef, useEffect, useCallback, type PointerEventHandler } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import './PreviewStage.css';
 import { PauseIcon, PlayIcon, UploadIcon } from './icons/AppIcons';
 import type { EditorState } from '../types/editor';
 
 interface PreviewStageProps {
   state: EditorState;
-  isDragging: boolean;
   previewRef: React.RefObject<HTMLDivElement | null>;
   onUpload: () => void;
   onDropFile: (file: File) => void;
   onFitModeChange: (mode: EditorState['fitMode']) => void;
   onTogglePlaying: () => void;
-  onPointerDown: PointerEventHandler<HTMLDivElement>;
-  onPointerMove: PointerEventHandler<HTMLDivElement>;
-  onPointerUp: PointerEventHandler<HTMLDivElement>;
-  onPointerCancel: PointerEventHandler<HTMLDivElement>;
-  onLostPointerCapture: PointerEventHandler<HTMLDivElement>;
   onBlurCenterChange?: (x: number, y: number) => void;
   onGlassCenterChange?: (x: number, y: number) => void;
 }
@@ -120,17 +114,11 @@ function RadialCenterHandle({ uvX, uvY, containerRef, ar, fitMode, offsetX, offs
 
 export function PreviewStage({
   state,
-  isDragging,
   previewRef,
   onUpload,
   onDropFile,
   onFitModeChange,
   onTogglePlaying,
-  onPointerDown,
-  onPointerMove,
-  onPointerUp,
-  onPointerCancel,
-  onLostPointerCapture,
   onBlurCenterChange,
   onGlassCenterChange,
 }: PreviewStageProps) {
@@ -302,15 +290,17 @@ export function PreviewStage({
       }
     };
 
+    const onCancel = (e: PointerEvent) => { onUp(e); };
+
     el.addEventListener('pointerdown', onDown);
     el.addEventListener('pointermove', onMove);
     el.addEventListener('pointerup', onUp);
-    el.addEventListener('pointercancel', onUp);
+    el.addEventListener('pointercancel', onCancel);
     return () => {
       el.removeEventListener('pointerdown', onDown);
       el.removeEventListener('pointermove', onMove);
       el.removeEventListener('pointerup', onUp);
-      el.removeEventListener('pointercancel', onUp);
+      el.removeEventListener('pointercancel', onCancel);
     };
   }, []); // previewRef is stable — ref identity never changes
 
@@ -359,7 +349,7 @@ export function PreviewStage({
     <div className="preview-panel" onTouchEnd={handlePanelTap}>
       <div
         ref={previewRef}
-        className={`image-area${state.image.isReady ? ' has-image' : ''}${state.image.hasUserImage ? ' has-user-image' : ''}${state.fitMode === 'fill' ? ' fill-mode' : ''}${isDragging ? ' dragging-img' : ''}`}
+        className={`image-area${state.image.isReady ? ' has-image' : ''}${state.image.hasUserImage ? ' has-user-image' : ''}${state.fitMode === 'fill' ? ' fill-mode' : ''}`}
         style={{ transform: `translate(${panX}px, ${panY}px) scale(${zoomScale})`, '--inv-zoom': `${1 / zoomScale}` } as React.CSSProperties}
         onDragOver={(event) => event.preventDefault()}
         onDrop={(event) => {
@@ -367,11 +357,6 @@ export function PreviewStage({
           const file = event.dataTransfer.files[0];
           if (file) onDropFile(file);
         }}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerCancel}
-        onLostPointerCapture={onLostPointerCapture}
       >
         {!state.image.hasUserImage && (
           <button className="btn btn-primary upload-btn" onClick={onUpload}>

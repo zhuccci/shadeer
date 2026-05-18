@@ -20,7 +20,6 @@ import {
   renderVideoToBlob,
 } from './lib/editor';
 import { ShaderMount } from './lib/shaders';
-import { useImageDrag } from './hooks/useImageDrag';
 import { useShaderPreview } from './hooks/useShaderPreview';
 import type { ActiveFilter, EditorState, LayerEntry } from './types/editor';
 
@@ -92,7 +91,6 @@ export default function App() {
   }, [updateState]);
 
   useShaderPreview({ editorState, previewRef, shaderMountRef });
-  const imageDrag = useImageDrag({ editorState, previewRef, updateState });
 
   useEffect(() => {
     if (!downloadUrl) return;
@@ -394,7 +392,7 @@ export default function App() {
         />
         <PreviewStage
           state={editorState}
-          isDragging={imageDrag.isDragging}
+
           previewRef={previewRef}
           onUpload={handleUploadClick}
           onBlurCenterChange={(x, y) =>
@@ -430,11 +428,6 @@ export default function App() {
               return current;
             });
           }}
-          onPointerDown={imageDrag.onPointerDown}
-          onPointerMove={imageDrag.onPointerMove}
-          onPointerUp={imageDrag.onPointerUp}
-          onPointerCancel={imageDrag.onPointerCancel}
-          onLostPointerCapture={imageDrag.onLostPointerCapture}
         />
         {flashKey > 0 && <div key={flashKey} className="screen-flash active" />}
         <CopyToast visible={copyToastVisible} />
