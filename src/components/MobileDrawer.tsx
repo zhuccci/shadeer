@@ -15,7 +15,7 @@ import { SliderControl } from './SliderControl';
 import { AddLayerIcon, EyeOpenIcon, EyeSlashIcon, LayersCheckIcon, SaveIcon, TrashIcon, UploadIcon } from './icons/AppIcons';
 import { filterOptions } from './filterOptions';
 import { sanitizeHex } from '../lib/editor';
-import { DITHER_PRESETS, ditherSwatchStyle } from './panels/DitheringPanel';
+import { DITHER_PRESETS, DitherSwatch } from './panels/DitheringPanel';
 import type { ActiveFilter, BlurType, EditorState, GradientStop, HeatmapPalette, LayerEntry } from '../types/editor';
 
 type MobileTab = 'sliders' | 'colors';
@@ -223,7 +223,7 @@ function DitheringPanelContent({ state, updateState, tab, openColor }: PanelCont
                     }}
                   >
                     <span className="dither-preset-label">{p.label}</span>
-                    <span className="dither-preset-swatch" style={ditherSwatchStyle(p)} />
+                    <DitherSwatch p={p} />
                   </button>
                 );
               })}

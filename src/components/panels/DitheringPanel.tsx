@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type React from 'react';
 import { CheckboxControl } from '../CheckboxControl';
 import { ColorSelectorControl } from '../ColorSelectorControl';
@@ -26,13 +26,41 @@ export const DITHER_PRESETS: DitheringPreset[] = [
   { label: 'Dusk',    shadow: '#0D0020', front: '#6B1A8A', light: '#E0509A', highlight: '#FFD6E0' },
 ];
 
-export function ditherSwatchStyle(p: DitheringPreset): React.CSSProperties {
-  return {
-    background: `
-      repeating-linear-gradient(45deg, rgba(0,0,0,0.14) 0px, rgba(0,0,0,0.14) 1px, transparent 1px, transparent 4px),
-      linear-gradient(to right, ${p.shadow} 25%, ${p.front} 25% 50%, ${p.light} 50% 75%, ${p.highlight} 75%)
-    `,
-  };
+export function ditherSwatchStyle(_p: DitheringPreset): React.CSSProperties { return {}; }
+
+export function DitherSwatch({ p }: { p: DitheringPreset }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const draw = () => {
+      const W = canvas.offsetWidth;
+      const H = canvas.offsetHeight;
+      if (!W || !H) return;
+      canvas.width = W;
+      canvas.height = H;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const colors = [p.shadow, p.front, p.light, p.highlight];
+
+      for (let i = 0; i < 4; i++) {
+        const x0 = Math.round(i * W / 4);
+        const w = Math.round((i + 1) * W / 4) - x0;
+        ctx.fillStyle = colors[i];
+        ctx.fillRect(x0, 0, w, H);
+      }
+    };
+
+    draw();
+    const ro = new ResizeObserver(draw);
+    ro.observe(canvas);
+    return () => ro.disconnect();
+  }, [p.shadow, p.front, p.light, p.highlight]);
+
+  return <canvas ref={canvasRef} className="dither-preset-swatch" />;
 }
 
 function isPresetActive(p: DitheringPreset, d: EditorState['dithering']) {
@@ -121,7 +149,7 @@ export function DitheringPanel({
                     onClick={() => applyPreset(p)}
                   >
                     <span className="dither-preset-label">{p.label}</span>
-                    <span className="dither-preset-swatch" style={ditherSwatchStyle(p)} />
+                    <DitherSwatch p={p} />
                   </button>
                 ))}
               </div>
