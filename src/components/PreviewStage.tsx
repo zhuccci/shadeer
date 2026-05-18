@@ -124,12 +124,17 @@ export function PreviewStage({
 }: PreviewStageProps) {
   const [controlsVisible, setControlsVisible] = useState(false);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const overlayRef = useRef<HTMLImageElement>(null);
+  const videoOverlayRef = useRef<HTMLVideoElement>(null);
   const [zoomScale, setZoomScale] = useState(1.0);
   const zoomScaleRef = useRef(1.0);
   const [panX, setPanX] = useState(0);
   const [panY, setPanY] = useState(0);
   const panXRef = useRef(0);
   const panYRef = useRef(0);
+
+  const stateRef = useRef(state);
+  useEffect(() => { stateRef.current = state; }, [state]);
 
   useEffect(() => { zoomScaleRef.current = zoomScale; }, [zoomScale]);
 
@@ -160,6 +165,37 @@ export function PreviewStage({
     let panStartValueX = 0, panStartValueY = 0;
     let pointerDownX = 0, pointerDownY = 0;
     let pointerMoved = false;
+    let compareTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const startComparing = () => {
+      const s = stateRef.current;
+      if (!s.image.hasUserImage) return;
+      // Hide canvas so nothing bleeds through transparent images
+      const canvas = el.querySelector('canvas');
+      if (canvas) (canvas as HTMLElement).style.visibility = 'hidden';
+      if (s.image.isVideo && s.image.video && videoOverlayRef.current) {
+        const v = videoOverlayRef.current;
+        v.src = s.image.video.src;
+        v.currentTime = s.image.video.currentTime;
+        v.style.objectFit = s.fitMode === 'fit' ? 'contain' : 'cover';
+        v.style.display = 'block';
+      } else if (!s.image.isVideo && overlayRef.current) {
+        const img = overlayRef.current;
+        img.style.objectFit = s.fitMode === 'fit' ? 'contain' : 'cover';
+        img.style.objectPosition = s.fitMode === 'fill'
+          ? `${(0.5 + s.offsetX) * 100}% ${(0.5 + s.offsetY) * 100}%`
+          : 'center';
+        img.style.display = 'block';
+      }
+    };
+
+    const stopComparing = () => {
+      if (compareTimer) { clearTimeout(compareTimer); compareTimer = null; }
+      const canvas = el.querySelector('canvas');
+      if (canvas) (canvas as HTMLElement).style.visibility = '';
+      if (overlayRef.current) overlayRef.current.style.display = 'none';
+      if (videoOverlayRef.current) videoOverlayRef.current.style.display = 'none';
+    };
     // Track midpoint from the previous pinch frame so we can compute
     // the translation delta separately from the scale delta.
     let prevMidX = 0, prevMidY = 0;
@@ -196,11 +232,13 @@ export function PreviewStage({
       ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (ptrs.size === 1) {
         pointerDownX = e.clientX; pointerDownY = e.clientY; pointerMoved = false;
+        compareTimer = setTimeout(startComparing, 180);
         if (zoomScaleRef.current > 1) {
           startPanFrom(e.clientX, e.clientY);
           e.stopPropagation();
         }
       } else if (ptrs.size === 2) {
+        stopComparing();
         isPanning = false;
         wasPinching = true;
         el.classList.add('pinching');
@@ -217,7 +255,10 @@ export function PreviewStage({
       if (!ptrs.has(e.pointerId)) return;
       ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (ptrs.size === 1 && !pointerMoved) {
-        if (Math.hypot(e.clientX - pointerDownX, e.clientY - pointerDownY) > 5) pointerMoved = true;
+        if (Math.hypot(e.clientX - pointerDownX, e.clientY - pointerDownY) > 5) {
+          pointerMoved = true;
+          stopComparing();
+        }
       }
       if (ptrs.size === 2 && pinchStartDist !== null) {
         const sPrev = zoomScaleRef.current;
@@ -250,6 +291,7 @@ export function PreviewStage({
     const onUp = (e: PointerEvent) => {
       const wasTwo = ptrs.size >= 2;
       ptrs.delete(e.pointerId);
+      if (ptrs.size === 0) stopComparing();
       if (wasTwo) {
         el.classList.remove('pinching');
         pinchStartDist = null;
@@ -290,13 +332,14 @@ export function PreviewStage({
       }
     };
 
-    const onCancel = (e: PointerEvent) => { onUp(e); };
+    const onCancel = (e: PointerEvent) => { stopComparing(); onUp(e); };
 
     el.addEventListener('pointerdown', onDown);
     el.addEventListener('pointermove', onMove);
     el.addEventListener('pointerup', onUp);
     el.addEventListener('pointercancel', onCancel);
     return () => {
+      if (compareTimer) clearTimeout(compareTimer);
       el.removeEventListener('pointerdown', onDown);
       el.removeEventListener('pointermove', onMove);
       el.removeEventListener('pointerup', onUp);
@@ -389,6 +432,19 @@ export function PreviewStage({
             onChange={onGlassCenterChange!}
           />
         )}
+        <img
+          ref={overlayRef}
+          className="compare-overlay"
+          src={state.image.src ?? undefined}
+          style={{ display: 'none' }}
+        />
+        <video
+          ref={videoOverlayRef}
+          className="compare-overlay"
+          style={{ display: 'none' }}
+          muted
+          playsInline
+        />
       </div>
 
       <div className="fit-control" id="fitControl" data-mode={state.fitMode}>
