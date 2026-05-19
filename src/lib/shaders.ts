@@ -619,28 +619,49 @@ void main() {
     }
   }
 
-  // Glow: 3-radius weighted bloom for soft falloff (vs. old single-radius halo)
+  // Glow: 3 rings × 8 samples (cardinal + diagonal) — circular, not cross-shaped
   if (u_glow > 0.001) {
-    vec3 bloom = vec3(0.0);
-    float s0 = 0.005 + u_glow * 0.008;
-    vec4 g0 = texture(u_image, clamp(uvG + vec2( s0,  0.0), 0.0, 1.0));
-    vec4 g1 = texture(u_image, clamp(uvG + vec2(-s0,  0.0), 0.0, 1.0));
-    vec4 g2 = texture(u_image, clamp(uvG + vec2( 0.0,  s0), 0.0, 1.0));
-    vec4 g3 = texture(u_image, clamp(uvG + vec2( 0.0, -s0), 0.0, 1.0));
-    bloom += (g0.rgb*g0.a + g1.rgb*g1.a + g2.rgb*g2.a + g3.rgb*g3.a) * 1.0;
-    float s1 = 0.013 + u_glow * 0.018;
-    vec4 g4 = texture(u_image, clamp(uvG + vec2( s1,  0.0), 0.0, 1.0));
-    vec4 g5 = texture(u_image, clamp(uvG + vec2(-s1,  0.0), 0.0, 1.0));
-    vec4 g6 = texture(u_image, clamp(uvG + vec2( 0.0,  s1), 0.0, 1.0));
-    vec4 g7 = texture(u_image, clamp(uvG + vec2( 0.0, -s1), 0.0, 1.0));
-    bloom += (g4.rgb*g4.a + g5.rgb*g5.a + g6.rgb*g6.a + g7.rgb*g7.a) * 0.4;
-    float s2 = 0.024 + u_glow * 0.03;
-    vec4 g8  = texture(u_image, clamp(uvG + vec2( s2,  0.0), 0.0, 1.0));
-    vec4 g9  = texture(u_image, clamp(uvG + vec2(-s2,  0.0), 0.0, 1.0));
-    vec4 g10 = texture(u_image, clamp(uvG + vec2( 0.0,  s2), 0.0, 1.0));
-    vec4 g11 = texture(u_image, clamp(uvG + vec2( 0.0, -s2), 0.0, 1.0));
-    bloom += (g8.rgb*g8.a + g9.rgb*g9.a + g10.rgb*g10.a + g11.rgb*g11.a) * 0.15;
-    bloom /= 6.2;
+    float base = 0.005 + u_glow * 0.01;
+    float d = 0.7071;
+    vec4 t; vec3 ring; vec3 bloom = vec3(0.0);
+
+    float r0 = base;
+    ring = vec3(0.0);
+    t = texture(u_image, clamp(uvG + vec2( r0,    0.0  ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2(-r0,    0.0  ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2( 0.0,   r0   ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2( 0.0,  -r0   ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2( r0*d,  r0*d ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2(-r0*d,  r0*d ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2( r0*d, -r0*d ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2(-r0*d, -r0*d ), 0.0, 1.0)); ring += t.rgb * t.a;
+    bloom += ring * (1.0 / 8.0);
+
+    float r1 = base * 2.5;
+    ring = vec3(0.0);
+    t = texture(u_image, clamp(uvG + vec2( r1,    0.0  ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2(-r1,    0.0  ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2( 0.0,   r1   ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2( 0.0,  -r1   ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2( r1*d,  r1*d ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2(-r1*d,  r1*d ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2( r1*d, -r1*d ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2(-r1*d, -r1*d ), 0.0, 1.0)); ring += t.rgb * t.a;
+    bloom += ring * (0.45 / 8.0);
+
+    float r2 = base * 5.0;
+    ring = vec3(0.0);
+    t = texture(u_image, clamp(uvG + vec2( r2,    0.0  ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2(-r2,    0.0  ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2( 0.0,   r2   ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2( 0.0,  -r2   ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2( r2*d,  r2*d ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2(-r2*d,  r2*d ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2( r2*d, -r2*d ), 0.0, 1.0)); ring += t.rgb * t.a;
+    t = texture(u_image, clamp(uvG + vec2(-r2*d, -r2*d ), 0.0, 1.0)); ring += t.rgb * t.a;
+    bloom += ring * (0.12 / 8.0);
+
+    bloom /= (1.0 + 0.45 + 0.12);
     bloom = max(vec3(0.0), bloom - 0.3) * (1.0 / 0.7);
     color = clamp(color + bloom * u_glow * 2.5, 0.0, 1.0);
   }
