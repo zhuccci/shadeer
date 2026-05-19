@@ -13,7 +13,7 @@ async function exportSelection(): Promise<{ bytes: number[]; width: number; heig
     const width = 'width' in node ? (node.width as number) : 100;
     const height = 'height' in node ? (node.height as number) : 100;
     return { bytes: Array.from(bytes), width, height };
-  } catch {
+  } catch (_) {
     return null;
   }
 }
