@@ -299,6 +299,7 @@
   overflow: hidden;
   opacity: 0;
   transform: translateY(6px);
+  height: clamp(312px, calc(30vh + 48px), 368px);
   transition:
     opacity 140ms var(--ease-out-strong),
     transform 140ms var(--ease-out-strong);
@@ -307,7 +308,6 @@
 .mobile-sheet.expanded .sheet-panel {
   opacity: 1;
   transform: translateY(0);
-  height: clamp(312px, calc(30vh + 48px), 368px);
   transition:
     opacity 220ms 60ms var(--ease-out-strong),
     transform 220ms 60ms var(--ease-out-strong);
