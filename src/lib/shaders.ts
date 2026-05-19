@@ -619,51 +619,45 @@ void main() {
     }
   }
 
-  // Glow: 3 rings × 8 samples (cardinal + diagonal) — circular, not cross-shaped
+  // Glow: tight Gaussian disc + per-sample luma threshold — no ghost copies
   if (u_glow > 0.001) {
-    float base = 0.005 + u_glow * 0.01;
+    // Radius stays small so overlapping samples merge into a true blur
+    float r = 0.004 + u_glow * 0.018;
     float d = 0.7071;
-    vec4 t; vec3 ring; vec3 bloom = vec3(0.0);
+    vec4 t; float hi; vec3 bloom = vec3(0.0); float wTotal = 0.0;
 
-    float r0 = base;
-    ring = vec3(0.0);
-    t = texture(u_image, clamp(uvG + vec2( r0,    0.0  ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2(-r0,    0.0  ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2( 0.0,   r0   ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2( 0.0,  -r0   ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2( r0*d,  r0*d ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2(-r0*d,  r0*d ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2( r0*d, -r0*d ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2(-r0*d, -r0*d ), 0.0, 1.0)); ring += t.rgb * t.a;
-    bloom += ring * (1.0 / 8.0);
+    // Inline helper: sample, extract highlight (smoothstep luma threshold), accumulate
+    // Only pixels brighter than ~40% luma contribute — dark areas can't create ghost copies
+    #define GS(off, w) t = texture(u_image, clamp(uvG + (off), 0.0, 1.0)); \
+      hi = smoothstep(0.38, 0.82, dot(t.rgb, vec3(0.299, 0.587, 0.114))); \
+      bloom += t.rgb * t.a * hi * (w); wTotal += (w);
 
-    float r1 = base * 2.5;
-    ring = vec3(0.0);
-    t = texture(u_image, clamp(uvG + vec2( r1,    0.0  ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2(-r1,    0.0  ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2( 0.0,   r1   ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2( 0.0,  -r1   ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2( r1*d,  r1*d ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2(-r1*d,  r1*d ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2( r1*d, -r1*d ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2(-r1*d, -r1*d ), 0.0, 1.0)); ring += t.rgb * t.a;
-    bloom += ring * (0.45 / 8.0);
+    // Ring 0 — r*0.5, tight inner (Gaussian weight 1.0)
+    float r0 = r * 0.5;
+    GS(vec2( r0,    0.0  ), 1.0) GS(vec2(-r0,    0.0  ), 1.0)
+    GS(vec2( 0.0,   r0   ), 1.0) GS(vec2( 0.0,  -r0   ), 1.0)
+    GS(vec2( r0*d,  r0*d ), 1.0) GS(vec2(-r0*d,  r0*d ), 1.0)
+    GS(vec2( r0*d, -r0*d ), 1.0) GS(vec2(-r0*d, -r0*d ), 1.0)
 
-    float r2 = base * 5.0;
-    ring = vec3(0.0);
-    t = texture(u_image, clamp(uvG + vec2( r2,    0.0  ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2(-r2,    0.0  ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2( 0.0,   r2   ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2( 0.0,  -r2   ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2( r2*d,  r2*d ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2(-r2*d,  r2*d ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2( r2*d, -r2*d ), 0.0, 1.0)); ring += t.rgb * t.a;
-    t = texture(u_image, clamp(uvG + vec2(-r2*d, -r2*d ), 0.0, 1.0)); ring += t.rgb * t.a;
-    bloom += ring * (0.12 / 8.0);
+    // Ring 1 — r, mid (Gaussian weight 0.5)
+    GS(vec2( r,     0.0  ), 0.5) GS(vec2(-r,     0.0  ), 0.5)
+    GS(vec2( 0.0,   r    ), 0.5) GS(vec2( 0.0,  -r    ), 0.5)
+    GS(vec2( r*d,   r*d  ), 0.5) GS(vec2(-r*d,   r*d  ), 0.5)
+    GS(vec2( r*d,  -r*d  ), 0.5) GS(vec2(-r*d,  -r*d  ), 0.5)
 
-    bloom /= (1.0 + 0.45 + 0.12);
-    bloom = max(vec3(0.0), bloom - 0.3) * (1.0 / 0.7);
-    color = clamp(color + bloom * u_glow * 2.5, 0.0, 1.0);
+    // Ring 2 — r*2, wide outer (Gaussian weight 0.15)
+    float r2 = r * 2.0;
+    GS(vec2( r2,    0.0  ), 0.15) GS(vec2(-r2,    0.0  ), 0.15)
+    GS(vec2( 0.0,   r2   ), 0.15) GS(vec2( 0.0,  -r2   ), 0.15)
+    GS(vec2( r2*d,  r2*d ), 0.15) GS(vec2(-r2*d,  r2*d ), 0.15)
+    GS(vec2( r2*d, -r2*d ), 0.15) GS(vec2(-r2*d, -r2*d ), 0.15)
+
+    #undef GS
+
+    if (wTotal > 0.0) bloom /= wTotal;
+    // Screen blend: never darkens, naturally caps at white
+    color = 1.0 - (1.0 - color) * (1.0 - bloom * u_glow * 1.8);
+    color = clamp(color, 0.0, 1.0);
   }
 
   // CRT: RGB phosphor square dots + vignette
