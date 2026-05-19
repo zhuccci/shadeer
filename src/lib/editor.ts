@@ -569,12 +569,14 @@ export function getShaderConfig(state: EditorState, image: HTMLImageElement | HT
 }
 
 export async function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
+  const image = new Image();
+  await new Promise<void>((resolve, reject) => {
+    image.onload = () => resolve();
     image.onerror = () => reject(new Error(`Failed to load image: ${src}`));
     image.src = src;
   });
+  await image.decode().catch(() => {});
+  return image;
 }
 
 export function makeFallbackImage(): HTMLImageElement {
