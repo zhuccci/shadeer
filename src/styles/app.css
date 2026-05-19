@@ -26,6 +26,7 @@ body,
 body {
   background: var(--bg);
   overflow: hidden;
+  overscroll-behavior: none;
   font-family: 'Geist', 'Inter', system-ui, sans-serif;
 }
 
