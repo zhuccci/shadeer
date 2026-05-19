@@ -260,11 +260,11 @@ export function PreviewStage({
       if (ptrs.size === 1) {
         pointerDownX = e.clientX; pointerDownY = e.clientY; pointerMoved = false;
         compareTimer = setTimeout(startComparing, 180);
-        if (zoomScaleRef.current > 1) {
+        if (stateRef.current.image.hasUserImage && zoomScaleRef.current > 1) {
           startPanFrom(e.clientX, e.clientY);
           e.stopPropagation();
         }
-      } else if (ptrs.size === 2) {
+      } else if (ptrs.size === 2 && stateRef.current.image.hasUserImage) {
         stopComparing();
         isPanning = false;
         wasPinching = true;
@@ -287,7 +287,7 @@ export function PreviewStage({
           stopComparing();
         }
       }
-      if (ptrs.size === 2 && pinchStartDist !== null) {
+      if (ptrs.size === 2 && pinchStartDist !== null && stateRef.current.image.hasUserImage) {
         const sPrev = zoomScaleRef.current;
         const sNew = Math.min(3.0, Math.max(1.0, pinchStartScale * (dist2() / pinchStartDist)));
         const [pa, pb] = [...ptrs.values()];
@@ -336,7 +336,7 @@ export function PreviewStage({
       if (pointerMoved) { pointerMoved = false; lastTapTime = 0; return; }
       pointerMoved = false;
       const now = Date.now();
-      if (now - lastTapTime < 300) {
+      if (stateRef.current.image.hasUserImage && now - lastTapTime < 300) {
         const next = zoomScaleRef.current > 1.0 ? 1.0 : 3.0;
         if (next === 1.0) {
           applyPan(0, 0);
@@ -420,7 +420,7 @@ export function PreviewStage({
       <div
         ref={previewRef}
         className={`image-area${state.image.isReady ? ' has-image' : ''}${state.image.hasUserImage ? ' has-user-image' : ''}${state.fitMode === 'fill' ? ' fill-mode' : ''}`}
-        style={{ transform: `translate(${panX}px, ${panY}px) scale(${zoomScale})` } as React.CSSProperties}
+        style={{ transform: `translate(${panX}px, ${panY}px) scale(${zoomScale})`, '--inv-zoom': `${1 / zoomScale}` } as React.CSSProperties}
         onDragOver={(event) => event.preventDefault()}
         onDrop={(event) => {
           event.preventDefault();
@@ -428,6 +428,13 @@ export function PreviewStage({
           if (file) onDropFile(file);
         }}
       >
+        {!state.image.hasUserImage && (
+          <button className="btn btn-primary upload-btn" onClick={onUpload}>
+            <UploadIcon />
+            Upload media
+          </button>
+        )}
+
         {showRadialHandle && (
           <RadialCenterHandle
             uvX={state.blur.centerX}
@@ -466,13 +473,6 @@ export function PreviewStage({
           playsInline
         />
       </div>
-
-      {!state.image.hasUserImage && (
-        <button className="btn btn-primary upload-btn" onClick={onUpload}>
-          <UploadIcon />
-          Upload media
-        </button>
-      )}
 
       <div className="fit-control" id="fitControl" data-mode={state.fitMode}>
         <span className="fit-pill" />
