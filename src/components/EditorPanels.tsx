@@ -139,6 +139,8 @@ export function EditorPanels({ state, updateState, onAddLayer }: EditorPanelsPro
         onGlitchAmountChange={(glitchAmount) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, glitchAmount } }))}
         onGlitchModeChange={(glitchMode) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, glitchMode } }))}
         onGlitchFormChange={(glitchForm) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, glitchForm } }))}
+        onGlowChange={(glow) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, glow } }))}
+        onChromaShiftChange={(chromaShift) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, chromaShift } }))}
         onCrtChange={(crt) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, crt } }))}
         onScanlinesChange={(scanlines) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, scanlines } }))}
         onVhsDistortionChange={(vhsDistortion) => updateState((current) => ({ ...current, glitchy: { ...current.glitchy, vhsDistortion } }))}

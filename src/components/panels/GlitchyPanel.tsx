@@ -12,6 +12,8 @@ interface GlitchyPanelProps {
   onGlitchAmountChange: (value: number) => void;
   onGlitchModeChange: (value: GlitchMode) => void;
   onGlitchFormChange: (value: GlitchFormMode) => void;
+  onGlowChange: (value: number) => void;
+  onChromaShiftChange: (value: number) => void;
   onCrtChange: (value: boolean) => void;
   onScanlinesChange: (value: number) => void;
   onVhsDistortionChange: (value: boolean) => void;
@@ -29,6 +31,8 @@ export function GlitchyPanel({
   onGlitchAmountChange,
   onGlitchModeChange,
   onGlitchFormChange,
+  onGlowChange,
+  onChromaShiftChange,
   onCrtChange,
   onScanlinesChange,
   onVhsDistortionChange,
@@ -50,6 +54,8 @@ export function GlitchyPanel({
           <GlitchModeSelector label="Glitch Form" value={state.glitchy.glitchMode} onChange={onGlitchModeChange} />
           <SliderControl label="Glitch Strength" value={state.glitchy.glitchStrength} onChange={onGlitchStrengthChange} />
           <SliderControl label="Glitch Amount" value={state.glitchy.glitchAmount} onChange={onGlitchAmountChange} />
+          <SliderControl label="Chroma Shift" value={state.glitchy.chromaShift} onChange={onChromaShiftChange} />
+          <SliderControl label="Glow" value={state.glitchy.glow} onChange={onGlowChange} />
         </div>
       </div>
 

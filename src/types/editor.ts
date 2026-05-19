@@ -74,6 +74,7 @@ export interface GlitchySettings {
   crt: boolean;
   scanlines: number;
   glow: number;
+  chromaShift: number;
   vhsDistortion: boolean;
   vhsWaveStrength: number;
   vhsBandOpacity: number;
@@ -217,6 +218,7 @@ export const defaultGlitchySettings: GlitchySettings = {
   crt: false,
   scanlines: 50,
   glow: 20,
+  chromaShift: 30,
   vhsDistortion: false,
   vhsWaveStrength: 50,
   vhsBandOpacity: 40,

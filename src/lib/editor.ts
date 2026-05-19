@@ -242,6 +242,7 @@ export function buildGlitchyUniforms(
     u_crtScale: glitchy.crt ? 0.5 : 0,
     u_scanlineScale: glitchy.scanlines / 100,
     u_glow: glitchy.glow / 100,
+    u_chromaShift: glitchy.chromaShift / 100,
     u_vhsDistortion: glitchy.vhsDistortion ? 1 : 0,
     u_vhsWaveStrength: glitchy.vhsWaveStrength / 100,
     u_vhsBandOpacity: glitchy.vhsBandOpacity / 100,
