@@ -420,7 +420,7 @@ export function PreviewStage({
       <div
         ref={previewRef}
         className={`image-area${state.image.isReady ? ' has-image' : ''}${state.image.hasUserImage ? ' has-user-image' : ''}${state.fitMode === 'fill' ? ' fill-mode' : ''}`}
-        style={{ transform: `translate(${panX}px, ${panY}px) scale(${zoomScale})`, '--inv-zoom': `${1 / zoomScale}` } as React.CSSProperties}
+        style={{ transform: `translate(${panX}px, ${panY}px) scale(${zoomScale})` } as React.CSSProperties}
         onDragOver={(event) => event.preventDefault()}
         onDrop={(event) => {
           event.preventDefault();
@@ -428,13 +428,6 @@ export function PreviewStage({
           if (file) onDropFile(file);
         }}
       >
-        {!state.image.hasUserImage && (
-          <button className="btn btn-primary upload-btn" onClick={onUpload}>
-            <UploadIcon />
-            Upload media
-          </button>
-        )}
-
         {showRadialHandle && (
           <RadialCenterHandle
             uvX={state.blur.centerX}
@@ -473,6 +466,13 @@ export function PreviewStage({
           playsInline
         />
       </div>
+
+      {!state.image.hasUserImage && (
+        <button className="btn btn-primary upload-btn" onClick={onUpload}>
+          <UploadIcon />
+          Upload media
+        </button>
+      )}
 
       <div className="fit-control" id="fitControl" data-mode={state.fitMode}>
         <span className="fit-pill" />
