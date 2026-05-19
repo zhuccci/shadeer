@@ -47,6 +47,10 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
     shaderMountRef.current?.dispose();
     shaderMountRef.current = null;
 
+    const isMobilePreview = window.matchMedia('(pointer: coarse)').matches;
+    const previewMinPR = isMobilePreview ? 1 : 2;
+    const previewMaxPX = isMobilePreview ? 1280 * 720 : 1920 * 1080 * 4;
+
     const stack = renderStack;
     const intermediateMounts: ShaderMount[] = [];
     const intermediateDivs: HTMLDivElement[] = [];
@@ -56,7 +60,8 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
         ? (media.videoWidth || 1) / (media.videoHeight || 1)
         : (media.naturalWidth || 1) / (media.naturalHeight || 1);
     const rawW = media instanceof HTMLVideoElement ? media.videoWidth : media.naturalWidth;
-    const W = Math.min(1920, rawW || 1920);
+    const intermediateMaxW = isMobilePreview ? 960 : 1920;
+    const W = Math.min(intermediateMaxW, rawW || intermediateMaxW);
     const H = Math.max(1, Math.round(W / ar));
 
     let prevCanvas: HTMLCanvasElement | null = null;
@@ -73,7 +78,7 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
           : getShaderConfig({ ...editorState, activeFilter: filter as ActiveFilter, fitMode, offsetX, offsetY }, media, 1.0);
 
       if (isLast) {
-        const mount = new ShaderMount(preview, config.fragmentShader, config.uniforms, undefined, config.speed);
+        const mount = new ShaderMount(preview, config.fragmentShader, config.uniforms, undefined, config.speed, 0, previewMinPR, previewMaxPX);
         if (prevCanvas) mount.setTextureUniform('u_image', prevCanvas);
         shaderMountRef.current = mount;
       } else {
