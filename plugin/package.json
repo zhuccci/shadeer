@@ -1,0 +1,25 @@
+{
+  "name": "neuroshade-figma-plugin",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "vite build && vite build --config vite.code.config.ts",
+    "dev": "concurrently \"vite build --watch\" \"vite build --config vite.code.config.ts --watch\""
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.97.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.0.4",
+    "concurrently": "^9.1.2",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.10",
+    "vite-plugin-singlefile": "^2.0.0"
+  },
+  "packageManager": "yarn@4.10.3+sha512.c38cafb5c7bb273f3926d04e55e1d8c9dfa7d9c3ea1f36a4868fa028b9e5f72298f0b7f401ad5eb921749eb012eb1c3bb74bf7503df3ee43fd600d14a018266f"
+}
