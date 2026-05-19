@@ -483,37 +483,33 @@ void main() {
   float displaceX = 0.0;
 
   if (u_glitchForm < 0.5) {
-    // Bands: horizontal row tears, partial width
-    float glitchThresh = 1.0 - u_glitchAmount * 0.85;
-    if (glitchSeed > glitchThresh) {
-      float gStart = rand(vec2(glitchSeed, glitchT + 3.0));
-      float gWidth = 0.07 + rand(vec2(glitchSeed, glitchT + 4.0)) * 0.6;
-      if (v_imageUV.x >= gStart && v_imageUV.x <= gStart + gWidth) {
-        inGlitch = true;
-        float dx = (rand(vec2(glitchSeed, glitchT + 1.0)) * 2.0 - 1.0) * u_glitchStrength * 0.22;
-        uv.x += dx;
-        displaceX += dx;
-      }
-    }
-    // Fine layer — ~10 fps to hold as discrete tears rather than noise
-    float fineT = floor(u_time * 10.0);
-    float fineSeed = rand(vec2(floor(v_imageUV.y * 256.0) + 33.0, fineT));
-    if (fineSeed > (1.0 - u_glitchAmount * 0.5)) {
-      float fStart = rand(vec2(fineSeed, fineT + 5.0));
-      float fWidth = 0.04 + rand(vec2(fineSeed, fineT + 6.0)) * 0.4;
-      if (v_imageUV.x >= fStart && v_imageUV.x <= fStart + fWidth) {
-        inGlitch = true;
-        float dx = (rand(vec2(fineSeed, fineT + 2.0)) - 0.5) * u_glitchStrength * 0.1;
-        uv.x += dx;
-        displaceX += dx;
-      }
-    }
-    // Block layer
-    float blockT = floor(u_time * 3.0);
-    float blockSeed = rand(vec2(floor(v_imageUV.y * 18.0) + floor(v_imageUV.x * 12.0) * 0.31, blockT + 17.0));
-    if (blockSeed > 0.94 - u_glitchAmount * 0.12) {
+    // Bands: full-width horizontal row tears — entire row shifts, no x-masking
+    // Coarse layer: 32 rows, 6fps — the main visible tears
+    float coarseRow = floor(v_imageUV.y * 32.0);
+    float coarseSeed = rand(vec2(coarseRow, glitchT));
+    if (coarseSeed > (1.0 - u_glitchAmount * 0.75)) {
       inGlitch = true;
-      float dx = (rand(vec2(blockSeed, 0.5)) - 0.5) * u_glitchStrength * 0.35;
+      float dx = (rand(vec2(coarseSeed, glitchT + 1.0)) * 2.0 - 1.0) * u_glitchStrength * 0.28;
+      uv.x += dx;
+      displaceX += dx;
+    }
+    // Fine layer: 120 rows, 10fps — thinner secondary tears
+    float fineT = floor(u_time * 10.0);
+    float fineRow = floor(v_imageUV.y * 120.0);
+    float fineSeed = rand(vec2(fineRow + 77.0, fineT));
+    if (fineSeed > (1.0 - u_glitchAmount * 0.45)) {
+      inGlitch = true;
+      float dx = (rand(vec2(fineSeed, fineT + 2.0)) - 0.5) * u_glitchStrength * 0.12;
+      uv.x += dx;
+      displaceX += dx;
+    }
+    // Jitter layer: single-pixel-height lines, 20fps, tiny offset — fine noise texture
+    float jitterT = floor(u_time * 20.0);
+    float jitterRow = floor(v_imageUV.y * 400.0);
+    float jitterSeed = rand(vec2(jitterRow + 13.0, jitterT));
+    if (jitterSeed > 0.97 - u_glitchAmount * 0.04) {
+      inGlitch = true;
+      float dx = (rand(vec2(jitterSeed, 3.7)) - 0.5) * u_glitchStrength * 0.06;
       uv.x += dx;
       displaceX += dx;
     }
@@ -561,42 +557,32 @@ void main() {
       displaceX += dx;
     }
   } else {
-    // Compress: JPEG-style — row quantization + 2D block corruption
+    // Compress: codec macroblocking — row freezes + horizontal-only block shifts
     float compT = floor(u_time * 5.0);
-    float compRow = floor(v_imageUV.y * 16.0);
+    // Layer 1: Coarse row freeze — bands snap to quantized y (frozen-frame stripes)
+    float compRow = floor(v_imageUV.y * 12.0);
     float compSeed = rand(vec2(compRow, compT + 99.0));
-    if (compSeed > (1.0 - u_glitchAmount * 0.7)) {
+    if (compSeed > (1.0 - u_glitchAmount * 0.65)) {
       inGlitch = true;
       wrapUV = true;
-      float period = 0.04 + rand(vec2(compSeed, 7.7)) * 0.14;
-      uv.y = floor(v_imageUV.y / period) * period + rand(vec2(compSeed, 8.8)) * period * 0.6;
+      float bandH = 1.0 / 12.0;
+      uv.y = floor(v_imageUV.y / bandH) * bandH + rand(vec2(compSeed, 8.8)) * bandH * 0.4;
       float dx = (rand(vec2(compSeed, 9.9)) * 2.0 - 1.0) * u_glitchStrength * 0.35;
       uv.x += dx;
       displaceX += dx;
     }
-    // 2D JPEG block errors: 32×32 grid, swap blocks to adjacent block content
-    float blockCount = 32.0;
+    // Layer 2: Horizontal-only block shifts — columns misplace, rows stay aligned
+    float blockCount = 24.0;
     float blockW = 1.0 / blockCount;
     float blockT2 = floor(u_time * 4.0);
     float bx3 = floor(v_imageUV.x * blockCount);
     float by3 = floor(v_imageUV.y * blockCount);
     float blockSeed2 = rand(vec2(bx3 * 0.17 + by3 * 0.41, blockT2 + 33.0));
-    if (blockSeed2 > 0.88 - u_glitchAmount * 0.18) {
+    if (blockSeed2 > 0.91 - u_glitchAmount * 0.12) {
       inGlitch = true;
-      // Jump to a nearby block while preserving intra-block pixel position
-      float jumpX = floor((rand(vec2(blockSeed2, 4.4)) * 2.0 - 1.0) * 4.0) * blockW;
-      float jumpY = floor((rand(vec2(blockSeed2, 5.5)) * 2.0 - 1.0) * 2.0) * blockW;
-      uv.x += jumpX; uv.y += jumpY;
+      float jumpX = floor((rand(vec2(blockSeed2, 4.4)) * 2.0 - 1.0) * 5.0) * blockW;
+      uv.x += jumpX;
       displaceX += jumpX;
-    }
-    // Fine checkerboard sub-layer
-    float cbT = floor(u_time * 7.0);
-    float cbSeed = rand(vec2(floor(v_imageUV.x * 14.0) * 0.13 + floor(v_imageUV.y * 14.0) * 0.47, cbT + 5.0));
-    if (cbSeed > 0.88 - u_glitchAmount * 0.15) {
-      inGlitch = true;
-      float dx = (rand(vec2(cbSeed, 4.4)) - 0.5) * u_glitchStrength * 0.18;
-      uv.x += dx;
-      displaceX += dx;
     }
   }
 
