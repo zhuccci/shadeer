@@ -27,6 +27,8 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
   const media = editorState.image.video ?? editorState.image.image;
   const chainMountsRef = useRef<ShaderMount[]>([]);
   const chainDivsRef = useRef<HTMLDivElement[]>([]);
+  const isMobilePreview = window.matchMedia('(pointer: coarse)').matches;
+  const pendingUniformsRafRef = useRef<number | null>(null);
 
   const renderStack = useMemo(
     () => getRenderStack(editorState),
@@ -47,7 +49,6 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
     shaderMountRef.current?.dispose();
     shaderMountRef.current = null;
 
-    const isMobilePreview = window.matchMedia('(pointer: coarse)').matches;
     const previewMinPR = isMobilePreview ? 1 : 2;
     const previewMaxPX = isMobilePreview ? 1280 * 720 : 1920 * 1080 * 4;
 
@@ -125,35 +126,52 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
   useEffect(() => {
     if (!media) return;
 
-    const allMounts = [...chainMountsRef.current];
-    if (shaderMountRef.current) allMounts.push(shaderMountRef.current);
+    const flush = () => {
+      pendingUniformsRafRef.current = null;
 
-    allMounts.forEach((mount, i) => {
-      const filter = renderStack[i];
-      if (!filter) return;
-      const isLast = i === allMounts.length - 1;
-      const fitMode = isLast ? editorState.fitMode : 'fit';
-      const offsetX = isLast ? editorState.offsetX : 0;
-      const offsetY = isLast ? editorState.offsetY : 0;
-      const config =
-        filter === 'blur_h'
-          ? getBlurHPassConfig({ ...editorState, fitMode: 'fit', offsetX: 0, offsetY: 0 }, media)
-          : getShaderConfig({ ...editorState, activeFilter: filter as ActiveFilter, fitMode, offsetX, offsetY }, media, 1.0);
+      const allMounts = [...chainMountsRef.current];
+      if (shaderMountRef.current) allMounts.push(shaderMountRef.current);
 
-      if (i > 0) {
-        // Don't overwrite the canvas texture for chained mounts
-        const { u_image: _img, ...otherUniforms } = config.uniforms as Record<string, unknown>;
-        mount.setUniforms(otherUniforms as UniformMap);
-      } else {
-        mount.setUniforms(config.uniforms);
+      allMounts.forEach((mount, i) => {
+        const filter = renderStack[i];
+        if (!filter) return;
+        const isLast = i === allMounts.length - 1;
+        const fitMode = isLast ? editorState.fitMode : 'fit';
+        const offsetX = isLast ? editorState.offsetX : 0;
+        const offsetY = isLast ? editorState.offsetY : 0;
+        const config =
+          filter === 'blur_h'
+            ? getBlurHPassConfig({ ...editorState, fitMode: 'fit', offsetX: 0, offsetY: 0 }, media)
+            : getShaderConfig({ ...editorState, activeFilter: filter as ActiveFilter, fitMode, offsetX, offsetY }, media, 1.0);
+
+        if (i > 0) {
+          // Don't overwrite the canvas texture for chained mounts
+          const { u_image: _img, ...otherUniforms } = config.uniforms as Record<string, unknown>;
+          mount.setUniforms(otherUniforms as UniformMap);
+        } else {
+          mount.setUniforms(config.uniforms);
+        }
+        mount.setSpeed(config.speed);
+      });
+
+      if (shaderMountRef.current) {
+        updateFitClip(shaderMountRef.current, editorState.fitMode, editorState.image.aspectRatio);
       }
-      mount.setSpeed(config.speed);
-    });
+    };
 
-    if (shaderMountRef.current) {
-      updateFitClip(shaderMountRef.current, editorState.fitMode, editorState.image.aspectRatio);
+    if (isMobilePreview) {
+      if (pendingUniformsRafRef.current !== null) cancelAnimationFrame(pendingUniformsRafRef.current);
+      pendingUniformsRafRef.current = requestAnimationFrame(flush);
+      return () => {
+        if (pendingUniformsRafRef.current !== null) {
+          cancelAnimationFrame(pendingUniformsRafRef.current);
+          pendingUniformsRafRef.current = null;
+        }
+      };
     }
-  }, [editorState, media, previewRef, shaderMountRef, renderStack]);
+
+    flush();
+  }, [editorState, media, previewRef, shaderMountRef, renderStack, isMobilePreview]);
 
   // ── Handle preview resize ─────────────────────────────────────────────────
   useEffect(() => {
