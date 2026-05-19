@@ -420,7 +420,11 @@ export function PreviewStage({
       <div
         ref={previewRef}
         className={`image-area${state.image.isReady ? ' has-image' : ''}${state.image.hasUserImage ? ' has-user-image' : ''}${state.fitMode === 'fill' ? ' fill-mode' : ''}${(zoomScale !== 1 || panX !== 0 || panY !== 0) ? ' zoomed' : ''}`}
-        style={{ transform: `translate(${panX}px, ${panY}px) scale(${zoomScale})`, '--inv-zoom': `${1 / zoomScale}` } as React.CSSProperties}
+        style={
+          (panX !== 0 || panY !== 0 || zoomScale !== 1)
+            ? { transform: `translate(${panX}px, ${panY}px) scale(${zoomScale})`, '--inv-zoom': `${1 / zoomScale}` } as React.CSSProperties
+            : { '--inv-zoom': '1' } as React.CSSProperties
+        }
         onDragOver={(event) => event.preventDefault()}
         onDrop={(event) => {
           event.preventDefault();
