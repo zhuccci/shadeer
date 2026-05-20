@@ -298,20 +298,22 @@ function GlitchyPanelContent({ state, updateState, tab, openColor: _openColor }:
           checked={state.glitchy.crt}
           onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, crt: v } }))}
         />
-        {state.glitchy.crt && (
-          <SliderControl
-            label="Scanlines"
-            value={state.glitchy.scanlines}
-            onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, scanlines: v } }))}
-          />
-        )}
+        <div className={`mobile-collapsible${state.glitchy.crt ? ' open' : ''}`}>
+          <div className="mobile-collapsible-inner">
+            <SliderControl
+              label="Scanlines"
+              value={state.glitchy.scanlines}
+              onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, scanlines: v } }))}
+            />
+          </div>
+        </div>
         <CheckboxControl
           label="VHS Distortion"
           checked={state.glitchy.vhsDistortion}
           onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, vhsDistortion: v } }))}
         />
-        {state.glitchy.vhsDistortion && (
-          <>
+        <div className={`mobile-collapsible${state.glitchy.vhsDistortion ? ' open' : ''}`}>
+          <div className="mobile-collapsible-inner">
             <SliderControl
               label="Wave Strength"
               value={state.glitchy.vhsWaveStrength}
@@ -327,13 +329,8 @@ function GlitchyPanelContent({ state, updateState, tab, openColor: _openColor }:
               value={state.glitchy.vhsBandHeight}
               onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, vhsBandHeight: v } }))}
             />
-            <SliderControl
-              label="Noise Amount"
-              value={state.glitchy.vhsNoiseLevel}
-              onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, vhsNoiseLevel: v } }))}
-            />
-          </>
-        )}
+          </div>
+        </div>
       </div>
     );
   }
@@ -357,6 +354,21 @@ function GlitchyPanelContent({ state, updateState, tab, openColor: _openColor }:
         label="Glitch Amount"
         value={state.glitchy.glitchAmount}
         onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, glitchAmount: v } }))}
+      />
+      <SliderControl
+        label="Chroma Shift"
+        value={state.glitchy.chromaShift}
+        onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, chromaShift: v } }))}
+      />
+      <SliderControl
+        label="Glow"
+        value={state.glitchy.glow}
+        onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, glow: v } }))}
+      />
+      <SliderControl
+        label="Noise Amount"
+        value={state.glitchy.vhsNoiseLevel}
+        onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, vhsNoiseLevel: v } }))}
       />
     </div>
   );
@@ -401,18 +413,27 @@ function HalftonePanelContent({ state, updateState, tab, openColor }: PanelConte
           value={state.halftone.contrast}
           onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, contrast: v } }))}
         />
-        <SliderControl
-          label="Shadows"
-          min={0}
-          max={100}
-          value={state.halftone.shadowRange}
-          onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, shadowRange: v } }))}
-        />
         <CheckboxControl
-          label="Invert Shadows"
-          checked={state.halftone.shadowInvert}
-          onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, shadowInvert: v } }))}
+          label="Area"
+          checked={state.halftone.shadowEnabled}
+          onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, shadowEnabled: v } }))}
         />
+        {state.halftone.shadowEnabled && (
+          <>
+            <SliderControl
+              label="Area"
+              min={0}
+              max={100}
+              value={state.halftone.shadowRange}
+              onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, shadowRange: v } }))}
+            />
+            <CheckboxControl
+              label="Invert Area"
+              checked={state.halftone.shadowInvert}
+              onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, shadowInvert: v } }))}
+            />
+          </>
+        )}
       </div>
     );
   }
@@ -1302,7 +1323,7 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
                       const dx = e.changedTouches[0].clientX - swipeStart.current.x;
                       const dy = e.changedTouches[0].clientY - swipeStart.current.y;
                       swipeStart.current = null;
-                      if (Math.abs(dx) < 80 || Math.abs(dx) < Math.abs(dy) * 3) return;
+                      if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 3) return;
                       if (dx < 0 && activeTab === 'sliders') switchTab('colors');
                       if (dx > 0 && activeTab === 'colors') switchTab('sliders');
                     }}

@@ -27,7 +27,7 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
   const media = editorState.image.video ?? editorState.image.image;
   const chainMountsRef = useRef<ShaderMount[]>([]);
   const chainDivsRef = useRef<HTMLDivElement[]>([]);
-  const isMobilePreview = window.matchMedia('(pointer: coarse)').matches;
+  const isMobilePreview = useMemo(() => window.matchMedia('(pointer: coarse)').matches, []);
   const pendingUniformsRafRef = useRef<number | null>(null);
 
   const renderStack = useMemo(
