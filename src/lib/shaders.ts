@@ -463,14 +463,14 @@ void main() {
   float inBounds = float(v_imageUV.x >= 0.0 && v_imageUV.x <= 1.0 && v_imageUV.y >= 0.0 && v_imageUV.y <= 1.0);
   vec2 uv = v_imageUV;
 
-  // VHS: stepped tape wobble warp before sampling
+  // VHS: stepped tape wobble warp — amplitude 3× larger so it reads clearly
   if (u_vhsDistortion > 0.5) {
     float ws = u_vhsWaveStrength;
     float s1 = floor(sin(uv.y * 18.0 + u_time * 1.8) * 4.0) / 4.0;
     float s2 = floor(sin(uv.y * 47.0 - u_time * 3.1) * 7.0) / 7.0;
     float s3 = floor(sin(uv.y * 110.0 + u_time * 5.5) * 3.0) / 3.0;
     float s4 = floor(sin(uv.y * 6.0 + u_time * 0.7) * 2.0) / 2.0;
-    uv.x += (s1 * 0.018 + s2 * 0.009 + s3 * 0.004 + s4 * 0.012) * ws;
+    uv.x += (s1 * 0.055 + s2 * 0.028 + s3 * 0.012 + s4 * 0.038) * ws;
   }
 
   // Shared timing seeds
@@ -681,21 +681,56 @@ void main() {
 
   // VHS: color-space effects
   if (u_vhsDistortion > 0.5) {
+    // 1. Chroma bleed — VHS chroma bandwidth was low, colors smear right
+    float bleed = 0.006 + u_vhsWaveStrength * 0.01;
+    color.r = mix(color.r, texture(u_image, clamp(uvG + vec2( bleed,       0.0), 0.0, 1.0)).r, 0.45);
+    color.b = mix(color.b, texture(u_image, clamp(uvG + vec2(-bleed * 0.6, 0.0), 0.0, 1.0)).b, 0.35);
+
+    // 2. Tracking bands — slow-drifting horizontal darkness
     float bandFreq = 1.0 + u_vhsBandHeight * 19.0;
-    float bandPhase = v_imageUV.y * bandFreq - u_time * 1.2;
-    float bandGrad = fract(bandPhase);
+    float bandGrad = fract(v_imageUV.y * bandFreq - u_time * 1.2);
     bandGrad = smoothstep(0.0, 0.45, bandGrad) * smoothstep(1.0, 0.55, bandGrad);
     color = mix(color, vec3(0.0), bandGrad * u_vhsBandOpacity);
-    float sigSeed = rand(vec2(floor(v_imageUV.y * 10.0 + u_time * 0.25), 3.3));
-    if (sigSeed > 0.55) {
-      float caVhs = abs(rand(vec2(sigSeed, 0.7)) - 0.5) * 0.014;
-      float fringeR = texture(u_image, clamp(uvG + vec2(caVhs, 0.0), 0.0, 1.0)).r;
-      float fringeG = texture(u_image, clamp(uvG + vec2(caVhs * 0.5, 0.0), 0.0, 1.0)).g;
-      float fringeB = texture(u_image, clamp(uvG, 0.0, 1.0)).b;
-      color = mix(color, vec3(fringeR, fringeG, fringeB), 0.5);
+
+    // 3. Signal fringe — spurious CA, updates at 2fps so it feels held not static
+    float sigT = floor(u_time * 2.0);
+    float sigSeed = rand(vec2(floor(v_imageUV.y * 14.0), sigT + 7.7));
+    if (sigSeed > 0.60) {
+      float caVhs = (rand(vec2(sigSeed, 0.7)) * 2.0 - 1.0) * 0.022 * u_vhsWaveStrength;
+      float strength = (sigSeed - 0.60) / 0.40;
+      color.r = mix(color.r, texture(u_image, clamp(uvG + vec2( caVhs,       0.0), 0.0, 1.0)).r, strength * 0.75);
+      color.b = mix(color.b, texture(u_image, clamp(uvG - vec2( caVhs * 0.7, 0.0), 0.0, 1.0)).b, strength * 0.55);
     }
+
+    // 4. Tape dropout — rare white streaks, flicker at 15fps
+    float dropT = floor(u_time * 15.0);
+    float dropSeed = rand(vec2(floor(v_imageUV.y * 300.0), dropT + 11.0));
+    if (dropSeed > 0.992) {
+      float dropX = rand(vec2(dropSeed, 1.1));
+      float dropW = 0.02 + rand(vec2(dropSeed, 2.2)) * 0.18;
+      if (v_imageUV.x >= dropX && v_imageUV.x <= dropX + dropW) {
+        color = mix(color, vec3(0.92 + rand(vec2(v_imageUV.x * 300.0, dropT)) * 0.08), 0.85);
+      }
+    }
+
+    // 5. Head switching — bottom 5% gets extra warp and noise (tape head changeover)
+    float switchZone = smoothstep(0.95, 1.0, v_imageUV.y);
+    if (switchZone > 0.0) {
+      float switchT = floor(u_time * 12.0);
+      float switchShift = (rand(vec2(floor(v_imageUV.y * 80.0), switchT + 42.0)) * 2.0 - 1.0) * u_vhsWaveStrength * 0.09;
+      vec3 switchedColor = texture(u_image, clamp(uvG + vec2(switchShift, 0.0), 0.0, 1.0)).rgb;
+      float switchNoise = (rand(vec2(v_imageUV.x * 600.0, v_imageUV.y * 200.0 + u_time * 8.0)) * 2.0 - 1.0) * 0.18;
+      color = mix(color, clamp(switchedColor + vec3(switchNoise), 0.0, 1.0), switchZone * 0.9);
+    }
+
+    // 6. Film grain — heavier in shadows, lighter in highlights
     float grain = rand(vec2(v_imageUV.x * 1000.0 + u_time * 13.7, v_imageUV.y * 800.0 + u_time * 9.3)) * 2.0 - 1.0;
-    color = clamp(color + grain * u_vhsNoiseLevel, 0.0, 1.0);
+    float grainMask = 1.0 - dot(color, vec3(0.299, 0.587, 0.114)) * 0.5;
+    color = clamp(color + grain * u_vhsNoiseLevel * grainMask, 0.0, 1.0);
+
+    // 7. Chroma desaturation — VHS color fidelity was low
+    float luma = dot(color, vec3(0.299, 0.587, 0.114));
+    color = mix(color, vec3(luma), 0.10 + u_vhsBandOpacity * 0.06);
   }
 
   fragColor = layerBlend(vec4(color * a_ch, a_ch) * inBounds);
