@@ -362,6 +362,14 @@
   min-height: 0;
 }
 
+.mobile-layers-list .layer-right {
+  margin-right: 0;
+}
+
+.mobile-layers-list .layer-left {
+  gap: 16px;
+}
+
 .mobile-add-layer-btn {
   display: flex;
   align-items: center;
