@@ -1,10 +1,26 @@
 import React from 'react';
 import type { GlitchFormMode } from '../types/editor';
+function ShrinkIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <rect x="3"  y="3" width="1" height="18" />
+      <rect x="5"  y="3" width="2" height="18" />
+      <rect x="8"  y="3" width="1" height="18" />
+      <rect x="10" y="3" width="1" height="18" />
+      <rect x="12" y="3" width="2" height="18" />
+      <rect x="15" y="3" width="3" height="18" />
+      <rect x="19" y="3" width="2" height="18" />
+    </svg>
+  );
+}
 
-function BandsIcon() {
+function InterlaceIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" aria-hidden="true">
-      <path d="M16 18H11V15H2V12H6V9H4V6H0V3H6V0H18V3H12V6H9V9H18V12H13V15H16V18Z" />
+      <rect x="0" y="1"  width="11" height="2" />
+      <rect x="7" y="5"  width="11" height="2" />
+      <rect x="0" y="9"  width="11" height="2" />
+      <rect x="7" y="13" width="11" height="2" />
     </svg>
   );
 }
@@ -41,23 +57,10 @@ function MosaicIcon() {
   );
 }
 
-function ShrinkIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <rect x="3"  y="3" width="1" height="18" />
-      <rect x="5"  y="3" width="2" height="18" />
-      <rect x="8"  y="3" width="1" height="18" />
-      <rect x="10" y="3" width="1" height="18" />
-      <rect x="12" y="3" width="2" height="18" />
-      <rect x="15" y="3" width="3" height="18" />
-      <rect x="19" y="3" width="2" height="18" />
-    </svg>
-  );
-}
 
 const forms: { id: GlitchFormMode; label: string; icon: React.ReactNode }[] = [
-  { id: 'bands',    label: 'Bands',   icon: <BandsIcon /> },
-  { id: 'mosaic',   label: 'Mosaic',  icon: <MosaicIcon /> },
+  { id: 'interlace', label: 'Interlace', icon: <InterlaceIcon /> },
+  { id: 'mosaic',    label: 'Mosaic',    icon: <MosaicIcon /> },
   { id: 'wide',     label: 'Wide',    icon: <WideIcon /> },
   { id: 'compress', label: 'Shrink',  icon: <ShrinkIcon /> },
 ];

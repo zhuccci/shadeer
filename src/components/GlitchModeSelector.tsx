@@ -4,11 +4,13 @@ import type { GlitchMode } from '../types/editor';
 
 const modes: { id: GlitchMode; label: string }[] = [
   { id: 'none',    label: 'None' },
-  { id: 'invert',  label: 'Invert' },
-  { id: 'corrupt', label: 'Data Corrupt' },
   { id: 'smear',   label: 'Smear' },
   { id: 'channel', label: 'Channel Swap' },
-  { id: 'bleach',  label: 'Bleach' },
+  { id: 'posterize', label: 'Posterize' },
+  { id: 'mirror',    label: 'Mirror' },
+  { id: 'burn',      label: 'Negative Burn' },
+  { id: 'hue',       label: 'Hue Rotate' },
+  { id: 'scanhold',  label: 'Scan Hold' },
 ];
 
 interface GlitchModeSelectorProps {

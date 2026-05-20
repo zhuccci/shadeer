@@ -459,6 +459,14 @@ out vec4 fragColor;
 float rand(vec2 co) {
   return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
+vec3 hueRotate(vec3 c, float a) {
+  float ca = cos(a), sa = sin(a);
+  return clamp(vec3(
+    c.r*(0.299+0.701*ca+0.168*sa) + c.g*(0.587-0.587*ca+0.330*sa) + c.b*(0.114-0.114*ca-0.497*sa),
+    c.r*(0.299-0.299*ca-0.328*sa) + c.g*(0.587+0.413*ca+0.035*sa) + c.b*(0.114-0.114*ca+0.292*sa),
+    c.r*(0.299-0.300*ca+1.250*sa) + c.g*(0.587-0.588*ca-1.050*sa) + c.b*(0.114+0.886*ca-0.203*sa)
+  ), 0.0, 1.0);
+}
 void main() {
   float inBounds = float(v_imageUV.x >= 0.0 && v_imageUV.x <= 1.0 && v_imageUV.y >= 0.0 && v_imageUV.y <= 1.0);
   vec2 uv = v_imageUV;
@@ -483,33 +491,29 @@ void main() {
   float displaceX = 0.0;
 
   if (u_glitchForm < 0.5) {
-    // Bands: full-width horizontal row tears — entire row shifts, no x-masking
-    // Coarse layer: 32 rows, 6fps — the main visible tears
-    float coarseRow = floor(v_imageUV.y * 32.0);
-    float coarseSeed = rand(vec2(coarseRow, glitchT));
-    if (coarseSeed > (1.0 - u_glitchAmount * 0.75)) {
+    // Interlace: even/odd scanlines tear independently — field sync corruption
+    float scanY = floor(v_imageUV.y * 480.0);
+    float isOdd = mod(scanY, 2.0);
+
+    // Coarse field zones: ~30 lines corrupt together, 5fps
+    float fieldT = floor(u_time * 5.0);
+    float fieldZone = floor(v_imageUV.y * 16.0);
+    float fieldSeed = rand(vec2(fieldZone, fieldT));
+    if (fieldSeed > (1.0 - u_glitchAmount * 0.75)) {
       inGlitch = true;
-      float dx = (rand(vec2(coarseSeed, glitchT + 1.0)) * 2.0 - 1.0) * u_glitchStrength * 0.28;
+      float evenDx = (rand(vec2(fieldSeed, 1.1)) * 2.0 - 1.0) * u_glitchStrength * 0.35;
+      float oddDx  = (rand(vec2(fieldSeed, 2.2)) * 2.0 - 1.0) * u_glitchStrength * 0.35;
+      float dx = isOdd < 0.5 ? evenDx : oddDx;
       uv.x += dx;
       displaceX += dx;
     }
-    // Fine layer: 120 rows, 10fps — thinner secondary tears
+
+    // Fine layer: individual scanline jitter, even/odd in opposite directions, 10fps
     float fineT = floor(u_time * 10.0);
-    float fineRow = floor(v_imageUV.y * 120.0);
-    float fineSeed = rand(vec2(fineRow + 77.0, fineT));
+    float fineSeed = rand(vec2(scanY + 33.0, fineT));
     if (fineSeed > (1.0 - u_glitchAmount * 0.45)) {
       inGlitch = true;
-      float dx = (rand(vec2(fineSeed, fineT + 2.0)) - 0.5) * u_glitchStrength * 0.12;
-      uv.x += dx;
-      displaceX += dx;
-    }
-    // Jitter layer: single-pixel-height lines, 20fps, tiny offset — fine noise texture
-    float jitterT = floor(u_time * 20.0);
-    float jitterRow = floor(v_imageUV.y * 400.0);
-    float jitterSeed = rand(vec2(jitterRow + 13.0, jitterT));
-    if (jitterSeed > 0.97 - u_glitchAmount * 0.04) {
-      inGlitch = true;
-      float dx = (rand(vec2(jitterSeed, 3.7)) - 0.5) * u_glitchStrength * 0.06;
+      float dx = (isOdd < 0.5 ? 1.0 : -1.0) * rand(vec2(fineSeed, 3.3)) * u_glitchStrength * 0.14;
       uv.x += dx;
       displaceX += dx;
     }
@@ -556,7 +560,7 @@ void main() {
       uv.x += dx; uv.y += dy;
       displaceX += dx;
     }
-  } else {
+  } else if (u_glitchForm < 3.5) {
     // Compress: codec macroblocking — row freezes + horizontal-only block shifts
     float compT = floor(u_time * 5.0);
     // Layer 1: Coarse row freeze — bands snap to quantized y (frozen-frame stripes)
@@ -599,23 +603,32 @@ void main() {
 
   // Glitch mode: color effect applied within active bands
   if (inGlitch && u_glitchMode > 0.5) {
-    if (u_glitchMode < 1.5) {
-      // Invert
-      color = 1.0 - color;
-    } else if (u_glitchMode < 2.5) {
-      // Data Corrupt: inject colored noise
-      float n = rand(vec2(v_imageUV.x * 500.0 + glitchT, glitchRow));
-      color = vec3(n, rand(vec2(n, 0.77)), rand(vec2(n, 1.33)));
-    } else if (u_glitchMode < 3.5) {
+    if (u_glitchMode < 3.5) {
       // Smear: horizontal tape-drag sample
       float smearOff = rand(vec2(glitchSeed, 9.9)) * u_glitchStrength * 0.2;
       color = texture(u_image, clamp(vec2(uvG.x - smearOff, uvG.y), 0.0, 1.0)).rgb;
     } else if (u_glitchMode < 4.5) {
       // Channel Swap: rotate RGB
       color = color.gbr;
+    } else if (u_glitchMode < 6.5) {
+      // Posterize: crush to 3 color steps
+      color = floor(color * 3.0) / 3.0;
+    } else if (u_glitchMode < 7.5) {
+      // Mirror: flip X within the band
+      color = texture(u_image, vec2(1.0 - uvG.x, uvG.y)).rgb;
+    } else if (u_glitchMode < 8.5) {
+      // Negative Burn: invert + crush to dark with a purple-red tint
+      color = (1.0 - color) * (1.0 - color);
+      color *= vec3(1.4, 0.5, 1.1);
+      color = clamp(color, 0.0, 1.0);
+    } else if (u_glitchMode < 9.5) {
+      // Hue Rotate: shift hue by a random amount per band
+      float angle = rand(vec2(glitchSeed, 4.4)) * 6.2832;
+      color = hueRotate(color, angle);
     } else {
-      // Bleach: blow out to white
-      color = mix(color, vec3(1.0), 0.78);
+      // Scan Hold: freeze band to a random fixed scanline
+      float frozenY = rand(vec2(glitchSeed, 5.5));
+      color = texture(u_image, vec2(uvG.x, frozenY)).rgb;
     }
   }
 
@@ -686,11 +699,15 @@ void main() {
     color.r = mix(color.r, texture(u_image, clamp(uvG + vec2( bleed,       0.0), 0.0, 1.0)).r, 0.45);
     color.b = mix(color.b, texture(u_image, clamp(uvG + vec2(-bleed * 0.6, 0.0), 0.0, 1.0)).b, 0.35);
 
-    // 2. Tracking bands — slow-drifting horizontal darkness
+    // 2. Tracking bands — chroma dropout: luma survives, color shifts to blue
     float bandFreq = 1.0 + u_vhsBandHeight * 19.0;
     float bandGrad = fract(v_imageUV.y * bandFreq - u_time * 1.2);
     bandGrad = smoothstep(0.0, 0.45, bandGrad) * smoothstep(1.0, 0.55, bandGrad);
-    color = mix(color, vec3(0.0), bandGrad * u_vhsBandOpacity);
+    float chromaX = (rand(vec2(floor(v_imageUV.y * bandFreq), floor(u_time * 2.0))) * 2.0 - 1.0) * 0.03;
+    vec3 bandSample = texture(u_image, clamp(uvG + vec2(chromaX, 0.0), 0.0, 1.0)).rgb;
+    float bandLuma = dot(bandSample, vec3(0.299, 0.587, 0.114));
+    vec3 bandColor = vec3(bandLuma * 0.25, bandLuma * 0.32, bandLuma * 0.6 + 0.06);
+    color = mix(color, bandColor, bandGrad * u_vhsBandOpacity);
 
     // 3. Signal fringe — spurious CA, updates at 2fps so it feels held not static
     float sigT = floor(u_time * 2.0);

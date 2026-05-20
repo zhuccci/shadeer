@@ -44,24 +44,25 @@ export function GlitchyPanel({
 }: GlitchyPanelProps) {
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="glitchyPanel">
-      <div className="glitchy-top">
-        <div className="glitchy-left">
-          <span className="glitchy-section-label">Glitch Mode</span>
-          <GlitchFormSelector value={state.glitchy.glitchForm} onChange={onGlitchFormChange} />
-        </div>
-        <div className="glitchy-col-divider" />
-        <div className="glitchy-right">
-          <GlitchModeSelector label="Glitch Form" value={state.glitchy.glitchMode} onChange={onGlitchModeChange} />
-          <SliderControl label="Glitch Strength" value={state.glitchy.glitchStrength} onChange={onGlitchStrengthChange} />
-          <SliderControl label="Glitch Amount" value={state.glitchy.glitchAmount} onChange={onGlitchAmountChange} />
-          <SliderControl label="Chroma Shift" value={state.glitchy.chromaShift} onChange={onChromaShiftChange} />
-          <SliderControl label="Glow" value={state.glitchy.glow} onChange={onGlowChange} />
-        </div>
-      </div>
-
-      <div className="glitchy-row-divider" />
-
       <div className="glitchy-scroll-area">
+        <div className="glitchy-top">
+          <div className="glitchy-left">
+            <span className="glitchy-section-label">Glitch Mode</span>
+            <GlitchFormSelector value={state.glitchy.glitchForm} onChange={onGlitchFormChange} />
+          </div>
+          <div className="glitchy-col-divider" />
+          <div className="glitchy-right">
+            <GlitchModeSelector label="Glitch Form" value={state.glitchy.glitchMode} onChange={onGlitchModeChange} />
+            <SliderControl label="Glitch Strength" value={state.glitchy.glitchStrength} onChange={onGlitchStrengthChange} />
+            <SliderControl label="Glitch Amount" value={state.glitchy.glitchAmount} onChange={onGlitchAmountChange} />
+            <SliderControl label="Chroma Shift" value={state.glitchy.chromaShift} onChange={onChromaShiftChange} />
+            <SliderControl label="Glow" value={state.glitchy.glow} onChange={onGlowChange} />
+            <SliderControl label="Noise Amount" value={state.glitchy.vhsNoiseLevel} onChange={onVhsNoiseLevelChange} />
+          </div>
+        </div>
+
+        <div className="glitchy-row-divider" />
+
         <div className="glitchy-section">
           <CheckboxControl label="CRT" checked={state.glitchy.crt} onChange={onCrtChange} />
           <div className={`glitchy-collapsible${state.glitchy.crt ? ' expanded' : ''}`}>
@@ -80,12 +81,10 @@ export function GlitchyPanel({
               <SliderControl label="Wave Strength" value={state.glitchy.vhsWaveStrength} onChange={onVhsWaveStrengthChange} />
               <SliderControl label="Band Opacity" value={state.glitchy.vhsBandOpacity} onChange={onVhsBandOpacityChange} />
               <SliderControl label="Band Height" value={state.glitchy.vhsBandHeight} onChange={onVhsBandHeightChange} />
-              <SliderControl label="Noise Amount" value={state.glitchy.vhsNoiseLevel} onChange={onVhsNoiseLevelChange} />
             </div>
           </div>
         </div>
       </div>
-
     </div>
   );
 }

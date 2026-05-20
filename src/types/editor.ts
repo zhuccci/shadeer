@@ -6,8 +6,8 @@ export type FitMode = 'fill' | 'fit';
 
 export type GlassShape = 'lines' | 'wave' | 'zigzag' | 'circles';
 
-export type GlitchMode = 'none' | 'invert' | 'corrupt' | 'smear' | 'channel' | 'bleach';
-export type GlitchFormMode = 'bands' | 'wide' | 'mosaic' | 'compress';
+export type GlitchMode = 'none' | 'smear' | 'channel' | 'posterize' | 'mirror' | 'burn' | 'hue' | 'scanhold';
+export type GlitchFormMode = 'interlace' | 'wide' | 'mosaic' | 'compress';
 
 export type DitherType = '2x2' | '4x4' | '8x8';
 
@@ -213,8 +213,8 @@ export const defaultLiquidSettings: LiquidSettings = {
 export const defaultGlitchySettings: GlitchySettings = {
   glitchStrength: 50,
   glitchAmount: 40,
-  glitchMode: 'invert',
-  glitchForm: 'bands',
+  glitchMode: 'none',
+  glitchForm: 'interlace',
   crt: false,
   scanlines: 50,
   glow: 20,
