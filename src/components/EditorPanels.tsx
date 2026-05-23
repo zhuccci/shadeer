@@ -22,7 +22,7 @@ export function EditorPanels({ state, updateState, onAddLayer }: EditorPanelsPro
   const alreadyLayer = state.layers.some((l) => l.id === state.activeFilter);
 
   return (
-    <div id="panelWrapper">
+    <div id="panelWrapper" className={alreadyLayer ? 'no-add-layer' : undefined}>
       <GlassPanel
         state={state}
         isActive={state.activeFilter === 'glass'}
