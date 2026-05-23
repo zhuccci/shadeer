@@ -225,15 +225,16 @@ export function EditorPanels({ state, updateState, onAddLayer }: EditorPanelsPro
         onGrainChange={(grain) => updateState((current) => ({ ...current, blur: { ...current.blur, grain } }))}
       />
 
-      <button
-        type="button"
-        className={`add-layer-btn${alreadyLayer ? ' add-layer-btn--added' : ''}`}
-        disabled={alreadyLayer}
-        onClick={() => onAddLayer(state.activeFilter)}
-      >
-        <AddLayerIcon />
-        Add layer
-      </button>
+      {!alreadyLayer && (
+        <button
+          type="button"
+          className="add-layer-btn"
+          onClick={() => onAddLayer(state.activeFilter)}
+        >
+          <AddLayerIcon />
+          Add layer
+        </button>
+      )}
     </div>
   );
 }
