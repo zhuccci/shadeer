@@ -5,10 +5,8 @@ import type { GlowStyle, EditorState } from '../../types/editor';
 import './GlowPanel.css';
 
 const glowStyles: { id: GlowStyle; label: string }[] = [
-  { id: 'bloom',    label: 'Bloom'    },
-  { id: 'sparkles', label: 'Sparkles' },
-  { id: 'streaks',  label: 'Streaks'  },
-  { id: 'halo',     label: 'Halo'     },
+  { id: 'bloom',   label: 'Bloom'   },
+  { id: 'streaks', label: 'Streaks' },
 ];
 
 interface GlowPanelProps {

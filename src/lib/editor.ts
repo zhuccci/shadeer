@@ -495,7 +495,7 @@ export function getBlurHPassConfig(state: EditorState, image: HTMLImageElement |
 }
 
 export function buildGlowUniforms(glow: GlowSettings, fitMode: FitMode, offsetX: number, offsetY: number) {
-  const styleIndex = ['bloom', 'sparkles', 'streaks', 'halo'].indexOf(glow.style);
+  const styleIndex = ['bloom', 'streaks'].indexOf(glow.style);
   return {
     u_fit: fitMode === 'fill' ? 2 : 1,
     u_scale: 1,

@@ -957,6 +957,100 @@ function BlurPanelContent({ state, updateState }: PanelContentProps) {
   );
 }
 
+const GLOW_STYLES: { id: 'bloom' | 'streaks'; label: string }[] = [
+  { id: 'bloom',   label: 'Bloom'   },
+  { id: 'streaks', label: 'Streaks' },
+];
+
+function GlowPanelContent({ state, updateState, openColor }: PanelContentProps) {
+  const [open, setOpen] = useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+  const g = state.glow;
+  const selected = GLOW_STYLES.find((s) => s.id === g.style) ?? GLOW_STYLES[0];
+
+  React.useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div className="mobile-panel-section">
+      <div ref={ref} className="selector-group">
+        <span className="selector-group-label">Style</span>
+        <div className={`selector${open ? ' open' : ''}`}>
+          <button type="button" className="selector-trigger" onClick={() => setOpen((o) => !o)}>
+            <span className="selector-left">
+              <span className="option-text">{selected.label}</span>
+            </span>
+            <img
+              src={`${import.meta.env.BASE_URL}icons/chevron-down.svg`}
+              className="chevron"
+              alt=""
+              style={{ filter: 'brightness(0) invert(78%)' }}
+            />
+          </button>
+          <div className="dropdown">
+            {GLOW_STYLES.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                className={`dropdown-item${s.id === g.style ? ' active' : ''}`}
+                onClick={() => {
+                  updateState((st) => ({ ...st, glow: { ...st.glow, style: s.id } }));
+                  setOpen(false);
+                }}
+              >
+                <span className="dropdown-item-text">{s.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      <SliderControl
+        label="Intensity"
+        min={0}
+        max={100}
+        value={g.intensity}
+        onChange={(v) => updateState((s) => ({ ...s, glow: { ...s.glow, intensity: v } }))}
+      />
+      <SliderControl
+        label="Opacity"
+        min={0}
+        max={100}
+        value={g.opacity}
+        onChange={(v) => updateState((s) => ({ ...s, glow: { ...s.glow, opacity: v } }))}
+      />
+      <div className="glow-color-section" style={{ padding: '0 16px 8px' }}>
+        <span className="selector-group-label">Color</span>
+        <div className="glow-color-mode">
+          <button
+            type="button"
+            className={`glow-mode-btn${!g.useTint ? ' active' : ''}`}
+            onClick={() => updateState((s) => ({ ...s, glow: { ...s.glow, useTint: false } }))}
+          >Image</button>
+          <button
+            type="button"
+            className={`glow-mode-btn${g.useTint ? ' active' : ''}`}
+            onClick={() => updateState((s) => ({ ...s, glow: { ...s.glow, useTint: true } }))}
+          >Tint</button>
+        </div>
+        {g.useTint && (
+          <ColorSelectorControl
+            label="Tint"
+            value={g.tintColor}
+            onChange={(v) => updateState((s) => ({ ...s, glow: { ...s.glow, tintColor: sanitizeHex(v, s.glow.tintColor) } }))}
+            onMobileOpen={openColor}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
 function MobileLayersDragIcon() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -1288,6 +1382,13 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
                 <div className="sheet-scroll">
                   <div key="blur" className="sheet-tab-content">
                     <BlurPanelContent state={state} updateState={updateState} tab="sliders" openColor={openColor} />
+                  </div>
+                </div>
+              ) : state.activeFilter === 'glow' ? (
+                /* Glow — no tabs, single scrollable column */
+                <div className="sheet-scroll">
+                  <div key="glow" className="sheet-tab-content">
+                    <GlowPanelContent state={state} updateState={updateState} tab="sliders" openColor={openColor} />
                   </div>
                 </div>
               ) : (

@@ -1674,9 +1674,8 @@ void main() {
   fragColor = layerBlend(vec4(color * alpha, alpha));
 }`;
 
-// Pass 1 of 2: threshold bright areas + horizontal Gaussian blur (unnormalized).
-// Unnormalized means a point source peaks at 1.0 and decays naturally with Gaussian
-// falloff. The 8-bit intermediate canvas clamps any overflow from extended bright regions.
+// Pass 1 of 2: style-dependent threshold extraction + normalized horizontal Gaussian blur.
+// Each style uses a different threshold and H-radius multiplier.
 export const glowHFragmentShader = `#version 300 es
 precision highp float;
 uniform sampler2D u_image;
@@ -1695,22 +1694,22 @@ void main() {
   ivec2 sz  = textureSize(u_image, 0);
   ivec2 ctr = ivec2(uv * vec2(sz));
 
-  float isBloom   = step(u_style, 0.5);
-  float isStreaks = step(1.5, u_style) * step(u_style, 2.5);
-  float threshold = mix(0.70, 0.55, isBloom);   // bloom: lower threshold catches more
-  float hMult     = mix(1.0, 2.5, isStreaks);    // streaks: wider H spread
-  float r         = u_intensity * 0.04 * float(sz.x) * hMult;
+  // bloom=0, streaks=1
+  float isStreaks = step(0.5, u_style);
+  float threshold = mix(0.45, 0.60, isStreaks);  // bloom includes mids; streaks more selective
+  float hMult     = mix(1.0,  5.0,  isStreaks);  // streaks: 5× wider H spread
+  float r         = u_intensity * 0.10 * float(sz.x) * hMult;
 
   if (r < 0.5) {
-    vec4  s      = texelFetch(u_image, clamp(ctr, ivec2(0), sz - 1), 0);
-    float bright = smoothstep(threshold, 1.0, luma(s.rgb));
-    fragColor    = vec4(s.rgb * bright, 1.0);
+    vec4  s = texelFetch(u_image, clamp(ctr, ivec2(0), sz - 1), 0);
+    fragColor = vec4(s.rgb * smoothstep(threshold, 1.0, luma(s.rgb)), 1.0);
     return;
   }
 
   float stepPx = max(1.0, r / 32.0);
   float sigma2 = 2.0 * (r / 3.0) * (r / 3.0) + 0.001;
   vec3  acc    = vec3(0.0);
+  float totalW = 0.0;
 
   for (int xi = -32; xi <= 32; xi++) {
     float dx     = float(xi) * stepPx;
@@ -1720,25 +1719,25 @@ void main() {
     int   x0     = clamp(int(fl),     0, sz.x - 1);
     int   x1     = clamp(int(fl) + 1, 0, sz.x - 1);
     float f      = exactX - fl;
-    vec4  s0     = texelFetch(u_image, ivec2(x0, ctr.y), 0);
-    vec4  s1     = texelFetch(u_image, ivec2(x1, ctr.y), 0);
-    float b0     = smoothstep(threshold, 1.0, luma(s0.rgb));
-    float b1     = smoothstep(threshold, 1.0, luma(s1.rgb));
-    acc         += mix(s0.rgb * b0, s1.rgb * b1, f) * w;  // unnormalized
+    vec3  s0     = texelFetch(u_image, ivec2(x0, ctr.y), 0).rgb;
+    vec3  s1     = texelFetch(u_image, ivec2(x1, ctr.y), 0).rgb;
+    float b0     = smoothstep(threshold, 1.0, luma(s0));
+    float b1     = smoothstep(threshold, 1.0, luma(s1));
+    vec3  bright = mix(s0 * b0, s1 * b1, f);
+    acc    += bright * w;
+    totalW += w;
   }
 
-  fragColor = vec4(acc, 1.0);  // 8-bit clamping handles overflow for extended regions
+  fragColor = vec4(acc / totalW, 1.0);
 }`;
 
-// Pass 2 of 2: vertical Gaussian blur (unnormalized) of pass 1 output,
-// then screen-blend onto the original image.
-// u_image = original image  |  u_glow = pass 1 canvas (H-blurred bright areas)
-// Unnormalized blur: isolated sources peak at 1.0, decay naturally (Gaussian falloff).
-// Extended bright regions saturate to 1.0 — expected for a bloom/glow effect.
+// Pass 2 of 2: normalized V-blur of pass 1, then screen-blend onto original.
+// Style-specific post-processing: sparkles use gamma compression for punchy
+// concentrated points; halo subtracts an inner blur to create a ring/corona shape.
 export const glowFragmentShader = `#version 300 es
 precision highp float;
 uniform sampler2D u_image;  // original image
-uniform sampler2D u_glow;   // pass 1 output (H-blurred bright areas)
+uniform sampler2D u_glow;   // pass 1 output
 uniform float u_intensity;
 uniform float u_glowOpacity;
 uniform float u_style;
@@ -1750,6 +1749,26 @@ out vec4 fragColor;
 
 float luma(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
 
+vec3 vBlur(ivec2 ctr, ivec2 sz, float r) {
+  if (r < 0.5) return texelFetch(u_glow, clamp(ctr, ivec2(0), sz - 1), 0).rgb;
+  float stepPx = max(1.0, r / 32.0);
+  float sigma2 = 2.0 * (r / 3.0) * (r / 3.0) + 0.001;
+  vec3  acc    = vec3(0.0);
+  float totalW = 0.0;
+  for (int yi = -32; yi <= 32; yi++) {
+    float dy  = float(yi) * stepPx;
+    float w   = exp(-dy * dy / sigma2);
+    int   y0  = clamp(int(float(ctr.y) + dy),       0, sz.y - 1);
+    int   y1  = clamp(int(float(ctr.y) + dy) + 1,   0, sz.y - 1);
+    float f   = fract(float(ctr.y) + dy);
+    vec3  s0  = texelFetch(u_glow, ivec2(ctr.x, y0), 0).rgb;
+    vec3  s1  = texelFetch(u_glow, ivec2(ctr.x, y1), 0).rgb;
+    acc    += mix(s0, s1, f) * w;
+    totalW += w;
+  }
+  return acc / totalW;
+}
+
 void main() {
   vec2  uv  = v_imageUV;
   float inB = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
@@ -1758,39 +1777,17 @@ void main() {
   ivec2 sz  = textureSize(u_glow, 0);
   ivec2 ctr = ivec2(uv * vec2(sz));
 
-  // Streaks: very narrow V radius keeps horizontal lines thin
-  float vMult = (u_style > 1.5 && u_style < 2.5) ? 0.05 : 1.0;
-  float r     = u_intensity * 0.04 * float(sz.x) * vMult;
+  // bloom=0, streaks=1; streaks use very narrow V pass (horizontal-only spread)
+  float isStreaks = step(0.5, u_style);
+  float vMult     = mix(1.0, 0.04, isStreaks);
+  float r         = u_intensity * 0.10 * float(sz.x) * vMult;
 
-  vec3 acc = vec3(0.0);
+  vec3 blur = vBlur(ctr, sz, r);
 
-  if (r < 0.5) {
-    acc = texelFetch(u_glow, clamp(ctr, ivec2(0), sz - 1), 0).rgb;
-  } else {
-    float stepPx = max(1.0, r / 32.0);
-    float sigma2 = 2.0 * (r / 3.0) * (r / 3.0) + 0.001;
+  float boost    = 1.0 + u_intensity * 2.5;
+  vec3  boosted  = clamp(blur * boost, 0.0, 1.0);
+  vec3 glowColor = (u_colorMode < 0.5) ? boosted : u_tint.rgb * luma(boosted);
 
-    for (int yi = -32; yi <= 32; yi++) {
-      float dy     = float(yi) * stepPx;
-      float w      = exp(-dy * dy / sigma2);
-      float exactY = float(ctr.y) + dy;
-      float fl     = floor(exactY);
-      int   y0     = clamp(int(fl),     0, sz.y - 1);
-      int   y1     = clamp(int(fl) + 1, 0, sz.y - 1);
-      float f      = exactY - fl;
-      vec4  s0     = texelFetch(u_glow, ivec2(ctr.x, y0), 0);
-      vec4  s1     = texelFetch(u_glow, ivec2(ctr.x, y1), 0);
-      acc         += mix(s0.rgb, s1.rgb, f) * w;  // unnormalized
-    }
-  }
-
-  // Clamp: isolated sources have natural Gaussian falloff [0→1]; extended regions
-  // saturate to 1.0 (already max brightness there, so screen blend won't blow out).
-  vec3  glowContrib = clamp(acc, 0.0, 1.0);
-  float glowL       = luma(glowContrib);
-  vec3  glowColor   = (u_colorMode < 0.5) ? glowContrib : u_tint.rgb * glowL;
-
-  // Screen-blend glow onto original
   vec4 orig     = texture(u_image, uv);
   vec3 screened = 1.0 - (1.0 - orig.rgb) * (1.0 - glowColor);
   vec3 result   = mix(orig.rgb, screened, u_glowOpacity);

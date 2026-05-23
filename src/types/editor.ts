@@ -1,6 +1,6 @@
 export type ActiveFilter = 'glass' | 'dithering' | 'liquid' | 'glitchy' | 'halftone' | 'symbolEdges' | 'paper' | 'heatmap' | 'blur' | 'glow';
 
-export type GlowStyle = 'bloom' | 'sparkles' | 'streaks' | 'halo';
+export type GlowStyle = 'bloom' | 'streaks';
 
 export type SymbolEdgesMode = 'edges' | 'color';
 
