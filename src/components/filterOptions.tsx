@@ -74,8 +74,15 @@ export const filterOptions: FilterOption[] = [
     hoverThumbnail: `${baseUrl}placeholders/blur_hover.png`,
     implemented: true,
   },
+  {
+    id: 'glow',
+    label: 'Glow',
+    thumbnail: `${baseUrl}placeholders/glow.png`,
+    hoverThumbnail: `${baseUrl}placeholders/glow_hover.png`,
+    implemented: true,
+  },
 ];
 
 export function isActiveFilter(filterId: FilterOption['id']): filterId is ActiveFilter {
-  return filterId === 'glass' || filterId === 'dithering' || filterId === 'liquid' || filterId === 'glitchy' || filterId === 'halftone' || filterId === 'symbolEdges' || filterId === 'paper' || filterId === 'heatmap' || filterId === 'blur';
+  return filterId === 'glass' || filterId === 'dithering' || filterId === 'liquid' || filterId === 'glitchy' || filterId === 'halftone' || filterId === 'symbolEdges' || filterId === 'paper' || filterId === 'heatmap' || filterId === 'blur' || filterId === 'glow';
 }

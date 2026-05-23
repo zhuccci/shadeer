@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { getShaderConfig, getBlurHPassConfig, updateFitClip } from '../lib/editor';
+import { getShaderConfig, getBlurHPassConfig, getGlowHPassConfig, updateFitClip } from '../lib/editor';
 import { ShaderMount } from '../lib/shaders';
 import type { ActiveFilter, EditorState } from '../types/editor';
 import type { UniformMap } from '../lib/shaders';
@@ -11,9 +11,13 @@ interface UseShaderPreviewOptions {
 }
 
 // Returns [bottomLayer, ..., topLayer] render order.
-// 'blur' expands to ['blur_h', 'blur'] for two-pass separable Gaussian.
+// 'blur' and 'glow' expand to two-pass separable pipeline.
 function getRenderStack(state: EditorState): string[] {
-  const expand = (f: ActiveFilter): string[] => (f === 'blur' ? ['blur_h', 'blur'] : [f]);
+  const expand = (f: ActiveFilter): string[] => {
+    if (f === 'blur') return ['blur_h', 'blur'];
+    if (f === 'glow') return ['glow_h', 'glow'];
+    return [f];
+  };
   const { activeFilter, layers } = state;
   if (layers.length === 0) return expand(activeFilter);
   const visibleLayers = layers.filter((l) => !l.hidden);
@@ -76,11 +80,13 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
       const config =
         filter === 'blur_h'
           ? getBlurHPassConfig({ ...editorState, fitMode: 'fit', offsetX: 0, offsetY: 0 }, media)
+          : filter === 'glow_h'
+          ? getGlowHPassConfig({ ...editorState, fitMode: 'fit', offsetX: 0, offsetY: 0 }, media)
           : getShaderConfig({ ...editorState, activeFilter: filter as ActiveFilter, fitMode, offsetX, offsetY }, media, 1.0);
 
       if (isLast) {
         const mount = new ShaderMount(preview, config.fragmentShader, config.uniforms, undefined, config.speed, 0, previewMinPR, previewMaxPX);
-        if (prevCanvas) mount.setTextureUniform('u_image', prevCanvas);
+        if (prevCanvas) mount.setTextureUniform(filter === 'glow' ? 'u_glow' : 'u_image', prevCanvas);
         shaderMountRef.current = mount;
       } else {
         const div = document.createElement('div');
@@ -97,7 +103,7 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
         mount.renderScale = 1;
         mount.uniformCache = {};
 
-        if (prevCanvas) mount.setTextureUniform('u_image', prevCanvas);
+        if (prevCanvas) mount.setTextureUniform(filter === 'glow' ? 'u_glow' : 'u_image', prevCanvas);
 
         intermediateMounts.push(mount);
         prevCanvas = mount.canvasElement;
@@ -142,12 +148,20 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
         const config =
           filter === 'blur_h'
             ? getBlurHPassConfig({ ...editorState, fitMode: 'fit', offsetX: 0, offsetY: 0 }, media)
+            : filter === 'glow_h'
+            ? getGlowHPassConfig({ ...editorState, fitMode: 'fit', offsetX: 0, offsetY: 0 }, media)
             : getShaderConfig({ ...editorState, activeFilter: filter as ActiveFilter, fitMode, offsetX, offsetY }, media, 1.0);
 
         if (i > 0) {
-          // Don't overwrite the canvas texture for chained mounts
-          const { u_image: _img, ...otherUniforms } = config.uniforms as Record<string, unknown>;
-          mount.setUniforms(otherUniforms as UniformMap);
+          if (filter === 'glow') {
+            // u_glow is the pass-1 canvas — don't overwrite; u_image is original, keep it
+            const { u_glow: _g, ...otherUniforms } = config.uniforms as Record<string, unknown>;
+            mount.setUniforms(otherUniforms as UniformMap);
+          } else {
+            // Don't overwrite the canvas texture for other chained mounts
+            const { u_image: _img, ...otherUniforms } = config.uniforms as Record<string, unknown>;
+            mount.setUniforms(otherUniforms as UniformMap);
+          }
         } else {
           mount.setUniforms(config.uniforms);
         }

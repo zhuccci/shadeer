@@ -5,6 +5,7 @@ import type {
   FitMode,
   GlassSettings,
   GlitchySettings,
+  GlowSettings,
   HalftoneSettings,
   BlurSettings,
   HeatmapSettings,
@@ -16,6 +17,7 @@ import {
   defaultDitheringSettings,
   defaultGlassSettings,
   defaultGlitchySettings,
+  defaultGlowSettings,
   defaultHalftoneSettings,
   defaultBlurSettings,
   defaultHeatmapSettings,
@@ -30,6 +32,8 @@ import {
   type UniformMap,
   flutedGlassFragmentShader,
   glitchyFragmentShader,
+  glowHFragmentShader,
+  glowFragmentShader,
   halftoneFragmentShader,
   blurHFragmentShader,
   blurFragmentShader,
@@ -55,6 +59,7 @@ export const defaultEditorState: EditorState = {
   paper: defaultPaperSettings,
   heatmap: defaultHeatmapSettings,
   blur: defaultBlurSettings,
+  glow: defaultGlowSettings,
   image: {
     image: null,
     video: null,
@@ -440,10 +445,14 @@ export function hasAnimatedEffect(state: EditorState): boolean {
   return ANIMATED_FILTERS.has(state.activeFilter) || state.layers.some((l) => ANIMATED_FILTERS.has(l.id));
 }
 
-export type RenderFilter = ActiveFilter | 'blur_h';
+export type RenderFilter = ActiveFilter | 'blur_h' | 'glow_h';
 
 export function getRenderStack(state: EditorState): RenderFilter[] {
-  const expand = (f: ActiveFilter): RenderFilter[] => (f === 'blur' ? ['blur_h', 'blur'] : [f]);
+  const expand = (f: ActiveFilter): RenderFilter[] => {
+    if (f === 'blur') return ['blur_h', 'blur'];
+    if (f === 'glow') return ['glow_h', 'glow'];
+    return [f];
+  };
   const { activeFilter, layers } = state;
   if (layers.length === 0) return expand(activeFilter);
   const visibleLayers = layers.filter((l) => !l.hidden);
@@ -452,6 +461,26 @@ export function getRenderStack(state: EditorState): RenderFilter[] {
   return base.flatMap(expand);
 }
 
+
+export function getGlowHPassConfig(state: EditorState, image: HTMLImageElement | HTMLVideoElement) {
+  return {
+    fragmentShader: glowHFragmentShader,
+    uniforms: {
+      u_image: image,
+      u_fit: 1,
+      u_scale: 1,
+      u_rotation: 0,
+      u_originX: 0.5,
+      u_originY: 0.5,
+      u_offsetX: 0,
+      u_offsetY: 0,
+      u_intensity: state.glow.intensity / 100,
+      u_style: ['bloom', 'sparkles', 'streaks', 'halo'].indexOf(state.glow.style),
+      u_opacity: 1.0,
+    },
+    speed: 0,
+  };
+}
 
 export function getBlurHPassConfig(state: EditorState, image: HTMLImageElement | HTMLVideoElement) {
   return {
@@ -462,6 +491,24 @@ export function getBlurHPassConfig(state: EditorState, image: HTMLImageElement |
       u_opacity: 1.0,
     },
     speed: 0,
+  };
+}
+
+export function buildGlowUniforms(glow: GlowSettings, fitMode: FitMode, offsetX: number, offsetY: number) {
+  const styleIndex = ['bloom', 'sparkles', 'streaks', 'halo'].indexOf(glow.style);
+  return {
+    u_fit: fitMode === 'fill' ? 2 : 1,
+    u_scale: 1,
+    u_rotation: 0,
+    u_originX: 0.5,
+    u_originY: 0.5,
+    u_offsetX: offsetX,
+    u_offsetY: offsetY,
+    u_intensity: glow.intensity / 100,
+    u_glowOpacity: glow.opacity / 100,
+    u_style: styleIndex,
+    u_colorMode: glow.useTint ? 1 : 0,
+    u_tint: hexToVec4(glow.tintColor),
   };
 }
 
@@ -556,6 +603,19 @@ export function getShaderConfig(state: EditorState, image: HTMLImageElement | HT
       uniforms: {
         u_image: image,
         ...buildBlurUniforms(state.blur, state.fitMode, state.offsetX, state.offsetY),
+        u_opacity: opacity,
+      },
+      speed: 0,
+    };
+  }
+
+  if (state.activeFilter === 'glow') {
+    return {
+      fragmentShader: glowFragmentShader,
+      uniforms: {
+        u_image: image,
+        u_glow: image,  // placeholder — overridden with pass 1 canvas in render chain
+        ...buildGlowUniforms(state.glow, state.fitMode, state.offsetX, state.offsetY),
         u_opacity: opacity,
       },
       speed: 0,
@@ -851,6 +911,8 @@ export async function renderVideoToBlob(
     const config =
       filter === 'blur_h'
         ? getBlurHPassConfig({ ...editorState, fitMode: 'fit', offsetX: 0, offsetY: 0 }, video)
+        : filter === 'glow_h'
+        ? getGlowHPassConfig({ ...editorState, fitMode: 'fit', offsetX: 0, offsetY: 0 }, video)
         : getShaderConfig({ ...editorState, activeFilter: filter, fitMode: 'fit', offsetX: 0, offsetY: 0 }, video, 1.0);
     const passUniforms = { ...config.uniforms } as UniformMap & { u_pxSize?: number };
 
@@ -883,7 +945,7 @@ export async function renderVideoToBlob(
     mount.renderScale = 1;
     mount.uniformCache = {};
 
-    if (prevCanvas) mount.setTextureUniform('u_image', prevCanvas);
+    if (prevCanvas) mount.setTextureUniform(filter === 'glow' ? 'u_glow' : 'u_image', prevCanvas);
 
     if (mount.rafId !== null) { cancelAnimationFrame(mount.rafId); mount.rafId = null; }
     mount.lastRenderTime = 0;
@@ -1090,6 +1152,8 @@ export async function renderShaderToBlob(
     const config =
       filter === 'blur_h'
         ? getBlurHPassConfig({ ...state, fitMode: 'fit', offsetX: 0, offsetY: 0 }, sourceImage)
+        : filter === 'glow_h'
+        ? getGlowHPassConfig({ ...state, fitMode: 'fit', offsetX: 0, offsetY: 0 }, sourceImage)
         : getShaderConfig({ ...state, activeFilter: filter, fitMode: 'fit', offsetX: 0, offsetY: 0 }, sourceImage, 1.0);
     const passUniforms = { ...config.uniforms } as UniformMap & { u_pxSize?: number; u_cellSize?: number; u_fontAtlas?: HTMLCanvasElement };
 
@@ -1138,7 +1202,7 @@ export async function renderShaderToBlob(
     mount.uniformCache = {};
     mount.setUniformValues(passUniforms);
 
-    if (prevCanvas) mount.setTextureUniform('u_image', prevCanvas);
+    if (prevCanvas) mount.setTextureUniform(filter === 'glow' ? 'u_glow' : 'u_image', prevCanvas);
 
     mount.render(performance.now());
     if (mount.rafId !== null) { cancelAnimationFrame(mount.rafId); mount.rafId = null; }
@@ -1188,6 +1252,8 @@ export async function renderImageAsVideoToBlob(
     const config =
       filter === 'blur_h'
         ? getBlurHPassConfig({ ...state, fitMode: 'fit', offsetX: 0, offsetY: 0 }, sourceImage)
+        : filter === 'glow_h'
+        ? getGlowHPassConfig({ ...state, fitMode: 'fit', offsetX: 0, offsetY: 0 }, sourceImage)
         : getShaderConfig({ ...state, activeFilter: filter, fitMode: 'fit', offsetX: 0, offsetY: 0 }, sourceImage, 1.0);
     const passUniforms = { ...config.uniforms } as UniformMap & { u_pxSize?: number };
 
@@ -1215,7 +1281,7 @@ export async function renderImageAsVideoToBlob(
     mount.renderScale = 1;
     mount.uniformCache = {};
 
-    if (prevCanvas) mount.setTextureUniform('u_image', prevCanvas);
+    if (prevCanvas) mount.setTextureUniform(filter === 'glow' ? 'u_glow' : 'u_image', prevCanvas);
     prevCanvas = canvas;
   }
 

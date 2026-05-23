@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './MobileDrawer.css';
 import { MobileColorPicker } from './MobileColorPicker';
 import { CheckboxControl } from './CheckboxControl';
@@ -1076,6 +1076,12 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
   const panelRef   = useRef<HTMLDivElement>(null);
   const saveWrapRef = useRef<HTMLDivElement | null>(null);
+
+  const mountedRef = useRef(false);
+  useEffect(() => {
+    if (!mountedRef.current) { mountedRef.current = true; return; }
+    if (state.image.image || state.image.video) setExpanded(true);
+  }, [state.image]);
 
   const isCurrentFilterInLayers = layers.some((l) => l.id === state.activeFilter);
 

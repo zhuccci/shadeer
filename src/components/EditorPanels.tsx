@@ -11,6 +11,7 @@ import { PaperPanel } from './panels/PaperPanel';
 import { HeatmapPanel } from './panels/HeatmapPanel';
 import { SymbolEdgesPanel } from './panels/SymbolEdgesPanel';
 import { BlurPanel } from './panels/BlurPanel';
+import { GlowPanel } from './panels/GlowPanel';
 
 interface EditorPanelsProps {
   state: EditorState;
@@ -223,6 +224,16 @@ export function EditorPanels({ state, updateState, onAddLayer }: EditorPanelsPro
         onStrengthChange={(strength) => updateState((current) => ({ ...current, blur: { ...current.blur, strength } }))}
         onAngleChange={(angle) => updateState((current) => ({ ...current, blur: { ...current.blur, angle } }))}
         onGrainChange={(grain) => updateState((current) => ({ ...current, blur: { ...current.blur, grain } }))}
+      />
+
+      <GlowPanel
+        state={state}
+        isActive={state.activeFilter === 'glow'}
+        onStyleChange={(style) => updateState((current) => ({ ...current, glow: { ...current.glow, style } }))}
+        onIntensityChange={(intensity) => updateState((current) => ({ ...current, glow: { ...current.glow, intensity } }))}
+        onOpacityChange={(opacity) => updateState((current) => ({ ...current, glow: { ...current.glow, opacity } }))}
+        onUseTintChange={(useTint) => updateState((current) => ({ ...current, glow: { ...current.glow, useTint } }))}
+        onTintColorChange={(tintColor) => updateState((current) => ({ ...current, glow: { ...current.glow, tintColor: sanitizeHex(tintColor, current.glow.tintColor) } }))}
       />
 
       {!alreadyLayer && (

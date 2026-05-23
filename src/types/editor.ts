@@ -1,4 +1,6 @@
-export type ActiveFilter = 'glass' | 'dithering' | 'liquid' | 'glitchy' | 'halftone' | 'symbolEdges' | 'paper' | 'heatmap' | 'blur';
+export type ActiveFilter = 'glass' | 'dithering' | 'liquid' | 'glitchy' | 'halftone' | 'symbolEdges' | 'paper' | 'heatmap' | 'blur' | 'glow';
+
+export type GlowStyle = 'bloom' | 'sparkles' | 'streaks' | 'halo';
 
 export type SymbolEdgesMode = 'edges' | 'color';
 
@@ -16,6 +18,14 @@ export type HalftonePattern = 'dots' | 'lines' | 'cross' | 'gooey';
 export type HeatmapPalette = 'thermal' | 'inferno' | 'ice' | 'acid' | 'sunset';
 
 export type BlurType = 'gaussian' | 'motion' | 'radial';
+
+export interface GlowSettings {
+  style: GlowStyle;
+  intensity: number;
+  opacity: number;
+  useTint: boolean;
+  tintColor: string;
+}
 
 export interface BlurSettings {
   type: BlurType;
@@ -173,6 +183,7 @@ export interface EditorState {
   paper: PaperSettings;
   heatmap: HeatmapSettings;
   blur: BlurSettings;
+  glow: GlowSettings;
   image: EditorImageState;
 }
 
@@ -268,6 +279,14 @@ export const defaultHeatmapSettings: HeatmapSettings = {
   blend: 100,
   grain: 0,
   blur: 0,
+};
+
+export const defaultGlowSettings: GlowSettings = {
+  style: 'bloom',
+  intensity: 50,
+  opacity: 80,
+  useTint: false,
+  tintColor: '#FFFFFF',
 };
 
 export const defaultBlurSettings: BlurSettings = {
