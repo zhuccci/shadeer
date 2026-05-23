@@ -1702,7 +1702,7 @@ void main() {
 
   if (r < 0.5) {
     vec4  s = texelFetch(u_image, clamp(ctr, ivec2(0), sz - 1), 0);
-    fragColor = vec4(s.rgb * smoothstep(threshold, 1.0, luma(s.rgb)), 1.0);
+    fragColor = vec4(s.rgb * smoothstep(threshold, 1.0, luma(s.rgb)) * s.a, 1.0);
     return;
   }
 
@@ -1719,11 +1719,11 @@ void main() {
     int   x0     = clamp(int(fl),     0, sz.x - 1);
     int   x1     = clamp(int(fl) + 1, 0, sz.x - 1);
     float f      = exactX - fl;
-    vec3  s0     = texelFetch(u_image, ivec2(x0, ctr.y), 0).rgb;
-    vec3  s1     = texelFetch(u_image, ivec2(x1, ctr.y), 0).rgb;
-    float b0     = smoothstep(threshold, 1.0, luma(s0));
-    float b1     = smoothstep(threshold, 1.0, luma(s1));
-    vec3  bright = mix(s0 * b0, s1 * b1, f);
+    vec4  t0     = texelFetch(u_image, ivec2(x0, ctr.y), 0);
+    vec4  t1     = texelFetch(u_image, ivec2(x1, ctr.y), 0);
+    float b0     = smoothstep(threshold, 1.0, luma(t0.rgb)) * t0.a;
+    float b1     = smoothstep(threshold, 1.0, luma(t1.rgb)) * t1.a;
+    vec3  bright = mix(t0.rgb * b0, t1.rgb * b1, f);
     acc    += bright * w;
     totalW += w;
   }
@@ -1790,9 +1790,15 @@ void main() {
 
   vec4 orig     = texture(u_image, uv);
   vec3 screened = 1.0 - (1.0 - orig.rgb) * (1.0 - glowColor);
-  vec3 result   = mix(orig.rgb, screened, u_glowOpacity);
+  vec3 blended  = mix(orig.rgb, screened, u_glowOpacity);
 
-  fragColor = layerBlend(vec4(result * orig.a, orig.a));
+  // Outer glow: allow glow to spill into transparent areas
+  float glowLuma = luma(glowColor) * u_glowOpacity;
+  float outAlpha = max(orig.a, glowLuma);
+  // Transparent areas show glow directly; opaque areas show screen-blended result
+  vec3  outRgb   = mix(glowColor, blended, orig.a);
+
+  fragColor = layerBlend(vec4(outRgb * outAlpha, outAlpha));
 }`;
 
 export class ShaderMount {
