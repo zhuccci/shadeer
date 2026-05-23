@@ -7,9 +7,10 @@ interface ColorSelectorControlProps {
   value: string;
   onChange: (value: string) => void;
   onMobileOpen?: (label: string, value: string, onChange: (v: string) => void, swatchRect: DOMRect) => void;
+  panelActive?: boolean;
 }
 
-export function ColorSelectorControl({ label, value, onChange, onMobileOpen }: ColorSelectorControlProps) {
+export function ColorSelectorControl({ label, value, onChange, onMobileOpen, panelActive }: ColorSelectorControlProps) {
   const inputId   = useId();
   const swatchRef = useRef<HTMLButtonElement>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -23,6 +24,12 @@ export function ColorSelectorControl({ label, value, onChange, onMobileOpen }: C
       setLocalHex(value.replace('#', '').toUpperCase());
     }
   }, [value]);
+
+  // Close portal-rendered picker when the parent panel becomes inactive,
+  // otherwise it escapes pointer-events:none and blocks other panels.
+  useEffect(() => {
+    if (panelActive === false) setPickerOpen(false);
+  }, [panelActive]);
 
   function handleSwatchClick() {
     if (onMobileOpen) {

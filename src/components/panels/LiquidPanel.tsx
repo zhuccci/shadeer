@@ -37,7 +37,7 @@ export function LiquidPanel({
         </div>
         <div className="panel-divider" />
         <div className="dither-right">
-          <ColorSelectorControl label="Highlight" value={state.liquid.highlightColor} onChange={onHighlightColorChange} />
+          <ColorSelectorControl label="Highlight" value={state.liquid.highlightColor} onChange={onHighlightColorChange} panelActive={isActive} />
         </div>
       </div>
     </div>

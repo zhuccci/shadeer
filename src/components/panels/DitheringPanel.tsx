@@ -133,10 +133,10 @@ export function DitheringPanel({
             </div>
             {colorTab === 'custom' && (
               <div className="widget-group" style={{ gap: '24px' }}>
-                <ColorSelectorControl label="Shadow" value={d.shadowColor} onChange={onShadowColorChange} />
-                <ColorSelectorControl label="Front" value={d.frontColor} onChange={onFrontColorChange} />
-                <ColorSelectorControl label="Light" value={d.lightColor} onChange={onLightColorChange} />
-                <ColorSelectorControl label="Highlight" value={d.highlightColor} onChange={onHighlightColorChange} />
+                <ColorSelectorControl label="Shadow" value={d.shadowColor} onChange={onShadowColorChange} panelActive={isActive} />
+                <ColorSelectorControl label="Front" value={d.frontColor} onChange={onFrontColorChange} panelActive={isActive} />
+                <ColorSelectorControl label="Light" value={d.lightColor} onChange={onLightColorChange} panelActive={isActive} />
+                <ColorSelectorControl label="Highlight" value={d.highlightColor} onChange={onHighlightColorChange} panelActive={isActive} />
               </div>
             )}
             {colorTab === 'presets' && (

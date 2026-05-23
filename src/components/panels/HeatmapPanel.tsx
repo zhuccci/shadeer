@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { SliderControl } from '../SliderControl';
 import { CheckboxControl } from '../CheckboxControl';
 import { ColorSelectorControl } from '../ColorSelectorControl';
@@ -104,6 +104,10 @@ export function HeatmapPanel({
   const [pickerAnchorRect, setPickerAnchorRect] = useState<DOMRect | null>(null);
   const barRef = useRef<HTMLDivElement>(null);
   const markerRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  useEffect(() => {
+    if (!isActive) setPickerStopIdx(null);
+  }, [isActive]);
 
   const { customGradient, customStops: stops } = state.heatmap;
   const safeIdx = Math.max(0, Math.min(selectedStop, stops.length - 1));
@@ -241,6 +245,7 @@ export function HeatmapPanel({
               label="Selected Color"
               value={stops[safeIdx]?.color ?? '#000000'}
               onChange={(color) => onCustomStopsChange(stops.map((s, i) => i === safeIdx ? { ...s, color } : s))}
+              panelActive={isActive}
             />
           </div>
         )}

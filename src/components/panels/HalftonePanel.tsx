@@ -73,7 +73,7 @@ export function HalftonePanel({
           onChange={onAngleChange}
         />
         <div className="paper-divider-h" />
-        <ColorSelectorControl label="Background" value={state.halftone.backgroundColor} onChange={onBackgroundColorChange} />
+        <ColorSelectorControl label="Background" value={state.halftone.backgroundColor} onChange={onBackgroundColorChange} panelActive={isActive} />
         <CheckboxControl label="Original Colors" checked={state.halftone.originalColors} onChange={onOriginalColorsChange} />
 
         <div className={`ht-section${state.halftone.originalColors ? ' ht-hidden' : ''}`}>
@@ -90,12 +90,12 @@ export function HalftonePanel({
                 <button type="button" className="dither-color-tab" tabIndex={-1}>4 Colors</button>
               </div>
             </div>
-            <ColorSelectorControl label={bw ? 'Color' : 'Light'} value={state.halftone.color1} onChange={onColor1Change} />
+            <ColorSelectorControl label={bw ? 'Color' : 'Light'} value={state.halftone.color1} onChange={onColor1Change} panelActive={isActive} />
             <div className={`ht-extra${bw ? ' ht-hidden' : ''}`}>
               <div className="ht-extra-inner">
-                <ColorSelectorControl label="Mid-Light" value={state.halftone.color2} onChange={onColor2Change} />
-                <ColorSelectorControl label="Mid-Dark" value={state.halftone.color3} onChange={onColor3Change} />
-                <ColorSelectorControl label="Dark" value={state.halftone.color4} onChange={onColor4Change} />
+                <ColorSelectorControl label="Mid-Light" value={state.halftone.color2} onChange={onColor2Change} panelActive={isActive} />
+                <ColorSelectorControl label="Mid-Dark" value={state.halftone.color3} onChange={onColor3Change} panelActive={isActive} />
+                <ColorSelectorControl label="Dark" value={state.halftone.color4} onChange={onColor4Change} panelActive={isActive} />
               </div>
             </div>
           </div>

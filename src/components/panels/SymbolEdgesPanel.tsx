@@ -57,7 +57,7 @@ export function SymbolEdgesPanel({
       <div className="panel-divider" />
 
       <div className="se-right">
-        <ColorSelectorControl label="Symbol Color" value={se.symbolColor} onChange={onSymbolColorChange} />
+        <ColorSelectorControl label="Symbol Color" value={se.symbolColor} onChange={onSymbolColorChange} panelActive={isActive} />
         <CheckboxControl
           label="Matching color"
           checked={isColorMode}
@@ -65,7 +65,7 @@ export function SymbolEdgesPanel({
         />
         <div className={`ht-section${isColorMode ? '' : ' ht-hidden'}`}>
           <div className="ht-section-inner">
-            <ColorSelectorControl label="Color to Match" value={se.targetColor} onChange={onTargetColorChange} />
+            <ColorSelectorControl label="Color to Match" value={se.targetColor} onChange={onTargetColorChange} panelActive={isActive} />
           </div>
         </div>
         <CheckboxControl label="Invert" checked={se.invert} onChange={onInvertChange} />

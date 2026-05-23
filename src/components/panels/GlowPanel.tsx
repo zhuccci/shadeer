@@ -93,7 +93,7 @@ export function GlowPanel({
           >Tint</button>
         </div>
         {g.useTint && (
-          <ColorSelectorControl label="Tint" value={g.tintColor} onChange={onTintColorChange} />
+          <ColorSelectorControl label="Tint" value={g.tintColor} onChange={onTintColorChange} panelActive={isActive} />
         )}
       </div>
     </div>
