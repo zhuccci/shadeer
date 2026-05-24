@@ -140,7 +140,7 @@ button {
   }
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 850px) {
   .app .site-header::before {
     background: transparent;
     backdrop-filter: none;
