@@ -126,13 +126,17 @@ button {
 
   .sidebar {
     width: 500px;
-    padding: 16px;
+    padding: 16px 16px 24px;
     gap: 16px;
     border-radius: 32px;
   }
 
   .sidebar #panelWrapper {
     margin-bottom: 8px;
+  }
+
+  .sidebar .layers-panel {
+    margin-top: -8px;
   }
 }
 

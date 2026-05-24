@@ -231,6 +231,12 @@
   }
 }
 
+@media (max-width: 1440px) {
+  .layers-panel--visible {
+    padding: 16px;
+  }
+}
+
 /* Right section: trash */
 .layer-right {
   display: flex;
