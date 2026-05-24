@@ -90,7 +90,7 @@ export default function App() {
     void loadInitialImage();
   }, [updateState]);
 
-  useShaderPreview({ editorState, previewRef, shaderMountRef });
+  const { glowSrc } = useShaderPreview({ editorState, previewRef, shaderMountRef });
 
   useEffect(() => {
     if (!downloadUrl) return;
@@ -388,7 +388,7 @@ export default function App() {
       <div className="preview-wrap">
         <div
           className="preview-glow"
-          style={{ backgroundImage: editorState.image.src && !editorState.image.isVideo ? `url(${editorState.image.src})` : 'none' }}
+          style={{ backgroundImage: glowSrc ? `url(${glowSrc})` : (editorState.image.src && !editorState.image.isVideo ? `url(${editorState.image.src})` : 'none') }}
         />
         <PreviewStage
           state={editorState}

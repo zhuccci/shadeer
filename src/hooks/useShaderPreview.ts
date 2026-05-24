@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { getShaderConfig, getBlurHPassConfig, getGlowHPassConfig, updateFitClip } from '../lib/editor';
 import { ShaderMount } from '../lib/shaders';
 import type { ActiveFilter, EditorState } from '../types/editor';
@@ -33,6 +33,8 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
   const chainDivsRef = useRef<HTMLDivElement[]>([]);
   const isMobilePreview = useMemo(() => window.matchMedia('(pointer: coarse)').matches, []);
   const pendingUniformsRafRef = useRef<number | null>(null);
+  const [glowSrc, setGlowSrc] = useState('');
+  const glowRafRef = useRef<number | null>(null);
 
   const renderStack = useMemo(
     () => getRenderStack(editorState),
@@ -117,7 +119,22 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
       updateFitClip(shaderMountRef.current, editorState.fitMode, editorState.image.aspectRatio);
     });
 
+    // Capture last intermediate canvas for preview glow after layers render
+    if (glowRafRef.current !== null) cancelAnimationFrame(glowRafRef.current);
+    glowRafRef.current = requestAnimationFrame(() => {
+      glowRafRef.current = requestAnimationFrame(() => {
+        glowRafRef.current = null;
+        const last = chainMountsRef.current[chainMountsRef.current.length - 1];
+        if (last) {
+          try { setGlowSrc(last.canvasElement.toDataURL('image/jpeg', 0.3)); } catch { /* ignore */ }
+        } else {
+          setGlowSrc('');
+        }
+      });
+    });
+
     return () => {
+      if (glowRafRef.current !== null) { cancelAnimationFrame(glowRafRef.current); glowRafRef.current = null; }
       chainMountsRef.current.forEach((m) => m.dispose());
       chainDivsRef.current.forEach((d) => d.remove());
       chainMountsRef.current = [];
@@ -197,4 +214,6 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
     resizeObserver.observe(preview);
     return () => resizeObserver.disconnect();
   }, [editorState.fitMode, editorState.image.aspectRatio, previewRef, shaderMountRef]);
+
+  return { glowSrc };
 }
