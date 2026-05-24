@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { CheckboxControl } from '../CheckboxControl';
 import { ColorSelectorControl } from '../ColorSelectorControl';
 import { SliderControl } from '../SliderControl';
 import type { GlowStyle, EditorState } from '../../types/editor';
@@ -50,55 +51,48 @@ export function GlowPanel({
 
   return (
     <div className={`controls-panel${isActive ? ' panel-active' : ''}`} id="glowPanel">
-      <div ref={ref} className="selector-group">
-        <span className="selector-group-label">Style</span>
-        <div className={`selector${open ? ' open' : ''}`}>
-          <button type="button" className="selector-trigger" onClick={() => setOpen(o => !o)}>
-            <span className="selector-left">
-              <span className="option-text">{selected.label}</span>
-            </span>
-            <img
-              src={`${import.meta.env.BASE_URL}icons/chevron-down.svg`}
-              className="chevron"
-              alt=""
-              style={{ filter: 'brightness(0) invert(78%)' }}
-            />
-          </button>
-          <div className="dropdown">
-            {glowStyles.map(s => (
-              <button
-                key={s.id}
-                type="button"
-                className={`dropdown-item${s.id === g.style ? ' active' : ''}`}
-                onClick={() => { onStyleChange(s.id); setOpen(false); }}
-              >
-                <span className="dropdown-item-text">{s.label}</span>
-              </button>
-            ))}
+      <div className="controls-left">
+        <div ref={ref} className="selector-group">
+          <span className="selector-group-label">Style</span>
+          <div className={`selector${open ? ' open' : ''}`}>
+            <button type="button" className="selector-trigger" onClick={() => setOpen(o => !o)}>
+              <span className="selector-left">
+                <span className="option-text">{selected.label}</span>
+              </span>
+              <img
+                src={`${import.meta.env.BASE_URL}icons/chevron-down.svg`}
+                className="chevron"
+                alt=""
+                style={{ filter: 'brightness(0) invert(78%)' }}
+              />
+            </button>
+            <div className="dropdown">
+              {glowStyles.map(s => (
+                <button
+                  key={s.id}
+                  type="button"
+                  className={`dropdown-item${s.id === g.style ? ' active' : ''}`}
+                  onClick={() => { onStyleChange(s.id); setOpen(false); }}
+                >
+                  <span className="dropdown-item-text">{s.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-
-      <div className="controls-left">
         <SliderControl label="Intensity" min={0} max={100} value={g.intensity}  onChange={onIntensityChange} />
         <SliderControl label="Threshold" min={0} max={100} value={g.threshold} onChange={onThresholdChange} />
         <SliderControl label="Opacity"   min={0} max={100} value={g.opacity}   onChange={onOpacityChange} />
       </div>
 
-      <div className="glow-color-section">
-        <span className="glow-color-label">Color</span>
-        <div className="glow-color-mode">
-          <button
-            type="button"
-            className={`glow-mode-btn${!g.useTint ? ' active' : ''}`}
-            onClick={() => onUseTintChange(false)}
-          >Image</button>
-          <button
-            type="button"
-            className={`glow-mode-btn${g.useTint ? ' active' : ''}`}
-            onClick={() => onUseTintChange(true)}
-          >Tint</button>
-        </div>
+      <div className="panel-divider" />
+
+      <div className="glow-right">
+        <CheckboxControl
+          label="Original Colors"
+          checked={!g.useTint}
+          onChange={(v) => onUseTintChange(!v)}
+        />
         {g.useTint && (
           <ColorSelectorControl label="Tint" value={g.tintColor} onChange={onTintColorChange} panelActive={isActive} />
         )}

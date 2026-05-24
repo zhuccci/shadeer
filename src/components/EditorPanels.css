@@ -1,3 +1,29 @@
+@media (max-width: 1440px) {
+  .controls-panel {
+    padding: 16px 16px 64px;
+    gap: 20px;
+  }
+
+  .controls-panel::after {
+    height: 64px;
+  }
+
+  .controls-left,
+  .dither-right {
+    gap: 20px;
+  }
+
+  #panelWrapper.no-add-layer .controls-panel {
+    padding-bottom: 16px;
+  }
+
+  .add-layer-btn {
+    bottom: 24px;
+    left: 16px;
+    right: 16px;
+  }
+}
+
 #panelWrapper {
   flex: 1;
   min-height: 0;
@@ -68,6 +94,7 @@
 .panel-active .dither-right > *,
 .panel-active .halftone-right > *,
 .panel-active .se-right > *,
+.panel-active .glow-right > *,
 .panel-active .glitchy-top,
 .panel-active #glitchyPanel > .glitchy-row-divider,
 .panel-active .glitchy-scroll-area > *,
@@ -85,12 +112,14 @@
 .panel-active .controls-left > *:nth-child(1),
 .panel-active .dither-right > *:nth-child(1),
 .panel-active .halftone-right > *:nth-child(1),
-.panel-active .se-right > *:nth-child(1) { animation-delay: 20ms; }
+.panel-active .se-right > *:nth-child(1),
+.panel-active .glow-right > *:nth-child(1) { animation-delay: 20ms; }
 
 .panel-active .controls-left > *:nth-child(2),
 .panel-active .dither-right > *:nth-child(2),
 .panel-active .halftone-right > *:nth-child(2),
-.panel-active .se-right > *:nth-child(2) { animation-delay: 50ms; }
+.panel-active .se-right > *:nth-child(2),
+.panel-active .glow-right > *:nth-child(2) { animation-delay: 50ms; }
 
 .panel-active .controls-left > *:nth-child(3),
 .panel-active .dither-right > *:nth-child(3),
@@ -128,6 +157,7 @@
   .panel-active .dither-right > *,
   .panel-active .halftone-right > *,
   .panel-active .heatmap-right > *,
+  .panel-active .glow-right > *,
   .panel-active .glitchy-top,
   .panel-active .glitchy-scroll-area > *,
   .panel-active .glitchy-right > *,

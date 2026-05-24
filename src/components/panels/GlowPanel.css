@@ -1,47 +1,21 @@
 #glowPanel {
-  flex-direction: column;
-  gap: 16px;
+  gap: 24px;
 }
 
-.glow-color-section {
+.glow-right {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-
-.glow-color-label {
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-.glow-color-mode {
-  display: flex;
-  gap: 6px;
-}
-
-.glow-mode-btn {
+  gap: 24px;
   flex: 1;
-  height: 34px;
-  border-radius: 8px;
-  border: 1.5px solid #373737;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 13px;
-  font-family: inherit;
-  cursor: pointer;
-  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #373737 transparent;
+  padding: 4px 20px;
+  margin: -4px -20px;
 }
 
-.glow-mode-btn.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #000;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .glow-mode-btn:not(.active):hover {
-    background: #2a2a2a;
-    border-color: #4a4a4a;
-    color: var(--text);
-  }
-}
+.glow-right::-webkit-scrollbar { width: 4px; }
+.glow-right::-webkit-scrollbar-track { background: transparent; }
+.glow-right::-webkit-scrollbar-thumb { background: #373737; border-radius: 2px; }

@@ -35,6 +35,7 @@ function getSecondTabLabel(filter: ActiveFilter): string {
   if (filter === 'liquid') return 'Highlight';
   if (filter === 'paper') return 'Scan & Angle';
   if (filter === 'heatmap') return 'Sliders';
+  if (filter === 'glow') return 'Tint';
   return 'Colors';
 }
 
@@ -962,7 +963,7 @@ const GLOW_STYLES: { id: 'bloom' | 'streaks'; label: string }[] = [
   { id: 'streaks', label: 'Streaks' },
 ];
 
-function GlowPanelContent({ state, updateState, openColor }: PanelContentProps) {
+function GlowPanelContent({ state, updateState, tab, openColor }: PanelContentProps) {
   const [open, setOpen] = useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
   const g = state.glow;
@@ -976,6 +977,26 @@ function GlowPanelContent({ state, updateState, openColor }: PanelContentProps) 
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
+
+  if (tab === 'colors') {
+    return (
+      <div className="mobile-panel-section">
+        <CheckboxControl
+          label="Original Colors"
+          checked={!g.useTint}
+          onChange={(v) => updateState((s) => ({ ...s, glow: { ...s.glow, useTint: !v } }))}
+        />
+        {g.useTint && (
+          <ColorSelectorControl
+            label="Tint"
+            value={g.tintColor}
+            onChange={(v) => updateState((s) => ({ ...s, glow: { ...s.glow, tintColor: sanitizeHex(v, s.glow.tintColor) } }))}
+            onMobileOpen={openColor}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="mobile-panel-section">
@@ -1031,29 +1052,6 @@ function GlowPanelContent({ state, updateState, openColor }: PanelContentProps) 
         value={g.opacity}
         onChange={(v) => updateState((s) => ({ ...s, glow: { ...s.glow, opacity: v } }))}
       />
-      <div className="glow-color-section" style={{ padding: '0 16px 8px' }}>
-        <span className="selector-group-label">Color</span>
-        <div className="glow-color-mode">
-          <button
-            type="button"
-            className={`glow-mode-btn${!g.useTint ? ' active' : ''}`}
-            onClick={() => updateState((s) => ({ ...s, glow: { ...s.glow, useTint: false } }))}
-          >Image</button>
-          <button
-            type="button"
-            className={`glow-mode-btn${g.useTint ? ' active' : ''}`}
-            onClick={() => updateState((s) => ({ ...s, glow: { ...s.glow, useTint: true } }))}
-          >Tint</button>
-        </div>
-        {g.useTint && (
-          <ColorSelectorControl
-            label="Tint"
-            value={g.tintColor}
-            onChange={(v) => updateState((s) => ({ ...s, glow: { ...s.glow, tintColor: sanitizeHex(v, s.glow.tintColor) } }))}
-            onMobileOpen={openColor}
-          />
-        )}
-      </div>
     </div>
   );
 }
@@ -1391,13 +1389,6 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
                     <BlurPanelContent state={state} updateState={updateState} tab="sliders" openColor={openColor} />
                   </div>
                 </div>
-              ) : state.activeFilter === 'glow' ? (
-                /* Glow — no tabs, single scrollable column */
-                <div className="sheet-scroll">
-                  <div key="glow" className="sheet-tab-content">
-                    <GlowPanelContent state={state} updateState={updateState} tab="sliders" openColor={openColor} />
-                  </div>
-                </div>
               ) : (
                 <>
                   {/* Segmented tabs */}
@@ -1469,6 +1460,9 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
                       )}
                       {state.activeFilter === 'heatmap' && (
                         <HeatmapPanelContent state={state} updateState={updateState} tab={activeTab} openColor={openColor} />
+                      )}
+                      {state.activeFilter === 'glow' && (
+                        <GlowPanelContent state={state} updateState={updateState} tab={activeTab} openColor={openColor} />
                       )}
                     </div>
                   </div>

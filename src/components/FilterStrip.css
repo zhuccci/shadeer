@@ -217,6 +217,33 @@
   text-shadow: 0 0 4px rgba(255, 246, 121, 0.25);
 }
 
+@media (max-width: 1440px) {
+  .filter-btn {
+    width: 100px;
+  }
+
+  .btn-thumbnail {
+    height: 100px;
+  }
+
+  .filter-label {
+    font-size: 14px;
+  }
+
+  .btn-bottom {
+    padding: 10px 0;
+  }
+
+  .filter-buttons-scroll {
+    padding-left: 16px;
+  }
+
+  .filter-buttons-wrap {
+    margin-left: -16px;
+    margin-right: -16px;
+  }
+}
+
 /* ── Filter card wrapper ── */
 .filter-btn-wrap {
   position: relative;
