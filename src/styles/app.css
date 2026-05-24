@@ -126,7 +126,7 @@ button {
 
   .sidebar {
     width: 500px;
-    padding: 16px;
+    padding: 16px 16px 8px;
     gap: 16px;
     border-radius: 32px;
   }
