@@ -36,6 +36,10 @@ export function GlowPanel({
   const selected = glowStyles.find(s => s.id === g.style) ?? glowStyles[0];
 
   useEffect(() => {
+    if (!isActive) setOpen(false);
+  }, [isActive]);
+
+  useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);

@@ -26,6 +26,10 @@ export function BlurPanel({ state, isActive, onTypeChange, onStrengthChange, onA
   const selected = blurTypes.find(t => t.id === b.type) ?? blurTypes[0];
 
   useEffect(() => {
+    if (!isActive) setOpen(false);
+  }, [isActive]);
+
+  useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
