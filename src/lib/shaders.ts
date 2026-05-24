@@ -1680,6 +1680,7 @@ export const glowHFragmentShader = `#version 300 es
 precision highp float;
 uniform sampler2D u_image;
 uniform float u_intensity;
+uniform float u_threshold;
 uniform float u_style;
 in vec2 v_imageUV;
 out vec4 fragColor;
@@ -1696,7 +1697,7 @@ void main() {
 
   // bloom=0, streaks=1
   float isStreaks = step(0.5, u_style);
-  float threshold = mix(0.45, 0.60, isStreaks);  // bloom includes mids; streaks more selective
+  float threshold = u_threshold;                 // user-controlled bright-area cutoff
   float hMult     = mix(1.0,  5.0,  isStreaks);  // streaks: 5× wider H spread
   float r         = u_intensity * 0.10 * float(sz.x) * hMult;
 

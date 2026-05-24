@@ -505,6 +505,7 @@ export function buildGlowUniforms(glow: GlowSettings, fitMode: FitMode, offsetX:
     u_offsetX: offsetX,
     u_offsetY: offsetY,
     u_intensity: glow.intensity / 100,
+    u_threshold: glow.threshold / 100,
     u_glowOpacity: glow.opacity / 100,
     u_style: styleIndex,
     u_colorMode: glow.useTint ? 1 : 0,

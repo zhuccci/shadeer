@@ -14,6 +14,7 @@ interface GlowPanelProps {
   isActive: boolean;
   onStyleChange: (style: GlowStyle) => void;
   onIntensityChange: (value: number) => void;
+  onThresholdChange: (value: number) => void;
   onOpacityChange: (value: number) => void;
   onUseTintChange: (value: boolean) => void;
   onTintColorChange: (value: string) => void;
@@ -24,6 +25,7 @@ export function GlowPanel({
   isActive,
   onStyleChange,
   onIntensityChange,
+  onThresholdChange,
   onOpacityChange,
   onUseTintChange,
   onTintColorChange,
@@ -74,7 +76,8 @@ export function GlowPanel({
       </div>
 
       <div className="controls-left">
-        <SliderControl label="Intensity" min={0} max={100} value={g.intensity} onChange={onIntensityChange} />
+        <SliderControl label="Intensity" min={0} max={100} value={g.intensity}  onChange={onIntensityChange} />
+        <SliderControl label="Threshold" min={0} max={100} value={g.threshold} onChange={onThresholdChange} />
         <SliderControl label="Opacity"   min={0} max={100} value={g.opacity}   onChange={onOpacityChange} />
       </div>
 

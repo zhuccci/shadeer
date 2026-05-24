@@ -231,6 +231,7 @@ export function EditorPanels({ state, updateState, onAddLayer }: EditorPanelsPro
         isActive={state.activeFilter === 'glow'}
         onStyleChange={(style) => updateState((current) => ({ ...current, glow: { ...current.glow, style } }))}
         onIntensityChange={(intensity) => updateState((current) => ({ ...current, glow: { ...current.glow, intensity } }))}
+        onThresholdChange={(threshold) => updateState((current) => ({ ...current, glow: { ...current.glow, threshold } }))}
         onOpacityChange={(opacity) => updateState((current) => ({ ...current, glow: { ...current.glow, opacity } }))}
         onUseTintChange={(useTint) => updateState((current) => ({ ...current, glow: { ...current.glow, useTint } }))}
         onTintColorChange={(tintColor) => updateState((current) => ({ ...current, glow: { ...current.glow, tintColor: sanitizeHex(tintColor, current.glow.tintColor) } }))}

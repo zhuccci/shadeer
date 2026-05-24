@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Shadeer — Case Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black:   #0e0e0e;
+    --gray-1:  #1a1a1a;
+    --gray-2:  #252525;
+    --gray-3:  #3a3a3a;
+    --gray-4:  #888;
+    --gray-5:  #bbb;
+    --white:   #f5f5f0;
+    --accent:  #fff679;
+    --text:    #e8e8e4;
+    --muted:   #888;
+    --serif:   'Georgia', serif;
+    --sans:    'Inter', system-ui, sans-serif;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--black);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── PAGE SHELL ─── */
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 80px 48px 120px;
+  }
+
+  /* ─── HEADER ─── */
+  .cover {
+    padding-bottom: 72px;
+    border-bottom: 1px solid var(--gray-3);
+    margin-bottom: 72px;
+  }
+
+  .cover-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+
+  .cover-title {
+    font-size: 52px;
+    font-weight: 300;
+    line-height: 1.1;
+    letter-spacing: -.02em;
+    color: var(--white);
+    margin-bottom: 6px;
+  }
+
+  .cover-title em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .cover-sub {
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--gray-5);
+    margin-bottom: 48px;
+  }
+
+  .meta-row {
+    display: flex;
+    gap: 48px;
+  }
+
+  .meta-item {}
+  .meta-key {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .meta-val {
+    font-size: 14px;
+    color: var(--gray-5);
+  }
+
+  /* ─── SECTIONS ─── */
+  .section {
+    margin-bottom: 72px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  h2 {
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--white);
+    letter-spacing: -.01em;
+    margin-bottom: 16px;
+    line-height: 1.25;
+  }
+
+  p {
+    font-size: 15px;
+    color: var(--gray-5);
+    line-height: 1.75;
+    margin-bottom: 16px;
+  }
+
+  p:last-child { margin-bottom: 0; }
+
+  strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* ─── SCREENSHOT PLACEHOLDER ─── */
+  .img-block {
+    background: var(--gray-1);
+    border: 1px solid var(--gray-3);
+    border-radius: 8px;
+    padding: 0;
+    overflow: hidden;
+    margin: 32px 0;
+  }
+
+  .img-block img {
+    width: 100%;
+    display: block;
+    border-radius: 8px;
+  }
+
+  .placeholder {
+    background: var(--gray-2);
+    border: 1.5px dashed var(--gray-3);
+    border-radius: 8px;
+    padding: 36px 24px;
+    margin: 32px 0;
+    text-align: center;
+    color: var(--gray-4);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .placeholder .ph-title {
+    font-weight: 500;
+    color: var(--gray-5);
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  /* ─── GOAL LIST ─── */
+  .goal-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .goal-list li {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .goal-num {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--gray-2);
+    border: 1px solid var(--gray-3);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+  }
+
+  .goal-text {
+    font-size: 15px;
+    color: var(--gray-5);
+    line-height: 1.65;
+  }
+
+  .goal-text strong {
+    display: block;
+    color: var(--text);
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  /* ─── COLOR TOKENS ─── */
+  .token-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    margin: 24px 0;
+  }
+
+  .token-card {
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--gray-3);
+  }
+
+  .token-swatch {
+    height: 48px;
+  }
+
+  .token-info {
+    background: var(--gray-1);
+    padding: 10px 12px;
+  }
+
+  .token-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gray-5);
+    margin-bottom: 2px;
+  }
+
+  .token-value {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: monospace;
+  }
+
+  /* ─── FILTER GRID ─── */
+  .filter-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    background: var(--gray-3);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 24px 0;
+  }
+
+  .filter-cell {
+    background: var(--gray-1);
+    padding: 20px 20px;
+  }
+
+  .filter-cell-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 4px;
+  }
+
+  .filter-cell-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* ─── DIVIDER ─── */
+  hr {
+    border: none;
+    border-top: 1px solid var(--gray-3);
+    margin: 72px 0;
+  }
+
+  /* ─── QUOTE ─── */
+  blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 4px 24px;
+    margin: 32px 0;
+  }
+
+  blockquote p {
+    font-size: 18px;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* ─── TWO-COL ─── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin: 24px 0;
+  }
+
+  .two-col-item {}
+  .two-col-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .two-col-body {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* ─── FOOTER ─── */
+  .footer {
+    margin-top: 96px;
+    padding-top: 32px;
+    border-top: 1px solid var(--gray-3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-name {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .footer-link {
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: none;
+  }
+
+  /* ─── PRINT ─── */
+  @media print {
+    body { background: #fff; color: #111; }
+    :root {
+      --black:  #fff;
+      --gray-1: #f5f5f5;
+      --gray-2: #ebebeb;
+      --gray-3: #d0d0d0;
+      --gray-4: #666;
+      --gray-5: #444;
+      --white:  #111;
+      --text:   #222;
+      --muted:  #888;
+      --accent: #c8a000;
+    }
+    .page { padding: 40px 40px 60px; }
+    .placeholder { background: #f5f5f5; border-color: #ccc; }
+    blockquote { border-left-color: #c8a000; }
+    .cover-title em { color: #9a7a00; }
+    .token-swatch { border: 1px solid #ddd; }
+    .filter-grid { background: #ddd; }
+    .filter-cell { background: #f8f8f8; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- COVER -->
+  <header class="cover">
+    <p class="cover-label">Case Study &nbsp;·&nbsp; 2025–2026</p>
+    <h1 class="cover-title">Shdr<em>.</em></h1>
+    <p class="cover-sub">Real-time shader effects for images and video — in the browser</p>
+    <div class="meta-row">
+      <div class="meta-item">
+        <div class="meta-key">Role</div>
+        <div class="meta-val">Design + Engineering (solo)</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-key">Stack</div>
+        <div class="meta-val">React · TypeScript · WebGL2 · Vite</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-key">Live</div>
+        <div class="meta-val">zhuccci.github.io/shadeer</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- OVERVIEW IMAGE -->
+  <div class="placeholder">
+    <div class="ph-title">Hero Screenshot</div>
+    Full editor with an image loaded and one filter active — best first impression
+  </div>
+
+  <!-- THE PROBLEM -->
+  <section class="section">
+    <p class="section-label">01 &nbsp; Problem</p>
+    <h2>The gap between a filter and a tool</h2>
+    <p>Most creative effects tools are either locked behind subscriptions, require a desktop install, or produce output that's immediately recognizable as AI-generated or over-filtered. There's a gap between a one-tap Instagram filter and opening After Effects.</p>
+    <p>Shadeer sits in that gap — shader-quality visuals, directly in the browser, with enough control that the result looks like <strong>yours</strong>.</p>
+    <blockquote>
+      <p>"Made to be noticed."</p>
+    </blockquote>
+  </section>
+
+  <!-- GOALS -->
+  <section class="section">
+    <p class="section-label">02 &nbsp; Design Goals</p>
+    <h2>Four principles from the start</h2>
+    <ul class="goal-list">
+      <li>
+        <div class="goal-num">1</div>
+        <div class="goal-text">
+          <strong>Feel fast</strong>
+          Every control gives immediate feedback on the canvas at 60fps. Sliders, knobs, color pickers — all live preview.
+        </div>
+      </li>
+      <li>
+        <div class="goal-num">2</div>
+        <div class="goal-text">
+          <strong>Stay out of the way</strong>
+          A quiet dark UI that doesn't compete with the image being edited. One accent color only.
+        </div>
+      </li>
+      <li>
+        <div class="goal-num">3</div>
+        <div class="goal-text">
+          <strong>Be approachable</strong>
+          Controls that feel designed, not technical. Sliders and knobs — no shader jargon in the UI.
+        </div>
+      </li>
+      <li>
+        <div class="goal-num">4</div>
+        <div class="goal-text">
+          <strong>Work on mobile</strong>
+          Full feature parity on phones, not a stripped-down version. Same filters, same export.
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <hr />
+
+  <!-- VISUAL DESIGN -->
+  <section class="section">
+    <p class="section-label">03 &nbsp; Visual Design</p>
+    <h2>One accent, seven grays</h2>
+    <p>The palette is built around a single warm accent — <strong>#fff679</strong> — against a near-black background. The yellow is deliberately unusual: it reads "selected" at a glance without being a primary color, keeping the eye on the image rather than the chrome.</p>
+
+    <div class="token-grid">
+      <div class="token-card">
+        <div class="token-swatch" style="background:#fff679;"></div>
+        <div class="token-info">
+          <div class="token-name">Accent</div>
+          <div class="token-value">#fff679</div>
+        </div>
+      </div>
+      <div class="token-card">
+        <div class="token-swatch" style="background:#0e0e0e; border-bottom: 1px solid #333;"></div>
+        <div class="token-info">
+          <div class="token-name">Background</div>
+          <div class="token-value">#0e0e0e</div>
+        </div>
+      </div>
+      <div class="token-card">
+        <div class="token-swatch" style="background:#202020;"></div>
+        <div class="token-info">
+          <div class="token-name">Panel Mid</div>
+          <div class="token-value">#202020</div>
+        </div>
+      </div>
+      <div class="token-card">
+        <div class="token-swatch" style="background:#373737;"></div>
+        <div class="token-info">
+          <div class="token-name">Panel Light</div>
+          <div class="token-value">#373737</div>
+        </div>
+      </div>
+    </div>
+
+    <p>Typography is set in <strong>Geist</strong> (→ Inter → system-ui). A neutral, technical face that reads cleanly at small label sizes without competing with the visual output.</p>
+  </section>
+
+  <!-- LANDING -->
+  <section class="section">
+    <p class="section-label">04 &nbsp; Landing Page</p>
+    <h2>The tool as its own demo</h2>
+    <p>The hero features a looping video of a deer rendered through the app's own shaders — a live demonstration of what the tool produces. Three clips are randomly selected on each load so returning visitors see variation. The CTA sits at the bottom of the viewport, giving the visual full breathing room.</p>
+
+    <div class="placeholder">
+      <div class="ph-title">Landing Page</div>
+      Hero with deer video + "Made to be noticed" headline — full viewport
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- EDITOR LAYOUT -->
+  <section class="section">
+    <p class="section-label">05 &nbsp; Editor</p>
+    <h2>Everything visible at once</h2>
+    <p>The editor is a single-screen layout: canvas in the center, horizontal filter strip below, active filter's panel to the right. No modals, no separate settings page, no navigation hierarchy. Upload an image, pick a filter, adjust — done.</p>
+    <p>The filter strip uses dual-image thumbnail cards: a neutral base image and a hover/active state showing the filter applied to a sample. The transition makes each filter self-explanatory before you ever click it.</p>
+
+    <div class="placeholder">
+      <div class="ph-title">Editor — Desktop</div>
+      Full layout: canvas centered, filter strip below, control panel right (Glass or Dithering)
+    </div>
+
+    <div class="placeholder">
+      <div class="ph-title">Filter Strip</div>
+      Close-up of the horizontal strip showing thumbnail cards with hover state and active selection
+    </div>
+  </section>
+
+  <!-- FILTERS -->
+  <section class="section">
+    <p class="section-label">06 &nbsp; Filters</p>
+    <h2>Nine effects, one consistent interface</h2>
+    <p>Each filter is a custom GLSL fragment shader. The controls vary per filter, but the UI grammar stays the same: sliders, knobs, color pickers, checkboxes — never raw numbers or shader parameters exposed directly.</p>
+
+    <div class="filter-grid">
+      <div class="filter-cell">
+        <div class="filter-cell-name">Glass</div>
+        <div class="filter-cell-desc">Tiled frosted glass morphing — shape, size, distortion, grain, angle</div>
+      </div>
+      <div class="filter-cell">
+        <div class="filter-cell-name">Dithering</div>
+        <div class="filter-cell-desc">Floyd–Steinberg + ordered dithering with 4-channel color mapping and presets</div>
+      </div>
+      <div class="filter-cell">
+        <div class="filter-cell-name">Liquid</div>
+        <div class="filter-cell-desc">Animated fluid distortion driven by a time uniform — exports as video</div>
+      </div>
+      <div class="filter-cell">
+        <div class="filter-cell-name">Glitchy</div>
+        <div class="filter-cell-desc">RGB chroma shift, CRT scanlines, VHS artifacts, glow — fully combinable</div>
+      </div>
+      <div class="filter-cell">
+        <div class="filter-cell-name">Halftone</div>
+        <div class="filter-cell-desc">Dot/pattern halftone with angle knob, 4 color channels, shadow masking</div>
+      </div>
+      <div class="filter-cell">
+        <div class="filter-cell-name">Symbols</div>
+        <div class="filter-cell-desc">Edge detection + user-editable symbol overlay with color-match mode</div>
+      </div>
+      <div class="filter-cell">
+        <div class="filter-cell-name">Paper</div>
+        <div class="filter-cell-desc">Grain, dust, ink bleed, Xerox binarization, and scan texture with angle</div>
+      </div>
+      <div class="filter-cell">
+        <div class="filter-cell-name">Heatmap</div>
+        <div class="filter-cell-desc">Luminance-to-color gradient — 5 built-in palettes + custom gradient editor</div>
+      </div>
+      <div class="filter-cell" style="grid-column: 1 / -1;">
+        <div class="filter-cell-name">Blur</div>
+        <div class="filter-cell-desc">Gaussian, directional motion (with angle knob), and radial/zoom — with film grain</div>
+      </div>
+    </div>
+
+    <div class="placeholder">
+      <div class="ph-title">Filter Variety</div>
+      2–3 side-by-side or collage showing visually distinct filters (e.g. Dithering, Glitchy, Heatmap)
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- CONTROLS -->
+  <section class="section">
+    <p class="section-label">07 &nbsp; Controls</p>
+    <h2>Built from scratch, every one</h2>
+    <p>No UI library components. Every control was designed and built custom to fit the tool's specific needs and feel.</p>
+
+    <div class="two-col">
+      <div class="two-col-item">
+        <div class="two-col-title">Slider</div>
+        <p class="two-col-body">Drag the track or type directly into the numeric field. Active state fills with the yellow accent.</p>
+      </div>
+      <div class="two-col-item">
+        <div class="two-col-title">Angle Knob</div>
+        <p class="two-col-body">Circular drag with inertia — velocity carries past pointer release. Tick marks at cardinal points. Used for glass, halftone, motion blur, and paper angle.</p>
+      </div>
+      <div class="two-col-item">
+        <div class="two-col-title">Color Picker</div>
+        <p class="two-col-body">Swatch + hex input on desktop. On mobile, tapping the swatch opens a full-panel picker that scales from the exact position of the swatch — transform-origin computed at runtime from the DOM rect.</p>
+      </div>
+      <div class="two-col-item">
+        <div class="two-col-title">Checkbox / Toggle</div>
+        <p class="two-col-body">Custom pill-style toggle that doubles as a section expander — enabling CRT reveals the Scanlines slider beneath it via a CSS max-height animation.</p>
+      </div>
+    </div>
+
+    <div class="placeholder">
+      <div class="ph-title">Controls Close-up</div>
+      Slider + knob side by side, or the Glass panel showing all control types together
+    </div>
+  </section>
+
+  <!-- LAYERS -->
+  <section class="section">
+    <p class="section-label">08 &nbsp; Layers</p>
+    <h2>Stack effects, not just pick one</h2>
+    <p>Filters can be stacked. The Layers panel lets users combine passes — say, a Dithering effect under a Glitchy pass, or a Heatmap under a Paper texture. Layers support drag-to-reorder, eye-icon visibility toggle (without removing the layer), and trash to delete.</p>
+
+    <div class="placeholder">
+      <div class="ph-title">Layers Panel</div>
+      Panel with 2–3 effects stacked, ideally with one hidden (eye icon off) to show all states
+    </div>
+  </section>
+
+  <hr />
+
+  <!-- MOBILE -->
+  <section class="section">
+    <p class="section-label">09 &nbsp; Mobile</p>
+    <h2>Full feature parity, not a port</h2>
+    <p>The mobile UI replaces the desktop sidebar with a <strong>bottom sheet drawer</strong>. Three states: resting (filter strip + action bar visible), expanded (settings panel open), and color picker (full-panel picker animating from the swatch). Same filters, same export options.</p>
+
+    <p>Details that add up:</p>
+    <ul class="goal-list" style="margin-top: 16px;">
+      <li>
+        <div class="goal-num">→</div>
+        <div class="goal-text">Swipe left/right on the settings panel switches tabs — only interpreted as a swipe if horizontal delta exceeds vertical by 3:1</div>
+      </li>
+      <li>
+        <div class="goal-num">→</div>
+        <div class="goal-text">Pinch-to-zoom on the canvas with simultaneous two-finger drag; double-tap zooms to the tapped area</div>
+      </li>
+      <li>
+        <div class="goal-num">→</div>
+        <div class="goal-text">Uniform updates throttled to one per animation frame on touch — stays at 60fps on mid-range phones</div>
+      </li>
+      <li>
+        <div class="goal-num">→</div>
+        <div class="goal-text">Color picker expands from the swatch's position using a computed transform-origin, so the animation feels grounded</div>
+      </li>
+    </ul>
+
+    <div class="placeholder">
+      <div class="ph-title">Mobile — Bottom Sheet</div>
+      Side-by-side: sheet collapsed (filter strip visible) and sheet expanded (settings open)
+    </div>
+
+    <div class="placeholder">
+      <div class="ph-title">Mobile Color Picker</div>
+      Full-panel color picker open, ideally showing the scale animation origin near a swatch
+    </div>
+  </section>
+
+  <!-- EXPORT -->
+  <section class="section">
+    <p class="section-label">10 &nbsp; Export</p>
+    <h2>PNG, MP4, WebM — same button</h2>
+    <p>Still images render off-screen at full original resolution. Animated effects (Liquid, Glitchy) export as a 15-second MP4 via MediaRecorder + H.264 transcode, or WebM for a faster direct output. The Save button shows recording progress numerically, with ghost text to prevent layout shift during the count.</p>
+  </section>
+
+  <hr />
+
+  <!-- WHAT'S NEXT -->
+  <section class="section">
+    <p class="section-label">11 &nbsp; What's Next</p>
+    <h2>Where this is going</h2>
+    <div class="two-col">
+      <div class="two-col-item">
+        <div class="two-col-title">Presets &amp; sharing</div>
+        <p class="two-col-body">Save and share named filter configurations with a short URL.</p>
+      </div>
+      <div class="two-col-item">
+        <div class="two-col-title">Undo / history</div>
+        <p class="two-col-body">A lightweight stack of editor state snapshots — Cmd+Z should just work.</p>
+      </div>
+      <div class="two-col-item">
+        <div class="two-col-title">Video scrubbing</div>
+        <p class="two-col-body">Frame-accurate scrub bar for video imports, not just playback.</p>
+      </div>
+      <div class="two-col-item">
+        <div class="two-col-title">Layer blending</div>
+        <p class="two-col-body">Blend modes between stacked filter passes for more complex compositing.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <span class="footer-name">Denys Zhuk &nbsp;·&nbsp; 2026</span>
+    <a class="footer-link" href="https://www.instagram.com/zhucccci">@zhucccci</a>
+  </footer>
+
+</div>
+</body>
+</html>

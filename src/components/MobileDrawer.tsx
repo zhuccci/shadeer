@@ -1018,6 +1018,13 @@ function GlowPanelContent({ state, updateState, openColor }: PanelContentProps) 
         onChange={(v) => updateState((s) => ({ ...s, glow: { ...s.glow, intensity: v } }))}
       />
       <SliderControl
+        label="Threshold"
+        min={0}
+        max={100}
+        value={g.threshold}
+        onChange={(v) => updateState((s) => ({ ...s, glow: { ...s.glow, threshold: v } }))}
+      />
+      <SliderControl
         label="Opacity"
         min={0}
         max={100}

@@ -22,6 +22,7 @@ export type BlurType = 'gaussian' | 'motion' | 'radial';
 export interface GlowSettings {
   style: GlowStyle;
   intensity: number;
+  threshold: number;
   opacity: number;
   useTint: boolean;
   tintColor: string;
@@ -284,6 +285,7 @@ export const defaultHeatmapSettings: HeatmapSettings = {
 export const defaultGlowSettings: GlowSettings = {
   style: 'bloom',
   intensity: 50,
+  threshold: 45,
   opacity: 80,
   useTint: false,
   tintColor: '#FFFFFF',
