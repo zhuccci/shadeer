@@ -226,8 +226,13 @@
     height: 100px;
   }
 
+  .filter-icon {
+    width: 16px;
+    height: 16px;
+  }
+
   .filter-label {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .btn-bottom {
