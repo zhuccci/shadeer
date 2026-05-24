@@ -532,10 +532,28 @@
     right: 16px;
   }
 
+  .controls-left,
+  .dither-right,
+  .halftone-right,
+  .se-right,
+  .glow-right,
+  .paper-right,
+  .heatmap-right {
+    padding-left: 16px;
+    padding-right: 16px;
+    margin-left: -16px;
+    margin-right: -16px;
+  }
+
+  .glitchy-scroll-area {
+    padding-right: 16px;
+    margin-right: -16px;
+  }
+
   .panel-divider {
     margin-left: -8px;
     margin-right: -8px;
-    margin-bottom: 16px;
+    margin-bottom: 24px;
   }
 
   .dither-type-row {
