@@ -535,6 +535,7 @@
   .panel-divider {
     margin-left: -8px;
     margin-right: -8px;
+    margin-bottom: 16px;
   }
 
   .dither-type-row {
