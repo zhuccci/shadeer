@@ -119,14 +119,24 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
       updateFitClip(shaderMountRef.current, editorState.fitMode, editorState.image.aspectRatio);
     });
 
-    // Capture last intermediate canvas for preview glow after layers render
+    // Capture last intermediate canvas for preview glow after layers render.
+    // Skip h-pass intermediates (blur_h / glow_h) — they're half-processed and
+    // would make the glow look wrong. Only capture when the second-to-last stack
+    // entry is a real filter output.
     if (glowRafRef.current !== null) cancelAnimationFrame(glowRafRef.current);
+    const lastIntermediateFilter = stack[stack.length - 2];
+    const shouldCaptureGlow =
+      chainMountsRef.current.length > 0 &&
+      lastIntermediateFilter !== 'blur_h' &&
+      lastIntermediateFilter !== 'glow_h';
     glowRafRef.current = requestAnimationFrame(() => {
       glowRafRef.current = requestAnimationFrame(() => {
         glowRafRef.current = null;
-        const last = chainMountsRef.current[chainMountsRef.current.length - 1];
-        if (last) {
-          try { setGlowSrc(last.canvasElement.toDataURL('image/jpeg', 0.3)); } catch { /* ignore */ }
+        if (shouldCaptureGlow) {
+          const last = chainMountsRef.current[chainMountsRef.current.length - 1];
+          if (last) {
+            try { setGlowSrc(last.canvasElement.toDataURL('image/jpeg', 0.3)); } catch { /* ignore */ }
+          }
         } else {
           setGlowSrc('');
         }
