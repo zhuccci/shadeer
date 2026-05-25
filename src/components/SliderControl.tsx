@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import './SliderControl.css';
 
@@ -10,7 +10,7 @@ interface SliderControlProps {
   onChange: (value: number) => void;
 }
 
-export function SliderControl({
+export const SliderControl = memo(function SliderControl({
   label,
   min = 0,
   max = 100,
@@ -54,15 +54,18 @@ export function SliderControl({
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
-
+    let raf: number | null = null;
     const updateTrackWidth = () => {
-      setTrackWidth(track.getBoundingClientRect().width);
+      if (raf !== null) return;
+      raf = requestAnimationFrame(() => {
+        raf = null;
+        setTrackWidth(track.getBoundingClientRect().width);
+      });
     };
-
     updateTrackWidth();
     const resizeObserver = new ResizeObserver(updateTrackWidth);
     resizeObserver.observe(track);
-    return () => resizeObserver.disconnect();
+    return () => { resizeObserver.disconnect(); if (raf !== null) cancelAnimationFrame(raf); };
   }, []);
 
   useEffect(() => {
@@ -244,4 +247,4 @@ export function SliderControl({
       />
     </div>
   );
-}
+});

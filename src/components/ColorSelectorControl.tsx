@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { memo, useEffect, useId, useRef, useState } from 'react';
 import { ColorPicker } from './ColorPicker';
 import './ColorSelectorControl.css';
 
@@ -10,7 +10,7 @@ interface ColorSelectorControlProps {
   panelActive?: boolean;
 }
 
-export function ColorSelectorControl({ label, value, onChange, onMobileOpen, panelActive }: ColorSelectorControlProps) {
+export const ColorSelectorControl = memo(function ColorSelectorControl({ label, value, onChange, onMobileOpen, panelActive }: ColorSelectorControlProps) {
   const inputId   = useId();
   const swatchRef = useRef<HTMLButtonElement>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -101,4 +101,4 @@ export function ColorSelectorControl({ label, value, onChange, onMobileOpen, pan
       )}
     </div>
   );
-}
+});

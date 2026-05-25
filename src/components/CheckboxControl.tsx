@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import './CheckboxControl.css';
 
 interface CheckboxControlProps {
@@ -6,7 +7,7 @@ interface CheckboxControlProps {
   onChange: (checked: boolean) => void;
 }
 
-export function CheckboxControl({ label, checked, onChange }: CheckboxControlProps) {
+export const CheckboxControl = memo(function CheckboxControl({ label, checked, onChange }: CheckboxControlProps) {
   return (
     <button
       type="button"
@@ -19,4 +20,4 @@ export function CheckboxControl({ label, checked, onChange }: CheckboxControlPro
       <span className="checkbox-label">{label}</span>
     </button>
   );
-}
+});

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import './MobileDrawer.css';
 import { MobileColorPicker } from './MobileColorPicker';
 import { CheckboxControl } from './CheckboxControl';
@@ -88,13 +88,19 @@ interface PanelContentProps {
 }
 
 function GlassPanelContent({ state, updateState, tab, openColor: _openColor }: PanelContentProps) {
+  const onAngleChange = useCallback((angle: number) => updateState((s) => ({ ...s, glass: { ...s.glass, angle } })), [updateState]);
+  const onShapeChange = useCallback((shape: typeof state.glass.shape) => updateState((s) => ({ ...s, glass: { ...s.glass, shape } })), [updateState]);
+  const onSizeChange = useCallback((size: number) => updateState((s) => ({ ...s, glass: { ...s.glass, size } })), [updateState]);
+  const onDistortionChange = useCallback((distortion: number) => updateState((s) => ({ ...s, glass: { ...s.glass, distortion } })), [updateState]);
+  const onShadowChange = useCallback((shadow: number) => updateState((s) => ({ ...s, glass: { ...s.glass, shadow } })), [updateState]);
+  const onGrainChange = useCallback((grain: number) => updateState((s) => ({ ...s, glass: { ...s.glass, grain } })), [updateState]);
   if (tab === 'colors') {
     return (
       <div className="mobile-panel-section mobile-angle-tab">
         <KnobControl
           labels={{ top: '0°', left: '270°', right: '90°', bottom: '180°' }}
           value={state.glass.angle}
-          onChange={(angle) => updateState((s) => ({ ...s, glass: { ...s.glass, angle } }))}
+          onChange={onAngleChange}
         />
       </div>
     );
@@ -104,27 +110,27 @@ function GlassPanelContent({ state, updateState, tab, openColor: _openColor }: P
       <ShapeSelector
         label="Shape"
         value={state.glass.shape}
-        onChange={(shape) => updateState((s) => ({ ...s, glass: { ...s.glass, shape } }))}
+        onChange={onShapeChange}
       />
       <SliderControl
         label="Size"
         value={state.glass.size}
-        onChange={(size) => updateState((s) => ({ ...s, glass: { ...s.glass, size } }))}
+        onChange={onSizeChange}
       />
       <SliderControl
         label="Distortion"
         value={state.glass.distortion}
-        onChange={(distortion) => updateState((s) => ({ ...s, glass: { ...s.glass, distortion } }))}
+        onChange={onDistortionChange}
       />
       <SliderControl
         label="Shadow"
         value={state.glass.shadow}
-        onChange={(shadow) => updateState((s) => ({ ...s, glass: { ...s.glass, shadow } }))}
+        onChange={onShadowChange}
       />
       <SliderControl
         label="Grain"
         value={state.glass.grain}
-        onChange={(grain) => updateState((s) => ({ ...s, glass: { ...s.glass, grain } }))}
+        onChange={onGrainChange}
       />
     </div>
   );
@@ -132,26 +138,24 @@ function GlassPanelContent({ state, updateState, tab, openColor: _openColor }: P
 
 function DitheringPanelContent({ state, updateState, tab, openColor }: PanelContentProps) {
   const [colorTab, setColorTab] = useState<'custom' | 'presets'>('custom');
+  const onTypeChange = useCallback((type: typeof state.dithering.type) => updateState((s) => ({ ...s, dithering: { ...s.dithering, type } })), [updateState]);
+  const onSizeChange = useCallback((size: number) => updateState((s) => ({ ...s, dithering: { ...s.dithering, size } })), [updateState]);
+  const onColorStepsChange = useCallback((colorSteps: number) => updateState((s) => ({ ...s, dithering: { ...s.dithering, colorSteps } })), [updateState]);
+  const onOriginalColorsChange = useCallback((originalColors: boolean) => updateState((s) => ({ ...s, dithering: { ...s.dithering, originalColors } })), [updateState]);
+  const onShadowColorChange = useCallback((v: string) => updateState((s) => ({ ...s, dithering: { ...s.dithering, shadowColor: sanitizeHex(v, s.dithering.shadowColor) } })), [updateState]);
+  const onFrontColorChange = useCallback((v: string) => updateState((s) => ({ ...s, dithering: { ...s.dithering, frontColor: sanitizeHex(v, s.dithering.frontColor) } })), [updateState]);
+  const onLightColorChange = useCallback((v: string) => updateState((s) => ({ ...s, dithering: { ...s.dithering, lightColor: sanitizeHex(v, s.dithering.lightColor) } })), [updateState]);
+  const onHighlightDitherColorChange = useCallback((v: string) => updateState((s) => ({ ...s, dithering: { ...s.dithering, highlightColor: sanitizeHex(v, s.dithering.highlightColor) } })), [updateState]);
+  const onInvertChange = useCallback((invert: boolean) => updateState((s) => ({ ...s, dithering: { ...s.dithering, invert } })), [updateState]);
+  const switchToCustom = useCallback(() => setColorTab('custom'), []);
+  const switchToPresets = useCallback(() => setColorTab('presets'), []);
 
   if (tab === 'sliders') {
     return (
       <div className="mobile-panel-section">
-        <DitherTypeSelector
-          value={state.dithering.type}
-          onChange={(type) => updateState((s) => ({ ...s, dithering: { ...s.dithering, type } }))}
-        />
-        <SliderControl
-          label="Size"
-          value={state.dithering.size}
-          onChange={(size) => updateState((s) => ({ ...s, dithering: { ...s.dithering, size } }))}
-        />
-        <SliderControl
-          label="Color Steps"
-          min={1}
-          max={7}
-          value={state.dithering.colorSteps}
-          onChange={(colorSteps) => updateState((s) => ({ ...s, dithering: { ...s.dithering, colorSteps } }))}
-        />
+        <DitherTypeSelector value={state.dithering.type} onChange={onTypeChange} />
+        <SliderControl label="Size" value={state.dithering.size} onChange={onSizeChange} />
+        <SliderControl label="Color Steps" min={1} max={7} value={state.dithering.colorSteps} onChange={onColorStepsChange} />
       </div>
     );
   }
@@ -160,16 +164,12 @@ function DitheringPanelContent({ state, updateState, tab, openColor }: PanelCont
 
   return (
     <div className="mobile-panel-section">
-      <CheckboxControl
-        label="Original Colors"
-        checked={d.originalColors}
-        onChange={(v) => updateState((s) => ({ ...s, dithering: { ...s.dithering, originalColors: v } }))}
-      />
+      <CheckboxControl label="Original Colors" checked={d.originalColors} onChange={onOriginalColorsChange} />
       {!d.originalColors && (
         <>
           <div className="dither-color-tabs">
-            <button type="button" className="dither-color-tab" onClick={() => setColorTab('custom')}>Custom</button>
-            <button type="button" className="dither-color-tab" onClick={() => setColorTab('presets')}>Presets</button>
+            <button type="button" className="dither-color-tab" onClick={switchToCustom}>Custom</button>
+            <button type="button" className="dither-color-tab" onClick={switchToPresets}>Presets</button>
             <div
               className="dither-color-tabs-overlay"
               style={{ clipPath: colorTab === 'custom' ? 'inset(0 50% 0 0)' : 'inset(0 0 0 50%)' }}
@@ -181,30 +181,10 @@ function DitheringPanelContent({ state, updateState, tab, openColor }: PanelCont
           </div>
           {colorTab === 'custom' && (
             <>
-              <ColorSelectorControl
-                label="Shadow"
-                value={d.shadowColor}
-                onChange={(v) => updateState((s) => ({ ...s, dithering: { ...s.dithering, shadowColor: sanitizeHex(v, s.dithering.shadowColor) } }))}
-                onMobileOpen={openColor}
-              />
-              <ColorSelectorControl
-                label="Front"
-                value={d.frontColor}
-                onChange={(v) => updateState((s) => ({ ...s, dithering: { ...s.dithering, frontColor: sanitizeHex(v, s.dithering.frontColor) } }))}
-                onMobileOpen={openColor}
-              />
-              <ColorSelectorControl
-                label="Light"
-                value={d.lightColor}
-                onChange={(v) => updateState((s) => ({ ...s, dithering: { ...s.dithering, lightColor: sanitizeHex(v, s.dithering.lightColor) } }))}
-                onMobileOpen={openColor}
-              />
-              <ColorSelectorControl
-                label="Highlight"
-                value={d.highlightColor}
-                onChange={(v) => updateState((s) => ({ ...s, dithering: { ...s.dithering, highlightColor: sanitizeHex(v, s.dithering.highlightColor) } }))}
-                onMobileOpen={openColor}
-              />
+              <ColorSelectorControl label="Shadow" value={d.shadowColor} onChange={onShadowColorChange} onMobileOpen={openColor} />
+              <ColorSelectorControl label="Front" value={d.frontColor} onChange={onFrontColorChange} onMobileOpen={openColor} />
+              <ColorSelectorControl label="Light" value={d.lightColor} onChange={onLightColorChange} onMobileOpen={openColor} />
+              <ColorSelectorControl label="Highlight" value={d.highlightColor} onChange={onHighlightDitherColorChange} onMobileOpen={openColor} />
             </>
           )}
           {colorTab === 'presets' && (
@@ -216,12 +196,10 @@ function DitheringPanelContent({ state, updateState, tab, openColor }: PanelCont
                     key={p.label}
                     type="button"
                     className={`dither-preset-item${active ? ' selected' : ''}`}
-                    onClick={() => {
-                      updateState((s) => ({
-                        ...s,
-                        dithering: { ...s.dithering, shadowColor: p.shadow, frontColor: p.front, lightColor: p.light, highlightColor: p.highlight },
-                      }));
-                    }}
+                    onClick={() => updateState((s) => ({
+                      ...s,
+                      dithering: { ...s.dithering, shadowColor: p.shadow, frontColor: p.front, lightColor: p.light, highlightColor: p.highlight },
+                    }))}
                   >
                     <span className="dither-preset-label">{p.label}</span>
                     <DitherSwatch p={p} />
@@ -232,58 +210,35 @@ function DitheringPanelContent({ state, updateState, tab, openColor }: PanelCont
           )}
         </>
       )}
-      <CheckboxControl
-        label="Invert"
-        checked={d.invert}
-        onChange={(v) => updateState((s) => ({ ...s, dithering: { ...s.dithering, invert: v } }))}
-      />
+      <CheckboxControl label="Invert" checked={d.invert} onChange={onInvertChange} />
     </div>
   );
 }
 
 function LiquidPanelContent({ state, updateState, tab, openColor }: PanelContentProps) {
+  const onWavesChange = useCallback((waves: number) => updateState((s) => ({ ...s, liquid: { ...s.liquid, waves } })), [updateState]);
+  const onDistortionChange = useCallback((distortion: number) => updateState((s) => ({ ...s, liquid: { ...s.liquid, distortion } })), [updateState]);
+  const onSizeChange = useCallback((size: number) => updateState((s) => ({ ...s, liquid: { ...s.liquid, size } })), [updateState]);
+  const onScaleChange = useCallback((scale: number) => updateState((s) => ({ ...s, liquid: { ...s.liquid, scale } })), [updateState]);
+  const onHighlightsChange = useCallback((highlights: number) => updateState((s) => ({ ...s, liquid: { ...s.liquid, highlights } })), [updateState]);
+  const onHighlightColorChange = useCallback((v: string) => updateState((s) => ({ ...s, liquid: { ...s.liquid, highlightColor: sanitizeHex(v, s.liquid.highlightColor) } })), [updateState]);
   if (tab === 'sliders') {
     return (
       <div className="mobile-panel-section">
-        <SliderControl
-          label="Waves"
-          value={state.liquid.waves}
-          onChange={(v) => updateState((s) => ({ ...s, liquid: { ...s.liquid, waves: v } }))}
-        />
-        <SliderControl
-          label="Distortion"
-          value={state.liquid.distortion}
-          onChange={(v) => updateState((s) => ({ ...s, liquid: { ...s.liquid, distortion: v } }))}
-        />
-        <SliderControl
-          label="Size"
-          value={state.liquid.size}
-          onChange={(v) => updateState((s) => ({ ...s, liquid: { ...s.liquid, size: v } }))}
-        />
-        <SliderControl
-          label="Scale"
-          value={state.liquid.scale}
-          onChange={(v) => updateState((s) => ({ ...s, liquid: { ...s.liquid, scale: v } }))}
-        />
+        <SliderControl label="Waves" value={state.liquid.waves} onChange={onWavesChange} />
+        <SliderControl label="Distortion" value={state.liquid.distortion} onChange={onDistortionChange} />
+        <SliderControl label="Size" value={state.liquid.size} onChange={onSizeChange} />
+        <SliderControl label="Scale" value={state.liquid.scale} onChange={onScaleChange} />
       </div>
     );
   }
   return (
     <div className="mobile-panel-section">
-      <SliderControl
-        label="Highlights amount"
-        value={state.liquid.highlights}
-        onChange={(v) => updateState((s) => ({ ...s, liquid: { ...s.liquid, highlights: v } }))}
-      />
+      <SliderControl label="Highlights amount" value={state.liquid.highlights} onChange={onHighlightsChange} />
       <ColorSelectorControl
         label="Highlight"
         value={state.liquid.highlightColor}
-        onChange={(v) =>
-          updateState((s) => ({
-            ...s,
-            liquid: { ...s.liquid, highlightColor: sanitizeHex(v, s.liquid.highlightColor) },
-          }))
-        }
+        onChange={onHighlightColorChange}
         onMobileOpen={openColor}
       />
     </div>
@@ -291,45 +246,34 @@ function LiquidPanelContent({ state, updateState, tab, openColor }: PanelContent
 }
 
 function GlitchyPanelContent({ state, updateState, tab, openColor: _openColor }: PanelContentProps) {
+  const onCrtChange = useCallback((crt: boolean) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, crt } })), [updateState]);
+  const onScanlinesChange = useCallback((scanlines: number) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, scanlines } })), [updateState]);
+  const onVhsDistortionChange = useCallback((vhsDistortion: boolean) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, vhsDistortion } })), [updateState]);
+  const onVhsWaveStrengthChange = useCallback((vhsWaveStrength: number) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, vhsWaveStrength } })), [updateState]);
+  const onVhsBandOpacityChange = useCallback((vhsBandOpacity: number) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, vhsBandOpacity } })), [updateState]);
+  const onVhsBandHeightChange = useCallback((vhsBandHeight: number) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, vhsBandHeight } })), [updateState]);
+  const onGlitchFormChange = useCallback((glitchForm: typeof state.glitchy.glitchForm) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, glitchForm } })), [updateState]);
+  const onGlitchModeChange = useCallback((glitchMode: typeof state.glitchy.glitchMode) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, glitchMode } })), [updateState]);
+  const onGlitchStrengthChange = useCallback((glitchStrength: number) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, glitchStrength } })), [updateState]);
+  const onGlitchAmountChange = useCallback((glitchAmount: number) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, glitchAmount } })), [updateState]);
+  const onChromaShiftChange = useCallback((chromaShift: number) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, chromaShift } })), [updateState]);
+  const onGlowChange = useCallback((glow: number) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, glow } })), [updateState]);
+  const onVhsNoiseLevelChange = useCallback((vhsNoiseLevel: number) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, vhsNoiseLevel } })), [updateState]);
   if (tab === 'colors') {
     return (
       <div className="mobile-panel-section">
-        <CheckboxControl
-          label="CRT"
-          checked={state.glitchy.crt}
-          onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, crt: v } }))}
-        />
+        <CheckboxControl label="CRT" checked={state.glitchy.crt} onChange={onCrtChange} />
         <div className={`mobile-collapsible${state.glitchy.crt ? ' open' : ''}`}>
           <div className="mobile-collapsible-inner">
-            <SliderControl
-              label="Scanlines"
-              value={state.glitchy.scanlines}
-              onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, scanlines: v } }))}
-            />
+            <SliderControl label="Scanlines" value={state.glitchy.scanlines} onChange={onScanlinesChange} />
           </div>
         </div>
-        <CheckboxControl
-          label="VHS Distortion"
-          checked={state.glitchy.vhsDistortion}
-          onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, vhsDistortion: v } }))}
-        />
+        <CheckboxControl label="VHS Distortion" checked={state.glitchy.vhsDistortion} onChange={onVhsDistortionChange} />
         <div className={`mobile-collapsible${state.glitchy.vhsDistortion ? ' open' : ''}`}>
           <div className="mobile-collapsible-inner">
-            <SliderControl
-              label="Wave Strength"
-              value={state.glitchy.vhsWaveStrength}
-              onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, vhsWaveStrength: v } }))}
-            />
-            <SliderControl
-              label="Band Opacity"
-              value={state.glitchy.vhsBandOpacity}
-              onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, vhsBandOpacity: v } }))}
-            />
-            <SliderControl
-              label="Band Height"
-              value={state.glitchy.vhsBandHeight}
-              onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, vhsBandHeight: v } }))}
-            />
+            <SliderControl label="Wave Strength" value={state.glitchy.vhsWaveStrength} onChange={onVhsWaveStrengthChange} />
+            <SliderControl label="Band Opacity" value={state.glitchy.vhsBandOpacity} onChange={onVhsBandOpacityChange} />
+            <SliderControl label="Band Height" value={state.glitchy.vhsBandHeight} onChange={onVhsBandHeightChange} />
           </div>
         </div>
       </div>
@@ -337,102 +281,52 @@ function GlitchyPanelContent({ state, updateState, tab, openColor: _openColor }:
   }
   return (
     <div className="mobile-panel-section">
-      <GlitchFormSelector
-        value={state.glitchy.glitchForm}
-        onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, glitchForm: v } }))}
-      />
-      <GlitchModeSelector
-        label="Glitch Form"
-        value={state.glitchy.glitchMode}
-        onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, glitchMode: v } }))}
-      />
-      <SliderControl
-        label="Glitch Strength"
-        value={state.glitchy.glitchStrength}
-        onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, glitchStrength: v } }))}
-      />
-      <SliderControl
-        label="Glitch Amount"
-        value={state.glitchy.glitchAmount}
-        onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, glitchAmount: v } }))}
-      />
-      <SliderControl
-        label="Chroma Shift"
-        value={state.glitchy.chromaShift}
-        onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, chromaShift: v } }))}
-      />
-      <SliderControl
-        label="Glow"
-        value={state.glitchy.glow}
-        onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, glow: v } }))}
-      />
-      <SliderControl
-        label="Noise Amount"
-        value={state.glitchy.vhsNoiseLevel}
-        onChange={(v) => updateState((s) => ({ ...s, glitchy: { ...s.glitchy, vhsNoiseLevel: v } }))}
-      />
+      <GlitchFormSelector value={state.glitchy.glitchForm} onChange={onGlitchFormChange} />
+      <GlitchModeSelector label="Glitch Form" value={state.glitchy.glitchMode} onChange={onGlitchModeChange} />
+      <SliderControl label="Glitch Strength" value={state.glitchy.glitchStrength} onChange={onGlitchStrengthChange} />
+      <SliderControl label="Glitch Amount" value={state.glitchy.glitchAmount} onChange={onGlitchAmountChange} />
+      <SliderControl label="Chroma Shift" value={state.glitchy.chromaShift} onChange={onChromaShiftChange} />
+      <SliderControl label="Glow" value={state.glitchy.glow} onChange={onGlowChange} />
+      <SliderControl label="Noise Amount" value={state.glitchy.vhsNoiseLevel} onChange={onVhsNoiseLevelChange} />
     </div>
   );
 }
 
 function HalftonePanelContent({ state, updateState, tab, openColor }: PanelContentProps) {
   const bw = state.halftone.blackAndWhite;
+  const onAngleChange = useCallback((angle: number) => updateState((s) => ({ ...s, halftone: { ...s.halftone, angle } })), [updateState]);
+  const onPatternChange = useCallback((pattern: typeof state.halftone.pattern) => updateState((s) => ({ ...s, halftone: { ...s.halftone, pattern } })), [updateState]);
+  const onScaleChange = useCallback((scale: number) => updateState((s) => ({ ...s, halftone: { ...s.halftone, scale } })), [updateState]);
+  const onRadiusChange = useCallback((radius: number) => updateState((s) => ({ ...s, halftone: { ...s.halftone, radius } })), [updateState]);
+  const onContrastChange = useCallback((contrast: number) => updateState((s) => ({ ...s, halftone: { ...s.halftone, contrast } })), [updateState]);
+  const onShadowEnabledChange = useCallback((shadowEnabled: boolean) => updateState((s) => ({ ...s, halftone: { ...s.halftone, shadowEnabled } })), [updateState]);
+  const onShadowRangeChange = useCallback((shadowRange: number) => updateState((s) => ({ ...s, halftone: { ...s.halftone, shadowRange } })), [updateState]);
+  const onShadowInvertChange = useCallback((shadowInvert: boolean) => updateState((s) => ({ ...s, halftone: { ...s.halftone, shadowInvert } })), [updateState]);
+  const onBackgroundColorChange = useCallback((v: string) => updateState((s) => ({ ...s, halftone: { ...s.halftone, backgroundColor: sanitizeHex(v, s.halftone.backgroundColor) } })), [updateState]);
+  const onOriginalColorsChange = useCallback((originalColors: boolean) => updateState((s) => ({ ...s, halftone: { ...s.halftone, originalColors } })), [updateState]);
+  const onSetSingleColor = useCallback(() => updateState((s) => ({ ...s, halftone: { ...s.halftone, blackAndWhite: true } })), [updateState]);
+  const onSet4Colors = useCallback(() => updateState((s) => ({ ...s, halftone: { ...s.halftone, blackAndWhite: false } })), [updateState]);
+  const onColor1Change = useCallback((v: string) => updateState((s) => ({ ...s, halftone: { ...s.halftone, color1: sanitizeHex(v, s.halftone.color1) } })), [updateState]);
+  const onColor2Change = useCallback((v: string) => updateState((s) => ({ ...s, halftone: { ...s.halftone, color2: sanitizeHex(v, s.halftone.color2) } })), [updateState]);
+  const onColor3Change = useCallback((v: string) => updateState((s) => ({ ...s, halftone: { ...s.halftone, color3: sanitizeHex(v, s.halftone.color3) } })), [updateState]);
+  const onColor4Change = useCallback((v: string) => updateState((s) => ({ ...s, halftone: { ...s.halftone, color4: sanitizeHex(v, s.halftone.color4) } })), [updateState]);
+  const onInvertChange = useCallback((invert: boolean) => updateState((s) => ({ ...s, halftone: { ...s.halftone, invert } })), [updateState]);
 
   if (tab === 'sliders') {
     return (
       <div className="mobile-panel-section">
         <div className="mobile-angle-tab mobile-knob-top">
-          <KnobControl
-            labels={{ top: '0°', left: '270°', right: '90°', bottom: '180°' }}
-            value={state.halftone.angle}
-            onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, angle: v } }))}
-          />
+          <KnobControl labels={{ top: '0°', left: '270°', right: '90°', bottom: '180°' }} value={state.halftone.angle} onChange={onAngleChange} />
         </div>
-        <HalftonePatternSelector
-          label="Pattern"
-          value={state.halftone.pattern}
-          onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, pattern: v } }))}
-        />
-        <SliderControl
-          label="Scale"
-          min={0}
-          max={100}
-          value={state.halftone.scale}
-          onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, scale: v } }))}
-        />
-        <SliderControl
-          label="Radius"
-          min={0}
-          max={100}
-          value={state.halftone.radius}
-          onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, radius: v } }))}
-        />
-        <SliderControl
-          label="Contrast"
-          min={0}
-          max={100}
-          value={state.halftone.contrast}
-          onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, contrast: v } }))}
-        />
-        <CheckboxControl
-          label="Area"
-          checked={state.halftone.shadowEnabled}
-          onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, shadowEnabled: v } }))}
-        />
+        <HalftonePatternSelector label="Pattern" value={state.halftone.pattern} onChange={onPatternChange} />
+        <SliderControl label="Scale" min={0} max={100} value={state.halftone.scale} onChange={onScaleChange} />
+        <SliderControl label="Radius" min={0} max={100} value={state.halftone.radius} onChange={onRadiusChange} />
+        <SliderControl label="Contrast" min={0} max={100} value={state.halftone.contrast} onChange={onContrastChange} />
+        <CheckboxControl label="Area" checked={state.halftone.shadowEnabled} onChange={onShadowEnabledChange} />
         {state.halftone.shadowEnabled && (
           <>
-            <SliderControl
-              label="Area"
-              min={0}
-              max={100}
-              value={state.halftone.shadowRange}
-              onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, shadowRange: v } }))}
-            />
-            <CheckboxControl
-              label="Invert Area"
-              checked={state.halftone.shadowInvert}
-              onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, shadowInvert: v } }))}
-            />
+            <SliderControl label="Area" min={0} max={100} value={state.halftone.shadowRange} onChange={onShadowRangeChange} />
+            <CheckboxControl label="Invert Area" checked={state.halftone.shadowInvert} onChange={onShadowInvertChange} />
           </>
         )}
       </div>
@@ -441,27 +335,13 @@ function HalftonePanelContent({ state, updateState, tab, openColor }: PanelConte
 
   return (
     <div className="mobile-panel-section">
-      <ColorSelectorControl
-        label="Background"
-        value={state.halftone.backgroundColor}
-        onChange={(v) =>
-          updateState((s) => ({
-            ...s,
-            halftone: { ...s.halftone, backgroundColor: sanitizeHex(v, s.halftone.backgroundColor) },
-          }))
-        }
-        onMobileOpen={openColor}
-      />
-      <CheckboxControl
-        label="Original Colors"
-        checked={state.halftone.originalColors}
-        onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, originalColors: v } }))}
-      />
+      <ColorSelectorControl label="Background" value={state.halftone.backgroundColor} onChange={onBackgroundColorChange} onMobileOpen={openColor} />
+      <CheckboxControl label="Original Colors" checked={state.halftone.originalColors} onChange={onOriginalColorsChange} />
       {!state.halftone.originalColors && (
         <>
           <div className="dither-color-tabs">
-            <button type="button" className="dither-color-tab" onClick={() => updateState((s) => ({ ...s, halftone: { ...s.halftone, blackAndWhite: true } }))}>Single Color</button>
-            <button type="button" className="dither-color-tab" onClick={() => updateState((s) => ({ ...s, halftone: { ...s.halftone, blackAndWhite: false } }))}>4 Colors</button>
+            <button type="button" className="dither-color-tab" onClick={onSetSingleColor}>Single Color</button>
+            <button type="button" className="dither-color-tab" onClick={onSet4Colors}>4 Colors</button>
             <div
               className="dither-color-tabs-overlay"
               style={{ clipPath: bw ? 'inset(0 50% 0 0)' : 'inset(0 0 0 50%)' }}
@@ -471,146 +351,55 @@ function HalftonePanelContent({ state, updateState, tab, openColor }: PanelConte
               <button type="button" className="dither-color-tab" tabIndex={-1}>4 Colors</button>
             </div>
           </div>
-          <ColorSelectorControl
-            label={bw ? 'Color' : 'Light'}
-            value={state.halftone.color1}
-            onChange={(v) =>
-              updateState((s) => ({
-                ...s,
-                halftone: { ...s.halftone, color1: sanitizeHex(v, s.halftone.color1) },
-              }))
-            }
-            onMobileOpen={openColor}
-          />
+          <ColorSelectorControl label={bw ? 'Color' : 'Light'} value={state.halftone.color1} onChange={onColor1Change} onMobileOpen={openColor} />
           {!bw && (
             <>
-              <ColorSelectorControl
-                label="Mid-Light"
-                value={state.halftone.color2}
-                onChange={(v) =>
-                  updateState((s) => ({
-                    ...s,
-                    halftone: { ...s.halftone, color2: sanitizeHex(v, s.halftone.color2) },
-                  }))
-                }
-                onMobileOpen={openColor}
-              />
-              <ColorSelectorControl
-                label="Mid-Dark"
-                value={state.halftone.color3}
-                onChange={(v) =>
-                  updateState((s) => ({
-                    ...s,
-                    halftone: { ...s.halftone, color3: sanitizeHex(v, s.halftone.color3) },
-                  }))
-                }
-                onMobileOpen={openColor}
-              />
-              <ColorSelectorControl
-                label="Dark"
-                value={state.halftone.color4}
-                onChange={(v) =>
-                  updateState((s) => ({
-                    ...s,
-                    halftone: { ...s.halftone, color4: sanitizeHex(v, s.halftone.color4) },
-                  }))
-                }
-                onMobileOpen={openColor}
-              />
+              <ColorSelectorControl label="Mid-Light" value={state.halftone.color2} onChange={onColor2Change} onMobileOpen={openColor} />
+              <ColorSelectorControl label="Mid-Dark" value={state.halftone.color3} onChange={onColor3Change} onMobileOpen={openColor} />
+              <ColorSelectorControl label="Dark" value={state.halftone.color4} onChange={onColor4Change} onMobileOpen={openColor} />
             </>
           )}
         </>
       )}
-      <CheckboxControl
-        label="Invert"
-        checked={state.halftone.invert}
-        onChange={(v) => updateState((s) => ({ ...s, halftone: { ...s.halftone, invert: v } }))}
-      />
+      <CheckboxControl label="Invert" checked={state.halftone.invert} onChange={onInvertChange} />
     </div>
   );
 }
 
 function SymbolEdgesPanelContent({ state, updateState, tab, openColor }: PanelContentProps) {
   const se = state.symbolEdges;
+  const onSymbolsChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, symbols: e.target.value } })), [updateState]);
+  const onCellSizeChange = useCallback((cellSize: number) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, cellSize } })), [updateState]);
+  const onThresholdChange = useCallback((threshold: number) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, threshold } })), [updateState]);
+  const onGlowChange = useCallback((glow: number) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, glow } })), [updateState]);
+  const onHideImageChange = useCallback((hideImage: boolean) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, hideImage } })), [updateState]);
+  const onSymbolColorChange = useCallback((v: string) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, symbolColor: sanitizeHex(v, s.symbolEdges.symbolColor) } })), [updateState]);
+  const onModeChange = useCallback((v: boolean) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, mode: v ? 'color' : 'edges' } })), [updateState]);
+  const onTargetColorChange = useCallback((v: string) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, targetColor: sanitizeHex(v, s.symbolEdges.targetColor) } })), [updateState]);
+  const onInvertChange = useCallback((invert: boolean) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, invert } })), [updateState]);
+
   if (tab === 'sliders') {
     return (
       <div className="mobile-panel-section">
         <div className="mobile-symbols-row">
           <span className="widget-label">Symbols</span>
-          <input
-            className="mobile-symbols-input"
-            type="text"
-            value={se.symbols}
-            onChange={(e) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, symbols: e.target.value } }))}
-            maxLength={32}
-            spellCheck={false}
-          />
+          <input className="mobile-symbols-input" type="text" value={se.symbols} onChange={onSymbolsChange} maxLength={32} spellCheck={false} />
         </div>
-        <SliderControl
-          label="Size"
-          min={0}
-          max={100}
-          value={se.cellSize}
-          onChange={(v) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, cellSize: v } }))}
-        />
-        <SliderControl
-          label="Threshold"
-          min={0}
-          max={100}
-          value={se.threshold}
-          onChange={(v) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, threshold: v } }))}
-        />
-        <SliderControl
-          label="Glow"
-          min={0}
-          max={100}
-          value={se.glow}
-          onChange={(v) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, glow: v } }))}
-        />
-        <CheckboxControl
-          label="Hide image"
-          checked={se.hideImage}
-          onChange={(v) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, hideImage: v } }))}
-        />
+        <SliderControl label="Size" min={0} max={100} value={se.cellSize} onChange={onCellSizeChange} />
+        <SliderControl label="Threshold" min={0} max={100} value={se.threshold} onChange={onThresholdChange} />
+        <SliderControl label="Glow" min={0} max={100} value={se.glow} onChange={onGlowChange} />
+        <CheckboxControl label="Hide image" checked={se.hideImage} onChange={onHideImageChange} />
       </div>
     );
   }
   return (
     <div className="mobile-panel-section">
-      <ColorSelectorControl
-        label="Symbol Color"
-        value={se.symbolColor}
-        onChange={(v) =>
-          updateState((s) => ({
-            ...s,
-            symbolEdges: { ...s.symbolEdges, symbolColor: sanitizeHex(v, s.symbolEdges.symbolColor) },
-          }))
-        }
-        onMobileOpen={openColor}
-      />
-      <CheckboxControl
-        label="Matching color"
-        checked={se.mode === 'color'}
-        onChange={(v) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, mode: v ? 'color' : 'edges' } }))}
-      />
+      <ColorSelectorControl label="Symbol Color" value={se.symbolColor} onChange={onSymbolColorChange} onMobileOpen={openColor} />
+      <CheckboxControl label="Matching color" checked={se.mode === 'color'} onChange={onModeChange} />
       {se.mode === 'color' && (
-        <ColorSelectorControl
-          label="Color to Match"
-          value={se.targetColor}
-          onChange={(v) =>
-            updateState((s) => ({
-              ...s,
-              symbolEdges: { ...s.symbolEdges, targetColor: sanitizeHex(v, s.symbolEdges.targetColor) },
-            }))
-          }
-          onMobileOpen={openColor}
-        />
+        <ColorSelectorControl label="Color to Match" value={se.targetColor} onChange={onTargetColorChange} onMobileOpen={openColor} />
       )}
-      <CheckboxControl
-        label="Invert"
-        checked={se.invert}
-        onChange={(v) => updateState((s) => ({ ...s, symbolEdges: { ...s.symbolEdges, invert: v } }))}
-      />
+      <CheckboxControl label="Invert" checked={se.invert} onChange={onInvertChange} />
     </div>
   );
 }
@@ -835,19 +624,32 @@ function HeatmapPanelContent({ state, updateState, tab, openColor }: PanelConten
 }
 
 function PaperPanelContent({ state, updateState, tab }: PanelContentProps) {
+  const onNoiseChange = useCallback((noise: number) => updateState((s) => ({ ...s, paper: { ...s.paper, noise } })), [updateState]);
+  const onDiffuseChange = useCallback((diffuse: number) => updateState((s) => ({ ...s, paper: { ...s.paper, diffuse } })), [updateState]);
+  const onPaperNoiseChange = useCallback((paperNoise: number) => updateState((s) => ({ ...s, paper: { ...s.paper, paperNoise } })), [updateState]);
+  const onInkBleedChange = useCallback((inkBleed: number) => updateState((s) => ({ ...s, paper: { ...s.paper, inkBleed } })), [updateState]);
+  const onXeroxChange = useCallback((xerox: boolean) => updateState((s) => ({ ...s, paper: { ...s.paper, xerox } })), [updateState]);
+  const onXeroxAmountChange = useCallback((xeroxAmount: number) => updateState((s) => ({ ...s, paper: { ...s.paper, xeroxAmount } })), [updateState]);
+  const onXeroxOpacityChange = useCallback((xeroxOpacity: number) => updateState((s) => ({ ...s, paper: { ...s.paper, xeroxOpacity } })), [updateState]);
+  const onXeroxThresholdChange = useCallback((xeroxThreshold: number) => updateState((s) => ({ ...s, paper: { ...s.paper, xeroxThreshold } })), [updateState]);
+  const onAngleChange = useCallback((angle: number) => updateState((s) => ({ ...s, paper: { ...s.paper, angle } })), [updateState]);
+  const onScanEnabledChange = useCallback((scanEnabled: boolean) => updateState((s) => ({ ...s, paper: { ...s.paper, scanEnabled } })), [updateState]);
+  const onScanTextureChange = useCallback((scanTexture: typeof state.paper.scanTexture) => updateState((s) => ({ ...s, paper: { ...s.paper, scanTexture } })), [updateState]);
+  const onScanOpacityChange = useCallback((scanOpacity: number) => updateState((s) => ({ ...s, paper: { ...s.paper, scanOpacity } })), [updateState]);
+  const onScanScaleChange = useCallback((scanScale: number) => updateState((s) => ({ ...s, paper: { ...s.paper, scanScale } })), [updateState]);
   if (tab === 'sliders') {
     return (
       <div className="mobile-panel-section">
-        <SliderControl label="Grain" value={state.paper.noise} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, noise: v } }))} />
-        <SliderControl label="Diffuse" value={state.paper.diffuse} max={30} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, diffuse: v } }))} />
-        <SliderControl label="Dust" value={state.paper.paperNoise} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, paperNoise: v } }))} />
-        <SliderControl label="Ink Bleed" value={state.paper.inkBleed} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, inkBleed: v } }))} />
-        <CheckboxControl label="Xerox" checked={state.paper.xerox} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, xerox: v } }))} />
+        <SliderControl label="Grain" value={state.paper.noise} onChange={onNoiseChange} />
+        <SliderControl label="Diffuse" value={state.paper.diffuse} max={30} onChange={onDiffuseChange} />
+        <SliderControl label="Dust" value={state.paper.paperNoise} onChange={onPaperNoiseChange} />
+        <SliderControl label="Ink Bleed" value={state.paper.inkBleed} onChange={onInkBleedChange} />
+        <CheckboxControl label="Xerox" checked={state.paper.xerox} onChange={onXeroxChange} />
         {state.paper.xerox && (
           <>
-            <SliderControl label="Amount" value={state.paper.xeroxAmount} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, xeroxAmount: v } }))} />
-            <SliderControl label="Xerox Opacity" value={state.paper.xeroxOpacity} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, xeroxOpacity: v } }))} />
-            <SliderControl label="Threshold" value={state.paper.xeroxThreshold} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, xeroxThreshold: v } }))} />
+            <SliderControl label="Amount" value={state.paper.xeroxAmount} onChange={onXeroxAmountChange} />
+            <SliderControl label="Xerox Opacity" value={state.paper.xeroxOpacity} onChange={onXeroxOpacityChange} />
+            <SliderControl label="Threshold" value={state.paper.xeroxThreshold} onChange={onXeroxThresholdChange} />
           </>
         )}
       </div>
@@ -859,15 +661,15 @@ function PaperPanelContent({ state, updateState, tab }: PanelContentProps) {
         <KnobControl
           labels={{ top: '0°', left: '270°', right: '90°', bottom: '180°' }}
           value={state.paper.angle}
-          onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, angle: v } }))}
+          onChange={onAngleChange}
         />
       </div>
-      <CheckboxControl label="Scan Texture" checked={state.paper.scanEnabled} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, scanEnabled: v } }))} />
+      <CheckboxControl label="Scan Texture" checked={state.paper.scanEnabled} onChange={onScanEnabledChange} />
       {state.paper.scanEnabled && (
         <>
-          <ScanSelector value={state.paper.scanTexture} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, scanTexture: v } }))} />
-          <SliderControl label="Scan Opacity" value={state.paper.scanOpacity} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, scanOpacity: v } }))} />
-          <SliderControl label="Size" value={state.paper.scanScale} onChange={(v) => updateState((s) => ({ ...s, paper: { ...s.paper, scanScale: v } }))} />
+          <ScanSelector value={state.paper.scanTexture} onChange={onScanTextureChange} />
+          <SliderControl label="Scan Opacity" value={state.paper.scanOpacity} onChange={onScanOpacityChange} />
+          <SliderControl label="Size" value={state.paper.scanScale} onChange={onScanScaleChange} />
         </>
       )}
     </div>
@@ -885,6 +687,9 @@ function BlurPanelContent({ state, updateState }: PanelContentProps) {
   const ref = useRef<HTMLDivElement>(null);
   const b = state.blur;
   const selected = BLUR_TYPES.find((t) => t.id === b.type) ?? BLUR_TYPES[0];
+  const onStrengthChange = useCallback((strength: number) => updateState((s) => ({ ...s, blur: { ...s.blur, strength } })), [updateState]);
+  const onGrainChange = useCallback((grain: number) => updateState((s) => ({ ...s, blur: { ...s.blur, grain } })), [updateState]);
+  const onAngleChange = useCallback((angle: number) => updateState((s) => ({ ...s, blur: { ...s.blur, angle } })), [updateState]);
 
   React.useEffect(() => {
     if (!open) return;
@@ -931,27 +736,11 @@ function BlurPanelContent({ state, updateState }: PanelContentProps) {
           </div>
         </div>
       </div>
-      <SliderControl
-        label="Strength"
-        min={0}
-        max={100}
-        value={b.strength}
-        onChange={(v) => updateState((s) => ({ ...s, blur: { ...s.blur, strength: v } }))}
-      />
-      <SliderControl
-        label="Grain"
-        min={0}
-        max={100}
-        value={b.grain}
-        onChange={(v) => updateState((s) => ({ ...s, blur: { ...s.blur, grain: v } }))}
-      />
+      <SliderControl label="Strength" min={0} max={100} value={b.strength} onChange={onStrengthChange} />
+      <SliderControl label="Grain" min={0} max={100} value={b.grain} onChange={onGrainChange} />
       {b.type === 'motion' && (
         <div className="mobile-angle-tab mobile-knob-top">
-          <KnobControl
-            labels={{ top: '0°', left: '270°', right: '90°', bottom: '180°' }}
-            value={b.angle}
-            onChange={(v) => updateState((s) => ({ ...s, blur: { ...s.blur, angle: v } }))}
-          />
+          <KnobControl labels={{ top: '0°', left: '270°', right: '90°', bottom: '180°' }} value={b.angle} onChange={onAngleChange} />
         </div>
       )}
     </div>
@@ -968,6 +757,11 @@ function GlowPanelContent({ state, updateState, tab, openColor }: PanelContentPr
   const ref = React.useRef<HTMLDivElement>(null);
   const g = state.glow;
   const selected = GLOW_STYLES.find((s) => s.id === g.style) ?? GLOW_STYLES[0];
+  const onOriginalColorsChange = useCallback((v: boolean) => updateState((s) => ({ ...s, glow: { ...s.glow, useTint: !v } })), [updateState]);
+  const onTintColorChange = useCallback((v: string) => updateState((s) => ({ ...s, glow: { ...s.glow, tintColor: sanitizeHex(v, s.glow.tintColor) } })), [updateState]);
+  const onIntensityChange = useCallback((intensity: number) => updateState((s) => ({ ...s, glow: { ...s.glow, intensity } })), [updateState]);
+  const onThresholdChange = useCallback((threshold: number) => updateState((s) => ({ ...s, glow: { ...s.glow, threshold } })), [updateState]);
+  const onOpacityChange = useCallback((opacity: number) => updateState((s) => ({ ...s, glow: { ...s.glow, opacity } })), [updateState]);
 
   React.useEffect(() => {
     if (!open) return;
@@ -981,18 +775,9 @@ function GlowPanelContent({ state, updateState, tab, openColor }: PanelContentPr
   if (tab === 'colors') {
     return (
       <div className="mobile-panel-section">
-        <CheckboxControl
-          label="Original Colors"
-          checked={!g.useTint}
-          onChange={(v) => updateState((s) => ({ ...s, glow: { ...s.glow, useTint: !v } }))}
-        />
+        <CheckboxControl label="Original Colors" checked={!g.useTint} onChange={onOriginalColorsChange} />
         {g.useTint && (
-          <ColorSelectorControl
-            label="Tint"
-            value={g.tintColor}
-            onChange={(v) => updateState((s) => ({ ...s, glow: { ...s.glow, tintColor: sanitizeHex(v, s.glow.tintColor) } }))}
-            onMobileOpen={openColor}
-          />
+          <ColorSelectorControl label="Tint" value={g.tintColor} onChange={onTintColorChange} onMobileOpen={openColor} />
         )}
       </div>
     );
@@ -1031,27 +816,9 @@ function GlowPanelContent({ state, updateState, tab, openColor }: PanelContentPr
           </div>
         </div>
       </div>
-      <SliderControl
-        label="Intensity"
-        min={0}
-        max={100}
-        value={g.intensity}
-        onChange={(v) => updateState((s) => ({ ...s, glow: { ...s.glow, intensity: v } }))}
-      />
-      <SliderControl
-        label="Threshold"
-        min={0}
-        max={100}
-        value={g.threshold}
-        onChange={(v) => updateState((s) => ({ ...s, glow: { ...s.glow, threshold: v } }))}
-      />
-      <SliderControl
-        label="Opacity"
-        min={0}
-        max={100}
-        value={g.opacity}
-        onChange={(v) => updateState((s) => ({ ...s, glow: { ...s.glow, opacity: v } }))}
-      />
+      <SliderControl label="Intensity" min={0} max={100} value={g.intensity} onChange={onIntensityChange} />
+      <SliderControl label="Threshold" min={0} max={100} value={g.threshold} onChange={onThresholdChange} />
+      <SliderControl label="Opacity" min={0} max={100} value={g.opacity} onChange={onOpacityChange} />
     </div>
   );
 }
@@ -1184,16 +951,15 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
 
   const isCurrentFilterInLayers = layers.some((l) => l.id === state.activeFilter);
 
-  const openLayersPanel = () => {
-    prevExpandedRef.current = expanded;
-    setExpanded(true);
+  const openLayersPanel = useCallback(() => {
+    setExpanded((prev) => { prevExpandedRef.current = prev; return true; });
     setShowLayersPanel(true);
-  };
+  }, []);
 
-  const closeLayersPanel = () => {
+  const closeLayersPanel = useCallback(() => {
     setShowLayersPanel(false);
     setExpanded(prevExpandedRef.current);
-  };
+  }, []);
 
   React.useEffect(() => {
     if (!showFormatMenu) return;
@@ -1205,12 +971,11 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
     return () => document.removeEventListener('click', close);
   }, [showFormatMenu]);
 
-  const closeColorPicker = () => {
+  const closeColorPicker = useCallback(() => {
     setColorPickerClosing(true);
-  };
+  }, []);
 
-  const openColor: OpenColorFn = (label, value, onChange, swatchRect) => {
-    // Compute transform-origin relative to the panel so the picker expands from the swatch
+  const openColor: OpenColorFn = useCallback((label, value, onChange, swatchRect) => {
     let originX = '50%', originY = '50%';
     const panelEl = panelRef.current;
     if (panelEl) {
@@ -1223,17 +988,19 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
     setColorPickerClosing(false);
     setExpanded(true);
     setMobileColorPicker({ label, value, onChange, originX, originY });
-  };
+  }, []);
 
   const filterLabel = filterOptions.find((f) => f.id === state.activeFilter)?.label ?? '';
   const firstTabLabel = getFirstTabLabel(state.activeFilter);
   const secondTabLabel = getSecondTabLabel(state.activeFilter);
 
-  function switchTab(tab: MobileTab) {
+  const switchTab = useCallback((tab: MobileTab) => {
     const order: MobileTab[] = ['sliders', 'colors'];
-    setSlideDir(order.indexOf(tab) > order.indexOf(activeTab) ? 'forward' : 'back');
-    setActiveTab(tab);
-  }
+    setActiveTab((prev) => {
+      setSlideDir(order.indexOf(tab) > order.indexOf(prev) ? 'forward' : 'back');
+      return tab;
+    });
+  }, []);
 
   return (
     <div className={`mobile-sheet${(expanded || !!mobileColorPicker) ? ' expanded' : ''}${mobileColorPicker ? ' cp-open' : ''}`}>

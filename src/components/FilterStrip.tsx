@@ -48,8 +48,8 @@ export function FilterStrip({ activeFilter, onSelect }: FilterStripProps) {
                   }}
                 >
                   <div className="btn-thumbnail">
-                    <img src={filter.thumbnail} className="thumb-default" alt="" />
-                    {filter.hoverThumbnail ? <img src={filter.hoverThumbnail} className="thumb-hover" alt="" /> : null}
+                    <img src={filter.thumbnail} className="thumb-default" alt="" loading="lazy" decoding="async" />
+                    {filter.hoverThumbnail ? <img src={filter.hoverThumbnail} className="thumb-hover" alt="" loading="lazy" decoding="async" /> : null}
                   </div>
                   <div className="btn-bottom">
                     <div className="filter-icon">

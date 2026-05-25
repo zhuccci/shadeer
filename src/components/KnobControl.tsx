@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent } from 'react';
 import './KnobControl.css';
 
@@ -15,7 +15,7 @@ interface KnobControlProps {
 
 const wrapAngle = (angle: number) => ((angle % 360) + 360) % 360;
 
-export function KnobControl({ labels, value, onChange }: KnobControlProps) {
+export const KnobControl = memo(function KnobControl({ labels, value, onChange }: KnobControlProps) {
   const knobRef = useRef<HTMLDivElement | null>(null);
   const displayRef = useRef<HTMLInputElement | null>(null);
   const valueRef = useRef(value);
@@ -246,4 +246,4 @@ export function KnobControl({ labels, value, onChange }: KnobControlProps) {
       />
     </div>
   );
-}
+});
