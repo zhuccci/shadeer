@@ -532,20 +532,23 @@
     right: 16px;
   }
 
-  .controls-left,
-  .dither-right,
-  .halftone-right,
-  .se-right,
-  .glow-right,
-  .paper-right,
-  .heatmap-right {
+  /* #panelWrapper prefix raises specificity above panel-specific CSS files
+     (e.g. HalftonePanel.css) which load after EditorPanels.css and would
+     otherwise override these rules with their base -20px margin values. */
+  #panelWrapper .controls-left,
+  #panelWrapper .dither-right,
+  #panelWrapper .halftone-right,
+  #panelWrapper .se-right,
+  #panelWrapper .glow-right,
+  #panelWrapper .paper-right,
+  #panelWrapper .heatmap-right {
     padding-left: 16px;
     padding-right: 16px;
     margin-left: -16px;
     margin-right: -16px;
   }
 
-  .glitchy-scroll-area {
+  #panelWrapper .glitchy-scroll-area {
     padding-right: 16px;
     margin-right: -16px;
   }
