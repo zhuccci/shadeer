@@ -42,7 +42,6 @@
   background: #fff679;
   width: 0;
   margin-right: -6px;
-  transition: width 0.04s linear;
 }
 
 .slider-thumb {

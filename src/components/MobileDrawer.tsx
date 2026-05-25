@@ -1420,7 +1420,7 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
                     className="sheet-scroll"
                     onTouchStart={(e) => {
                       const t = e.target as HTMLElement;
-                      if (t.closest('.slider-track') || t.closest('.knob-area') || t.closest('.halftone-segment')) return;
+                      if (t.closest('.slider-track') || t.closest('.knob-area') || t.closest('.halftone-segment') || t.closest('button') || t.closest('input')) return;
                       swipeStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
                     }}
                     onTouchEnd={(e) => {
@@ -1428,7 +1428,7 @@ export function MobileDrawer({ state, updateState, onUpload, onSave, onFilterSel
                       const dx = e.changedTouches[0].clientX - swipeStart.current.x;
                       const dy = e.changedTouches[0].clientY - swipeStart.current.y;
                       swipeStart.current = null;
-                      if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 3) return;
+                      if (Math.abs(dx) < 80 || Math.abs(dx) < Math.abs(dy) * 3) return;
                       if (dx < 0 && activeTab === 'sliders') switchTab('colors');
                       if (dx > 0 && activeTab === 'colors') switchTab('sliders');
                     }}

@@ -456,6 +456,7 @@
 .sheet-scroll {
   overflow-y: auto;
   overscroll-behavior: contain;
+  touch-action: pan-y;
   scrollbar-width: thin;
   scrollbar-color: #373737 transparent;
   flex: 1;
