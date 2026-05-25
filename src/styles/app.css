@@ -62,8 +62,8 @@ button {
   inset: -12px;
   background-size: cover;
   background-position: center;
-  filter: blur(32px) saturate(1.4);
-  opacity: 0.28;
+  filter: blur(48px) saturate(1.2);
+  opacity: 0.08;
   pointer-events: none;
   z-index: 0;
   border-radius: 24px;
@@ -126,17 +126,21 @@ button {
 
   .sidebar {
     width: 500px;
-    padding: 16px 16px 24px;
+    padding: 16px;
     gap: 16px;
     border-radius: 32px;
   }
 
   .sidebar #panelWrapper {
-    margin-bottom: 8px;
+    margin-bottom: 0;
   }
 
   .sidebar .layers-panel {
-    margin-top: -8px;
+    margin-top: -16px;
+  }
+
+  .sidebar .layers-panel--visible {
+    margin-top: 0;
   }
 }
 

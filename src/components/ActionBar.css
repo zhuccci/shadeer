@@ -103,3 +103,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+@media (max-width: 1440px) {
+  .action-bar {
+    margin-top: -16px;
+  }
+}
