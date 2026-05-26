@@ -72,10 +72,12 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
     const H = Math.max(1, Math.round(W / ar));
 
     let prevCanvas: HTMLCanvasElement | null = null;
+    let preGlowHCanvas: HTMLCanvasElement | null = null;
 
     for (let i = 0; i < stack.length; i++) {
       const isLast = i === stack.length - 1;
       const filter = stack[i];
+      if (filter === 'glow_h') preGlowHCanvas = prevCanvas;
       const fitMode = isLast ? editorState.fitMode : 'fit';
       const offsetX = isLast ? editorState.offsetX : 0;
       const offsetY = isLast ? editorState.offsetY : 0;
@@ -89,6 +91,7 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
       if (isLast) {
         const mount = new ShaderMount(preview, config.fragmentShader, config.uniforms, undefined, config.speed, 0, previewMinPR, previewMaxPX);
         if (prevCanvas) mount.setTextureUniform(filter === 'glow' ? 'u_glow' : 'u_image', prevCanvas);
+        if (filter === 'glow' && preGlowHCanvas) mount.setTextureUniform('u_image', preGlowHCanvas);
         shaderMountRef.current = mount;
       } else {
         const div = document.createElement('div');
@@ -106,6 +109,7 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
         mount.uniformCache = {};
 
         if (prevCanvas) mount.setTextureUniform(filter === 'glow' ? 'u_glow' : 'u_image', prevCanvas);
+        if (filter === 'glow' && preGlowHCanvas) mount.setTextureUniform('u_image', preGlowHCanvas);
 
         intermediateMounts.push(mount);
         prevCanvas = mount.canvasElement;
@@ -181,9 +185,11 @@ export function useShaderPreview({ editorState, previewRef, shaderMountRef }: Us
 
         if (i > 0) {
           if (filter === 'glow') {
-            // u_glow is the pass-1 canvas — don't overwrite; u_image is original, keep it
-            const { u_glow: _g, ...otherUniforms } = config.uniforms as Record<string, unknown>;
-            mount.setUniforms(otherUniforms as UniformMap);
+            // u_glow is the glow_h canvas; when glow is chained (layers precede it),
+            // u_image is also a canvas and must be preserved alongside u_glow
+            const glowIsChained = renderStack.indexOf('glow') > 1;
+            const { u_glow: _g, u_image, ...rest } = config.uniforms as Record<string, unknown>;
+            mount.setUniforms(glowIsChained ? (rest as UniformMap) : ({ ...rest, u_image } as UniformMap));
           } else {
             // Don't overwrite the canvas texture for other chained mounts
             const { u_image: _img, ...otherUniforms } = config.uniforms as Record<string, unknown>;

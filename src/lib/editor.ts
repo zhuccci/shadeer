@@ -907,9 +907,11 @@ export async function renderVideoToBlob(
   const chainDivs: HTMLDivElement[] = [];
   const chainMounts: ShaderMount[] = [];
   let prevCanvas: HTMLCanvasElement | null = null;
+  let preGlowHCanvas: HTMLCanvasElement | null = null;
 
   for (let i = 0; i < renderStack.length; i++) {
     const filter = renderStack[i];
+    if (filter === 'glow_h') preGlowHCanvas = prevCanvas;
     const config =
       filter === 'blur_h'
         ? getBlurHPassConfig({ ...editorState, fitMode: 'fit', offsetX: 0, offsetY: 0 }, video)
@@ -948,6 +950,7 @@ export async function renderVideoToBlob(
     mount.uniformCache = {};
 
     if (prevCanvas) mount.setTextureUniform(filter === 'glow' ? 'u_glow' : 'u_image', prevCanvas);
+    if (filter === 'glow' && preGlowHCanvas) mount.setTextureUniform('u_image', preGlowHCanvas);
 
     if (mount.rafId !== null) { cancelAnimationFrame(mount.rafId); mount.rafId = null; }
     mount.lastRenderTime = 0;
@@ -1148,9 +1151,11 @@ export async function renderShaderToBlob(
   const allDivs: HTMLDivElement[] = [];
   const allMounts: ShaderMount[] = [];
   let prevCanvas: HTMLCanvasElement | null = null;
+  let preGlowHCanvas: HTMLCanvasElement | null = null;
 
   for (let i = 0; i < renderStack.length; i++) {
     const filter = renderStack[i];
+    if (filter === 'glow_h') preGlowHCanvas = prevCanvas;
     const config =
       filter === 'blur_h'
         ? getBlurHPassConfig({ ...state, fitMode: 'fit', offsetX: 0, offsetY: 0 }, sourceImage)
@@ -1205,6 +1210,7 @@ export async function renderShaderToBlob(
     mount.setUniformValues(passUniforms);
 
     if (prevCanvas) mount.setTextureUniform(filter === 'glow' ? 'u_glow' : 'u_image', prevCanvas);
+    if (filter === 'glow' && preGlowHCanvas) mount.setTextureUniform('u_image', preGlowHCanvas);
 
     mount.render(performance.now());
     if (mount.rafId !== null) { cancelAnimationFrame(mount.rafId); mount.rafId = null; }
@@ -1248,9 +1254,11 @@ export async function renderImageAsVideoToBlob(
   const allDivs: HTMLDivElement[] = [];
   const allMounts: ShaderMount[] = [];
   let prevCanvas: HTMLCanvasElement | null = null;
+  let preGlowHCanvas: HTMLCanvasElement | null = null;
 
   for (let i = 0; i < renderStack.length; i++) {
     const filter = renderStack[i];
+    if (filter === 'glow_h') preGlowHCanvas = prevCanvas;
     const config =
       filter === 'blur_h'
         ? getBlurHPassConfig({ ...state, fitMode: 'fit', offsetX: 0, offsetY: 0 }, sourceImage)
@@ -1284,6 +1292,7 @@ export async function renderImageAsVideoToBlob(
     mount.uniformCache = {};
 
     if (prevCanvas) mount.setTextureUniform(filter === 'glow' ? 'u_glow' : 'u_image', prevCanvas);
+    if (filter === 'glow' && preGlowHCanvas) mount.setTextureUniform('u_image', preGlowHCanvas);
     prevCanvas = canvas;
   }
 
