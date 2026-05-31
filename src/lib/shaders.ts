@@ -345,7 +345,7 @@ void main() {
   float grainOverlayStrength = pow(u_grainOverlay * abs(grainOverlayV), .8) * mask;
   color = mix(color, vec3(step(0., grainOverlayV)), .35 * grainOverlayStrength);
   opacity = clamp(opacity + .5 * grainOverlayStrength, 0., 1.);
-  fragColor = layerBlend(vec4(color, opacity) * image.a * frame);
+  fragColor = layerBlend(vec4(color, opacity) * frame);
 }`;
 
 export const GlassGridShapes = {
@@ -433,7 +433,7 @@ void main() {
   color += hightlight * (.5 + .5 * wavesNoise);
   opacity += hightlight * (.5 + .5 * wavesNoise);
   opacity = clamp(opacity, 0., 1.);
-  fragColor = layerBlend(vec4(color, opacity) * image.a * frame);
+  fragColor = layerBlend(vec4(color, opacity) * frame);
 }`;
 
 export const glitchyFragmentShader = `#version 300 es
