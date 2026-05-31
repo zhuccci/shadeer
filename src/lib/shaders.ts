@@ -1844,6 +1844,8 @@ export class ShaderMount {
     frame = 0,
     minPixelRatio = 2,
     maxPixelCount = DEFAULT_MAX_PX,
+    initialWidth?: number,
+    initialHeight?: number,
   ) {
     if (parentElement.nodeType !== 1) {
       throw new Error('Paper Shaders: parent must be HTMLElement');
@@ -1857,6 +1859,14 @@ export class ShaderMount {
     this.currentFrame = frame;
     this.minPixelRatio = minPixelRatio;
     this.maxPixelCount = maxPixelCount;
+
+    // Pre-size the canvas before creating the WebGL context so the context is
+    // created at the correct resolution. Without this, the canvas starts at the
+    // browser default (300×150) and is resized after context creation — a large
+    // post-creation resize (e.g. 300×150 → 2182×3879) can silently lose the
+    // WebGL context on Safari and some other environments.
+    if (initialWidth) this.canvasElement.width = initialWidth;
+    if (initialHeight) this.canvasElement.height = initialHeight;
 
     if (!this.ownerDocument.querySelector('style[data-paper-shader]')) {
       const style = this.ownerDocument.createElement('style');

@@ -937,6 +937,9 @@ export async function renderVideoToBlob(
       config.speed,
       previewMount.currentFrame,
       1,
+      undefined,
+      width,
+      height,
     );
     mount.resizeObserver?.disconnect();
     chainMounts.push(mount);
@@ -1194,6 +1197,8 @@ export async function renderShaderToBlob(
       shaderMount.currentFrame,
       1,
       outputWidth * outputHeight + 1,
+      outputWidth,
+      outputHeight,
     );
     mount.resizeObserver?.disconnect();
     allMounts.push(mount);
@@ -1279,6 +1284,7 @@ export async function renderImageAsVideoToBlob(
     const mount = new ShaderMount(
       div, config.fragmentShader, passUniforms,
       { preserveDrawingBuffer: true }, config.speed, shaderMount.currentFrame, 1,
+      undefined, width, height,
     );
     mount.resizeObserver?.disconnect();
     allMounts.push(mount);
